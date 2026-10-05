@@ -7,9 +7,8 @@ import { Donation } from '../models/donation.models';
 import { StatusMessageService } from '../shared/status-message.service';
 
 interface MonthGroup {
-  key: string;   // "current" | "other"
-  label: string; // "เดือนนี้" | "เดือนอื่นๆ"
-  totalAmount: number;
+  key: string;   // "current" | "previous"
+  label: string; // "เดือนนี้" | "เดือนที่แล้ว"
   donations: Donation[];
 }
 
@@ -55,36 +54,36 @@ export class DonationsPageComponent implements OnInit {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
+    const previousMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const previousYear = previousMonthDate.getFullYear();
+    const previousMonth = previousMonthDate.getMonth();
 
     const currentGroup: MonthGroup = {
       key: 'current',
       label: 'เดือนนี้',
-      totalAmount: 0,
       donations: []
     };
 
-    const otherGroup: MonthGroup = {
-      key: 'other',
-      label: 'เดือนอื่นๆ',
-      totalAmount: 0,
+    const previousGroup: MonthGroup = {
+      key: 'previous',
+      label: 'เดือนที่แล้ว',
       donations: []
     };
 
     for (const d of list) {
       const date = new Date(d.donatedAt);
       const isCurrentMonth = date.getFullYear() === currentYear && date.getMonth() === currentMonth;
+      const isPreviousMonth = date.getFullYear() === previousYear && date.getMonth() === previousMonth;
       if (isCurrentMonth) {
         currentGroup.donations.push(d);
-        currentGroup.totalAmount += d.amount;
-      } else {
-        otherGroup.donations.push(d);
-        otherGroup.totalAmount += d.amount;
+      } else if (isPreviousMonth) {
+        previousGroup.donations.push(d);
       }
     }
 
     const result: MonthGroup[] = [currentGroup];
-    if (otherGroup.donations.length > 0) {
-      result.push(otherGroup);
+    if (previousGroup.donations.length > 0) {
+      result.push(previousGroup);
     }
     return result;
   });
