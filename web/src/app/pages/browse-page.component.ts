@@ -148,7 +148,7 @@ export class BrowsePageComponent implements OnInit {
         const diff = (a.playTime! - b.playTime!) * (this.direction() === 'asc' ? 1 : -1);
         if (diff !== 0) return diff;
       }
-      return a.id.localeCompare(b.id);
+      return a.gameTitle.localeCompare(b.gameTitle, 'th', { sensitivity: 'base' });
     }
     const primary = field === 'updateDate'
       ? (Number.isNaN(Date.parse(a.updateDate)) ? Number.NEGATIVE_INFINITY : Date.parse(a.updateDate))

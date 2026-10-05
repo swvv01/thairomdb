@@ -232,10 +232,6 @@
   height: 2.5rem;
 }
 
-.sort-row button:hover {
-  background: var(--color-accent);
-}
-
 .control-autocomplete {
   position: relative;
   display: inline-flex;

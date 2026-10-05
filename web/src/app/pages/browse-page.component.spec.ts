@@ -253,6 +253,28 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(sorted.map((p) => p.id)).toEqual(['p-20', 'p-5', 'p-0', 'p-null']);
   });
 
+  it('uses game title as the secondary playTime sort in both directions', () => {
+    const patchesSignal = (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches;
+    patchesSignal.set([
+      { ...mockPatches[0], id: 'p-z', gameTitle: 'เกม ซ', playTime: 10 },
+      { ...mockPatches[1], id: 'p-a', gameTitle: 'เกม ก', playTime: 10 },
+      { ...mockPatches[2], id: 'p-zero-z', gameTitle: 'เกม ซ ศูนย์', playTime: 0 },
+      { ...mockPatches[0], id: 'p-zero-a', gameTitle: 'เกม ก ศูนย์', playTime: 0 }
+    ]);
+
+    const setFilters = (sortDirection: 'asc' | 'desc') => {
+      (component as unknown as { setFilters: (f: unknown) => void }).setFilters({
+        keyword: '', tag: null, translatorId: null, system: null,
+        sortBy: 'playTime', sortDirection
+      });
+      fixture.detectChanges();
+      return (component as unknown as { sortedPatches: () => Patch[] }).sortedPatches();
+    };
+
+    expect(setFilters('asc').map((p) => p.id)).toEqual(['p-a', 'p-z', 'p-zero-a', 'p-zero-z']);
+    expect(setFilters('desc').map((p) => p.id)).toEqual(['p-a', 'p-z', 'p-zero-a', 'p-zero-z']);
+  });
+
   it('reads sort=playTime from URL query params', () => {
     queryParamMapSubject.next(convertToParamMap({ sort: 'playTime' }));
     fixture.detectChanges();
@@ -601,5 +623,4 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
     expect(systems).toEqual(['PORT', 'PortMaster']);
   });
 });
-
 
