@@ -37,7 +37,7 @@
             @if (translatorAutocompleteOpen && filteredTranslatorOptions().length > 0) {
             <ul id="translator-options" class="tag-autocomplete__list" role="listbox">
               @for (translator of filteredTranslatorOptions(); track translator.id) {
-              <li><button class="button" type="button" role="option" (click)="selectTranslator(translator)">{{
+              <li><button class="button" type="button" role="option" (click)="selectTranslator(translator)"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>{{
                   translatorLabel(translator)
                   }}</button></li>
               }
@@ -47,7 +47,7 @@
             }
           </div>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="openTranslatorDialog()"
-            [disabled]="loadingData">เพิ่มทีมแปล</button>
+            [disabled]="loadingData"><i class="fa-solid fa-user-plus mr-1" aria-hidden="true"></i>เพิ่มทีมแปล</button>
         </div>
         <div>
           <label class="required"><i class="fa-solid fa-display mr-1" aria-hidden="true"></i>เครื่องเกม</label>
@@ -60,7 +60,7 @@
             @if (systemAutocompleteOpen && filteredSystemOptions().length > 0) {
             <ul id="system-options" class="tag-autocomplete__list" role="listbox">
               @for (system of filteredSystemOptions(); track system.id) {
-              <li><button type="button" class="button" role="option" (click)="selectSystem(system)">{{
+              <li><button type="button" class="button" role="option" (click)="selectSystem(system)"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>{{
                   systemLabel(system)
                   }}</button></li>
               }
@@ -70,13 +70,13 @@
             }
           </div>
           <button class="mt-2 border  px-3 py-2 font-bold button" type="button" (click)="openSystemDialog()"
-            [disabled]="loadingData">เพิ่มเครื่องเกม</button>
+            [disabled]="loadingData"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>เพิ่มเครื่องเกม</button>
         </div>
         <div>
           <label class="required"><i class="fa-solid fa-gamepad mr-1" aria-hidden="true"></i>ชื่อเกม<input
               class="admin-input" formControlName="gameTitle" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('gameTitle')"
-            [disabled]="pastingField === 'gameTitle' || loadingData">{{ pastingField === 'gameTitle' ? 'กำลังวาง…' :
+            [disabled]="pastingField === 'gameTitle' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'gameTitle' ? 'กำลังวาง…' :
             'Clipboard' }}</button>
         </div>
         <div [class.pointer-events-none]="loadingData" [class.opacity-50]="loadingData">
@@ -90,7 +90,7 @@
               #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.1" min="0"
               placeholder="เช่น 15 หรือ 0.5" (focus)="playTimeInput.select()" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
-            [disabled]="loadingData">HowLongToBeat</button>
+            [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1" aria-hidden="true"></i>HowLongToBeat</button>
         </div>
 
         <div>
@@ -98,29 +98,24 @@
               class="admin-input" formControlName="patchTool" /></label>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setDefaultPatchTool()"
-              [disabled]="loadingData">Default</button>
+              [disabled]="loadingData"><i class="fa-solid fa-wand-magic-sparkles mr-1" aria-hidden="true"></i>Default</button>
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setRomPatcherTool()"
-              [disabled]="loadingData">RomPatcher.js</button>
+              [disabled]="loadingData"><i class="fa-solid fa-toolbox mr-1" aria-hidden="true"></i>RomPatcher.js</button>
             <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchTool')"
-              [disabled]="pastingField === 'patchTool' || loadingData">{{ pastingField === 'patchTool' ? 'กำลังวาง…' :
-              'Clipboard' }}</button>
+              [disabled]="pastingField === 'patchTool' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'patchTool' ? 'กำลังวาง…' : 'Clipboard' }}</button>
           </div>
         </div>
         <div>
           <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch<input class="admin-input"
               formControlName="patchFileUrl" type="url" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
-            [disabled]="pastingField === 'patchFileUrl' || loadingData">{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…'
-            :
-            'Clipboard' }}</button>
+            [disabled]="pastingField === 'patchFileUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
         <div>
           <label><i class="fa-solid fa-file-code mr-1" aria-hidden="true"></i>ROM<input class="admin-input"
               formControlName="patchedRomUrl" type="url" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchedRomUrl')"
-            [disabled]="pastingField === 'patchedRomUrl' || loadingData">{{ pastingField === 'patchedRomUrl' ?
-            'กำลังวาง…' :
-            'Clipboard' }}</button>
+            [disabled]="pastingField === 'patchedRomUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'patchedRomUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
 
         <div>
@@ -129,9 +124,7 @@
             <input class="admin-input" formControlName="referenceUrl" type="url" />
           </label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('referenceUrl')"
-            [disabled]="pastingField === 'referenceUrl' || loadingData">{{ pastingField === 'referenceUrl' ? 'กำลังวาง…'
-            :
-            'Clipboard' }}</button>
+            [disabled]="pastingField === 'referenceUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'referenceUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
         <label>
           <i class="fa-solid fa-quote-left mr-1" aria-hidden="true"></i>Reference Text
@@ -141,22 +134,19 @@
           <label><i class="fa-solid fa-book-open mr-1" aria-hidden="true"></i>บทสรุป<input class="admin-input"
               formControlName="walkthroughUrl" type="url" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('walkthroughUrl')"
-            [disabled]="pastingField === 'walkthroughUrl' || loadingData">{{ pastingField === 'walkthroughUrl' ?
-            'กำลังวาง…'
-            :
-            'Clipboard' }}</button>
+            [disabled]="pastingField === 'walkthroughUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1" aria-hidden="true"></i>{{ pastingField === 'walkthroughUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
 
         <fieldset class="border border-slate-600 p-3 relative">
           <legend><i class="fa-solid fa-tags mr-1" aria-hidden="true"></i>หมวดหมู่</legend>
           <button class="mb-3 border px-3 py-2 font-bold button" type="button" (click)="createTag()"
-            [disabled]="!newTagName.trim() || loadingData">เพิ่ม tag ใหม่</button>
+            [disabled]="!newTagName.trim() || loadingData"><i class="fa-solid fa-tag mr-1" aria-hidden="true"></i>เพิ่ม tag ใหม่</button>
 
           @if (selectedTags.length > 0) {
           <ul class="selected-tags" aria-label="tag ที่เลือก">
             @for (tag of selectedTags; track tag) {
             <li>{{ tagName(tag) }} <button class="no-button" type="button" (click)="removeTag(tag)"
-                [attr.aria-label]="'ลบ tag ' + tagName(tag)" [disabled]="loadingData">x</button></li>
+                [attr.aria-label]="'ลบ tag ' + tagName(tag)" [disabled]="loadingData"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></li>
             }
           </ul>
           }
@@ -168,7 +158,7 @@
             @if (tagAutocompleteOpen && filteredTagSuggestions().length > 0) {
             <ul class="tag-autocomplete__list" role="listbox">
               @for (tag of filteredTagSuggestions(); track tag.id) {
-              <li><button class="button" type="button" role="option" (click)="selectTag(tag)">{{ tag.name }}</button>
+              <li><button class="button" type="button" role="option" (click)="selectTag(tag)"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>{{ tag.name }}</button>
               </li>
               }
             </ul>
@@ -190,16 +180,16 @@
           <label><i class="fa-solid fa-calendar-days mr-1" aria-hidden="true"></i>วันที่และเวลาอัปเดต<input
               class="admin-input" formControlName="updateDate" type="datetime-local" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
-            [disabled]="loadingData">ตอนนี้</button>
+            [disabled]="loadingData"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>ตอนนี้</button>
         </div>
         <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between">
           <button class="w-fit  px-5 py-3 font-bold text-ink disabled:opacity-50 button btn-primary" type="submit"
             [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ? 'กำลังบันทึกแพตช์…'
             :
-            'บันทึกแพตช์' }}</button>
+            'บันทึกแพตช์' }}<i class="fa-solid ml-1" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving" [class.fa-spin]="saving" aria-hidden="true"></i></button>
           @if (editId) {
           <button class="w-fit  px-5 py-3 font-bold disabled:opacity-50 button btn-danger" type="button"
-            [disabled]="saving || loadingData" (click)="deletePatch()">ลบแพตช์</button>
+            [disabled]="saving || loadingData" (click)="deletePatch()"><i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>ลบแพตช์</button>
           }
         </div>
       </form>
@@ -217,9 +207,9 @@
           class="admin-input" [value]="newSystemName" (input)="newSystemName = $any($event.target).value" /></label>
       <div class="mt-5 flex gap-2">
         <button class="border   px-3 py-2 font-bold text-ink disabled:opacity-50 button" type="button"
-          (click)="createSystem()" [disabled]="savingSystem">{{ savingSystem ? 'กำลังบันทึก…' : 'บันทึก' }}</button>
+          (click)="createSystem()" [disabled]="savingSystem">{{ savingSystem ? 'กำลังบันทึก…' : 'บันทึก' }}<i class="fa-solid fa-floppy-disk ml-1" aria-hidden="true"></i></button>
         <button class="border border-slate-300 px-3 py-2 font-bold text-[var(--color-text)] button" type="button"
-          (click)="closeSystemDialog()">ยกเลิก</button>
+          (click)="closeSystemDialog()"><i class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก</button>
       </div>
     </section>
   </div>
@@ -244,8 +234,8 @@
       <div class="mt-5 flex gap-2"><button class="border  px-3 py-2 font-bold disabled:opacity-50 button" type="button"
           (click)="createTranslator()" [disabled]="savingTranslator">{{ savingTranslator ? 'กำลังบันทึก…'
           : 'บันทึก'
-          }}</button><button class="border border-slate-300 px-3 py-2 font-bold button" type="button"
-          (click)="closeTranslatorDialog()">ยกเลิก</button></div>
+          }}<i class="fa-solid fa-floppy-disk ml-1" aria-hidden="true"></i></button><button class="border border-slate-300 px-3 py-2 font-bold button" type="button"
+          (click)="closeTranslatorDialog()"><i class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก</button></div>
     </section>
   </div>
   }

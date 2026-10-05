@@ -1,12 +1,15 @@
 <input #coverFile id="cover-file" class="hidden" type="file" accept="image/*" (change)="select($event)" />
 
 <button class="mr-2 mt-2 px-3 py-2 font-bold transition button" type="button" (click)="searchCoverImage()">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
     ค้นหารูปภาพ
 </button>
 <button class="mr-2 mt-2 px-3 py-2 font-bold transition button" type="button" (click)="readFromClipboard()">
+    <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
     Clipboard
 </button>
 <button class="mr-2 mt-2 px-3 py-2 font-bold transition button" type="button" (click)="coverFile.click()">
+    <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>
     เลือกไฟล์
 </button>
 
