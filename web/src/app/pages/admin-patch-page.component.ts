@@ -336,7 +336,7 @@ export class AdminPatchPageComponent {
       if (selectedSystem) this.systemSearchText = this.systemLabel(selectedSystem);
       const patchTags = Array.isArray(patch.tags) ? patch.tags : [];
       this.selectedTags = patchTags.filter((tagId) => this.tagSuggestions.some((tag) => tag.id === tagId));
-      if (patch.playTime == null || (patch.playTime as unknown) === '' || Number(patch.playTime) <= 0) {
+      if (patch.playTime == null || (patch.playTime as unknown) === '' || Number(patch.playTime) < 0) {
         shouldScrollToPlayTime = true;
       }
     } finally {

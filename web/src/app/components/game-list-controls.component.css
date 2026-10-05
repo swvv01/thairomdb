@@ -1,5 +1,8 @@
 :host {
+  box-sizing: border-box;
   display: block;
+  max-width: 100%;
+  min-width: 0;
   width: 100%;
 }
 
@@ -17,7 +20,7 @@
   gap: 0.55rem;
   max-width: 100%;
   min-height: 2.5rem;
-  overflow: hidden;
+  overflow-x: clip;
   padding: 0 0 0 0.75rem;
   width: 100%;
 }
@@ -109,9 +112,12 @@
 .sort-row__titlebar {
   align-items: center;
   background: var(--color-surface);
+  box-sizing: border-box;
   color: var(--color-highlight);
   display: flex;
+  flex: 1 1 100%;
   justify-content: space-between;
+  min-width: 0;
   position: relative;
   padding: 0.4rem 0.6rem;
   width: 100%;
@@ -125,6 +131,14 @@
   left: 50%;
   position: absolute;
   transform: translateX(-50%);
+  max-width: calc(100% - 4rem);
+  min-width: 0;
+}
+
+.sort-row__text {
+  overflow-wrap: break-word;
+  text-align: center;
+  white-space: normal;
 }
 
 .sort-row__icon {
@@ -166,9 +180,11 @@
   justify-content: flex-end;
   margin: 0.75rem 0 0;
   max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   width: 100%;
   border: 1px solid var(--color-shadow);
-  box-shadow: 2px 2px var(--color-shadow);
+  box-shadow: 2px 1px var(--color-shadow);
 }
 
 .sort-field {
@@ -202,7 +218,7 @@
 
 .sort-row button {
   background: var(--color-surface);
-  border: 1px solid var(--color-shadow);
+  border: none;
   box-sizing: border-box;
   color: var(--color-text);
   cursor: pointer;

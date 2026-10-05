@@ -68,7 +68,7 @@
     </nav>
     }
     <div class="mode-toggle-section">
-      <a routerLink="/" [queryParams]="currentFilterQueryParams()" class="mode-toggle-link"
+      <a href="/" (click)="switchMode($event, '/')" class="mode-toggle-link"
         aria-label="สลับไปโหมดโหลดต่อเนื่อง">
         <span>สลับไปโหมดโหลดต่อเนื่อง</span>
       </a>
@@ -90,7 +90,7 @@
       </div>
       }
       }
-      <a routerLink="/page" [queryParams]="currentFilterQueryParams()" class="mode-toggle-link"
+      <a href="/page" (click)="switchMode($event, '/page')" class="mode-toggle-link"
         aria-label="สลับไปโหมดแบ่งหน้า">
         <span>สลับไปโหมดแบ่งหน้า</span>
       </a>

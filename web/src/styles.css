@@ -1173,3 +1173,7 @@ a,
 .button {
   text-decoration: none;
 }
+
+*:not(i) {
+  font-weight: normal !important;
+}

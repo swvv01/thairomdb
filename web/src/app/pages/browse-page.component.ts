@@ -321,6 +321,13 @@ export class BrowsePageComponent implements OnInit {
     if (filters.sortDirection !== 'desc') params['dir'] = filters.sortDirection;
     return params;
   });
+  protected switchMode(event: MouseEvent, route: string): void {
+    event.preventDefault();
+    const scrollY = window.scrollY;
+    this.router.navigate([route], { queryParams: this.currentFilterQueryParams() }).then(() => {
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    });
+  }
   protected loadMore(): void {
     if (!this.hasMore()) return;
     this.currentPage.update((page) => page + 1);
