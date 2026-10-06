@@ -1,7 +1,3 @@
-## AI Workflow -- Spec-driven development
-
-Use the full workflow in `rules/ai-workflow.md` only when the user explicitly requests it. Otherwise, proceed directly to implementation regardless of change size or scope.
-
 ### AGENTS.md content-splitting rule
 
 Split a section out of this file into its own `rules/*.md` file (referenced back with a plain backtick path, e.g. `` `rules/foo.md` `` — not an `@`-import, which auto-loads into every session's context and wastes tokens on unrelated tasks) when **both** of these hold:
