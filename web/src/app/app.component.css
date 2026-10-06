@@ -323,7 +323,7 @@
   }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 901px) {
   .app-shell {
     align-items: stretch;
     display: grid;

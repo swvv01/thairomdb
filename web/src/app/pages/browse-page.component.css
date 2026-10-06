@@ -340,7 +340,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .browse-route-label {
     padding-left: 2rem;
     padding-right: 2rem;

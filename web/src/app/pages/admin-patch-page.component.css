@@ -168,7 +168,7 @@ label.required::before {
   padding-bottom: 34pt;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .form-actions {
     padding-right: 3.5rem;
   }
