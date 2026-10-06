@@ -167,7 +167,8 @@ Surface  border  text  accent</pre>
         <div class="button-row"><button class="button button--primary" type="button"
             (click)="showToast('success')">Success</button><button class="button button--secondary" type="button"
             (click)="showToast('info')">Info</button><button class="button button--danger" type="button"
-            (click)="showToast('error')">Error</button></div>
+            (click)="showToast('error')">Error</button><button class="button button--secondary" type="button"
+            (click)="showUpdateToast()">Update</button></div>
       </article>
       <article class="sample-panel">
         <h3>Loading</h3><button class="button button--primary" type="button" [disabled]="loading()"

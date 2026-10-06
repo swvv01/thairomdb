@@ -55,4 +55,18 @@ describe('StatusMessageService', () => {
     // original timer should have expired at 5000ms, but second message does not auto-dismiss
     expect(service.message()).toEqual({ text: 'ข้อความที่สอง', tone: 'error' });
   }));
+
+  it('should support message action configuration', () => {
+    const onClick = jasmine.createSpy('onClick');
+    service.show('มีเวอร์ชันใหม่', 'info', {
+      autoDismiss: false,
+      action: { label: 'อัปเดต', onClick }
+    });
+
+    const current = service.message();
+    expect(current?.text).toBe('มีเวอร์ชันใหม่');
+    expect(current?.action?.label).toBe('อัปเดต');
+    current?.action?.onClick?.();
+    expect(onClick).toHaveBeenCalled();
+  });
 });

@@ -85,6 +85,99 @@
   color: var(--color-shadow);
 }
 
+.status-message-content {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .status-message-content {
+    align-items: center;
+  }
+}
+
+.status-message-body {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.status-message-text {
+  word-break: break-word;
+}
+
+.status-message-action {
+  align-items: center;
+  background: var(--color-highlight);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  color: var(--color-highlight-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  justify-content: center;
+  line-height: 1.25;
+  padding: 0.15rem 0.65rem;
+  text-decoration: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.status-message-action:hover:not(:disabled) {
+  background: var(--color-accent-hover, var(--color-highlight));
+}
+
+.status-message-action:active:not(:disabled) {
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  transform: translate(1px, 1px);
+}
+
+.status-message-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.status-message-close {
+  align-items: center;
+  align-self: flex-start;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid currentColor;
+  color: currentColor;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 1rem;
+  height: 1.5rem;
+  justify-content: center;
+  line-height: 1;
+  min-height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0;
+  transition: background-color 0.15s ease;
+  width: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .status-message-close {
+    align-self: center;
+  }
+}
+
+.status-message-close:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.status-message-close:active {
+  background: rgba(0, 0, 0, 0.55);
+  transform: translate(1px, 1px);
+}
+
 .app-content {
   position: relative;
   background-color: var(--color-surface-light);
@@ -200,6 +293,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background: none;
+  border: none;
 }
 
 .retro-rail-link:hover,

@@ -34,6 +34,22 @@ export class AdminSamplePageComponent {
     this.status.show(text, tone, false);
   }
 
+  protected showUpdateToast(): void {
+    this.status.show('มีเวอร์ชันใหม่พร้อมใช้งาน กรุณากดอัปเดตเพื่อรีเฟรชหน้าเว็บ', 'info', {
+      autoDismiss: false,
+      action: {
+        label: 'อัปเดต',
+        busyLabel: 'กำลังอัปเดต...',
+        onClick: () => {
+          this.status.show('กำลังจำลองการอัปเดต...', 'info', { autoDismiss: true });
+          window.setTimeout(() => {
+            this.status.show('อัปเดตเวอร์ชันใหม่เสร็จแล้ว', 'success', { autoDismiss: true });
+          }, 1200);
+        }
+      }
+    });
+  }
+
   protected async simulateLoading(): Promise<void> {
     if (this.loading()) return;
     this.loading.set(true);

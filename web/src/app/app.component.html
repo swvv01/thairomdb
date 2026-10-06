@@ -322,19 +322,28 @@
     </div>
     }
     @if (statusMessage(); as message) {
-    <div class="status-message flex items-center gap-2 border-b border-black px-4 py-2 font-bold sm:px-6"
+    <div class="status-message flex items-start sm:items-center justify-between gap-3 border-b border-black px-4 py-2 font-bold sm:px-6"
       [class.status-message--info]="message.tone === 'info'" [class.status-message--error]="message.tone === 'error'"
       [class.status-message--success]="message.tone === 'success'" role="status" aria-live="polite">
-      <span class="grid h-5 w-5 place-items-center rounded-full border border-current" aria-hidden="true">{{
-        message.tone === 'error' ? '!' : message.tone === 'success' ? '✓' : 'i' }}</span>
-      {{ message.text }}
-      @if (appUpdateReady()) {
-      <button class="retro-system-button ml-auto" type="button" [disabled]="updatingApp()" (click)="updateApp()">
-        {{ updatingApp() ? 'กำลังอัปเดต...' : 'อัปเดต' }}
-      </button>
-      }
-      <button class="ml-auto text-xl leading-none no-button" type="button" (click)="dismissStatusMessage()"
-        aria-label="Dismiss message">x</button>
+      <div class="status-message-content flex items-start sm:items-center gap-2 min-w-0">
+        <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current text-xs mt-0.5 sm:mt-0" aria-hidden="true">{{
+          message.tone === 'error' ? '!' : message.tone === 'success' ? '✓' : 'i' }}</span>
+        <div class="status-message-body flex flex-wrap items-center gap-2 min-w-0">
+          <span class="status-message-text">{{ message.text }}</span>
+          @if (message.action; as action) {
+          <button class="status-message-action" type="button" [disabled]="action.disabled || updatingApp()"
+            (click)="action.onClick ? action.onClick() : updateApp()">
+            {{ updatingApp() ? (action.busyLabel || action.label) : action.label }}
+          </button>
+          } @else if (appUpdateReady()) {
+          <button class="status-message-action" type="button" [disabled]="updatingApp()" (click)="updateApp()">
+            {{ updatingApp() ? 'กำลังอัปเดต...' : 'อัปเดต' }}
+          </button>
+          }
+        </div>
+      </div>
+      <button class="status-message-close shrink-0 self-start sm:self-center" type="button" (click)="dismissStatusMessage()"
+        aria-label="Dismiss message">✕</button>
     </div>
     }
 

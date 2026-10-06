@@ -2,13 +2,22 @@ import { Injectable, signal } from '@angular/core';
 
 export type StatusMessageTone = 'info' | 'success' | 'error';
 
+export interface StatusMessageAction {
+  label: string;
+  onClick?: () => void;
+  busyLabel?: string;
+  disabled?: boolean;
+}
+
 export interface StatusMessage {
   text: string;
   tone: StatusMessageTone;
+  action?: StatusMessageAction;
 }
 
 export interface StatusMessageOptions {
   autoDismiss?: boolean;
+  action?: StatusMessageAction;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -27,9 +36,16 @@ export class StatusMessageService {
     const autoDismiss = typeof autoDismissOrOptions === 'boolean'
       ? autoDismissOrOptions
       : (autoDismissOrOptions.autoDismiss ?? true);
+    const action = typeof autoDismissOrOptions === 'object'
+      ? autoDismissOrOptions.action
+      : undefined;
 
     this.clearDismissTimer();
-    this.currentMessage.set({ text, tone });
+    const msg: StatusMessage = { text, tone };
+    if (action) {
+      msg.action = action;
+    }
+    this.currentMessage.set(msg);
     if (autoDismiss) {
       this.dismissTimer = setTimeout(() => {
         this.currentMessage.set(null);
