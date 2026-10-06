@@ -1,9 +1,11 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
 import { ImageProcessorService } from '../services/image-processor.service';
+import { ImageCropperModalComponent } from './image-cropper-modal.component';
 
 @Component({
   selector: 'app-cover-input',
   standalone: true,
+  imports: [ImageCropperModalComponent],
   templateUrl: './cover-input.component.html',
   styleUrl: './cover-input.component.css'
 })
@@ -14,6 +16,9 @@ export class CoverInputComponent {
   private readonly processor = inject(ImageProcessorService);
   protected readonly preview = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly rawBlob = signal<Blob | null>(null);
+  protected readonly isCropped = signal(false);
+  protected readonly cropperOpen = signal(false);
   @ViewChild('coverFile') private coverFile?: ElementRef<HTMLInputElement>;
 
   clear(): void {
@@ -21,6 +26,9 @@ export class CoverInputComponent {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     this.preview.set(null);
     this.error.set(null);
+    this.rawBlob.set(null);
+    this.isCropped.set(false);
+    this.cropperOpen.set(false);
     if (this.coverFile) this.coverFile.nativeElement.value = '';
   }
 
@@ -73,10 +81,39 @@ export class CoverInputComponent {
     }
   }
 
-  protected async process(source: Blob): Promise<void> {
+  protected openCropper(): void {
+    if (this.rawBlob()) {
+      this.cropperOpen.set(true);
+    }
+  }
+
+  protected closeCropper(): void {
+    this.cropperOpen.set(false);
+  }
+
+  protected async onCropped(blob: Blob): Promise<void> {
+    this.closeCropper();
+    this.isCropped.set(true);
+    await this.process(blob, false);
+  }
+
+  protected async resetToOriginal(): Promise<void> {
+    const raw = this.rawBlob();
+    if (raw) {
+      await this.process(raw, true);
+    }
+  }
+
+  protected async process(source: Blob, isNewRaw = true): Promise<void> {
     this.error.set(null);
     try {
+      if (isNewRaw) {
+        this.rawBlob.set(source);
+        this.isCropped.set(false);
+      }
       const result = await this.processor.process(source);
+      const oldPreview = this.preview();
+      if (oldPreview) URL.revokeObjectURL(oldPreview);
       this.preview.set(URL.createObjectURL(result.blob));
       this.selected.emit(result.blob);
     } catch (error) {

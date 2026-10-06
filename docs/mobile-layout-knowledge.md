@@ -115,12 +115,12 @@
 
 ## 3. Desktop Padding Isolation (การแยก Padding ระหว่าง Desktop กับ Mobile)
 
-บนหน้าจอ Desktop (`min-width: 769px`):
+บนหน้าจอ Desktop (`min-width: 901px`):
 - `.app-shell` เป็น CSS Grid และ `<header class="app-header">` อยู่ใน Normal Document Flow (ไม่ได้เป็น `position: fixed`)
 - หากคลาสแม่ `.retro-rail` กำหนด `padding: 5rem ...` จะส่งผลให้เมนูบน Desktop ถูกดันลงมา 5rem เกิดช่องว่างเปล่าด้านบนโดยไม่จำเป็น
-- **วิธีแก้:** ต้องรีเซ็ต `padding-top: 1rem;` ภายใต้ `@media (min-width: 769px)` เสมอ:
+- **วิธีแก้:** ต้องรีเซ็ต `padding-top: 1rem;` ภายใต้ `@media (min-width: 901px)` เสมอ:
 ```css
-@media (min-width: 769px) {
+@media (min-width: 901px) {
   .retro-rail {
     display: flex;
     flex-direction: column;
@@ -185,3 +185,27 @@
    - ไอคอนทั้งซ้ายและขวาจะได้ `padding-top: 0.65rem` เท่ากับข้อความ
    - ได้พื้นที่แตะสัมผัส (Touch Target) สูง 44px ครบถ้วนตามมาตรฐานมือถือ
    - เส้น Baseline ของข้อความและไอคอนทั้งหมดจะวางอยู่บนเส้นระนาบเดียวกันอย่างสมบูรณ์
+
+---
+
+## 5. Breakpoint Collision Prevention (การป้องกันการชนกันของ Media Query ช่วงรอยต่อ)
+
+### 5.1 ปัญหาของ Breakpoint Overlap (Dead-zone ช่วง 769px - 900px)
+ในระบบเดิม มีการตั้งค่า Media Query ที่ทับซ้อนกัน:
+- `@media (min-width: 769px)` สำหรับเปิดใช้งาน 2-Column CSS Grid (`grid-template-columns: 288px minmax(0, 1fr);`)
+- `@media (max-width: 900px)` สำหรับเปิดใช้งาน Mobile Drawer ซ่อน Sidebar เป็น `display: none;` หรือ `position: fixed;` และแสดงปุ่ม Hamburger
+
+**ผลลัพธ์เมื่อหน้าจอกว้าง 769px - 900px:**
+- ทั้งสองเงื่อนไขทำงานพร้อมกัน
+- ตามพฤติกรรมของ CSS Grid เมื่อลูกตัวแรก (`.retro-rail`) กลายเป็น `display: none` หรือหลุดจาก Normal Flow ด้วย `position: fixed` ตัวลูกถัดไป (`.app-content`) จะถูกเลื่อนเข้ามาอยู่ใน Track ที่ 1 แทน
+- Track ที่ 1 มีความกว้างคงที่เพียง `288px` ทำให้คอนเทนต์ทั้งหน้าเว็บ (เช่น หน้า `/add` หรือหน้าต่างๆ) ถูกบีบอัดจนเหลือความกว้างเพียง 288px ชิดซ้าย และเกิดพื้นที่ว่างเปล่าขนาดใหญ่ทางขวามือ
+
+### 5.2 มาตรฐาน Breakpoint ที่ถูกต้องสำหรับระบบ
+เพื่อให้แน่ใจว่าจะไม่เกิดช่องว่างหรือการชนกันของเลย์เอาต์:
+1. **จับคู่ Breakpoint อย่างเคร่งครัด:**
+   - **Mobile / Drawer:** `@media (max-width: 900px)`
+   - **Desktop Grid:** `@media (min-width: 901px)` (ห้ามใช้ `769px` เป็นอันขาด)
+   - **Desktop Wide (3-Column):** `@media (min-width: 1200px)`
+2. **Component ย่อยต้องใช้ Breakpoint เดียวกัน:**
+   - องค์ประกอบที่มีการปรับตำแหน่งบน Mobile เช่น ปุ่มลอย (`.floating-action`, `.browse-floating-actions`), ระยะของแถบฟอร์ม (`.form-actions`), หรือหัวข้อ Route Label ต้องใช้ `@media (max-width: 900px)` ให้สอดคล้องกันทั้งแอปพลิเคชัน
+

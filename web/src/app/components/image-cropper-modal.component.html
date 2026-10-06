@@ -1,0 +1,63 @@
+<div class="admin-dialog-backdrop cropper-backdrop" role="presentation" (click)="cancelled.emit()">
+  <section class="admin-dialog cropper-dialog" role="dialog" aria-modal="true" aria-labelledby="cropper-title"
+    (click)="$event.stopPropagation()">
+    <header class="cropper-header">
+      <h2 id="cropper-title" class="cropper-title">
+        <i class="fa-solid fa-crop-simple mr-1" aria-hidden="true"></i>ครอบตัดรูปภาพ
+      </h2>
+      <button class="button px-2 py-1" type="button" (click)="cancelled.emit()" aria-label="ปิด">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <div class="cropper-workspace">
+      <div #stageRef class="crop-stage" (pointerdown)="onStagePointerDown($event)">
+        @if (imageUrl()) {
+          <img #stageImg class="crop-img" [src]="imageUrl()" alt="Source image for cropping"
+            (load)="onImageLoaded()" />
+        }
+
+        <div class="crop-box" [style.left.px]="box().x" [style.top.px]="box().y"
+          [style.width.px]="box().w" [style.height.px]="box().h"
+          (pointerdown)="onPointerDown($event, 'move')">
+
+          <!-- Edge Drag Hitboxes -->
+          <div class="edge-zone edge-n" (pointerdown)="onPointerDown($event, 'n')"></div>
+          <div class="edge-zone edge-s" (pointerdown)="onPointerDown($event, 's')"></div>
+          <div class="edge-zone edge-w" (pointerdown)="onPointerDown($event, 'w')"></div>
+          <div class="edge-zone edge-e" (pointerdown)="onPointerDown($event, 'e')"></div>
+
+          <!-- Corner Handles -->
+          <div class="crop-handle handle-nw" (pointerdown)="onPointerDown($event, 'nw')"></div>
+          <div class="crop-handle handle-ne" (pointerdown)="onPointerDown($event, 'ne')"></div>
+          <div class="crop-handle handle-sw" (pointerdown)="onPointerDown($event, 'sw')"></div>
+          <div class="crop-handle handle-se" (pointerdown)="onPointerDown($event, 'se')"></div>
+
+          <!-- Midpoint Handles -->
+          <div class="crop-handle handle-n" (pointerdown)="onPointerDown($event, 'n')"></div>
+          <div class="crop-handle handle-s" (pointerdown)="onPointerDown($event, 's')"></div>
+          <div class="crop-handle handle-w" (pointerdown)="onPointerDown($event, 'w')"></div>
+          <div class="crop-handle handle-e" (pointerdown)="onPointerDown($event, 'e')"></div>
+        </div>
+
+        @if (cropWidthPx() > 0 && cropHeightPx() > 0) {
+          <div class="size-badge">{{ cropWidthPx() }} x {{ cropHeightPx() }} px</div>
+        }
+      </div>
+    </div>
+
+    <footer class="cropper-footer">
+      <button class="button px-3 py-2 font-bold" type="button" (click)="resetSelection()">
+        <i class="fa-solid fa-expand mr-1" aria-hidden="true"></i>เลือกทั้งหมด
+      </button>
+      <div class="cropper-footer-actions">
+        <button class="button px-3 py-2 font-bold" type="button" (click)="cancelled.emit()">
+          <i class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก
+        </button>
+        <button class="button button--accent px-3 py-2 font-bold" type="button" (click)="confirmCrop()">
+          <i class="fa-solid fa-check mr-1" aria-hidden="true"></i>ครอบตัด
+        </button>
+      </div>
+    </footer>
+  </section>
+</div>

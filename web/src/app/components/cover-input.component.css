@@ -5,3 +5,12 @@
   object-fit: cover;
   width: 250px;
 }
+
+.cover-preview-wrapper {
+  max-width: 250px;
+}
+
+.button--accent {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}

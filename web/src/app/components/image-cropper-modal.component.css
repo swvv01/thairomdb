@@ -1,0 +1,189 @@
+:host {
+  display: contents;
+}
+
+.cropper-backdrop {
+  z-index: 50;
+}
+
+.cropper-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  padding: 0;
+  width: min(96vw, 36rem);
+}
+
+.cropper-header {
+  align-items: center;
+  background: var(--color-surface-light);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.cropper-title {
+  color: var(--color-highlight);
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.cropper-workspace {
+  align-items: center;
+  background: var(--color-shadow);
+  display: flex;
+  justify-content: center;
+  max-height: 60vh;
+  min-height: 16rem;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.crop-stage {
+  cursor: crosshair;
+  display: inline-block;
+  line-height: 0;
+  position: relative;
+  touch-action: none;
+}
+
+.crop-img {
+  display: block;
+  max-height: 56vh;
+  max-width: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.crop-box {
+  border: 2px dashed var(--color-highlight);
+  box-shadow: 0 0 0 9999px var(--color-overlay);
+  box-sizing: border-box;
+  cursor: move;
+  position: absolute;
+  touch-action: none;
+}
+
+.crop-box::before {
+  border-bottom: 1px dotted var(--color-border);
+  border-top: 1px dotted var(--color-border);
+  bottom: 33.33%;
+  content: '';
+  left: 0;
+  opacity: 0.6;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 33.33%;
+}
+
+.crop-box::after {
+  border-left: 1px dotted var(--color-border);
+  border-right: 1px dotted var(--color-border);
+  bottom: 0;
+  content: '';
+  left: 33.33%;
+  opacity: 0.6;
+  pointer-events: none;
+  position: absolute;
+  right: 33.33%;
+  top: 0;
+}
+
+/* Edge Hitboxes (for dragging sides) */
+.edge-zone {
+  position: absolute;
+  touch-action: none;
+  z-index: 10;
+}
+
+.edge-n {
+  cursor: ns-resize;
+  height: 1rem;
+  left: 0;
+  right: 0;
+  top: -0.5rem;
+}
+
+.edge-s {
+  bottom: -0.5rem;
+  cursor: ns-resize;
+  height: 1rem;
+  left: 0;
+  right: 0;
+}
+
+.edge-w {
+  bottom: 0;
+  cursor: ew-resize;
+  left: -0.5rem;
+  top: 0;
+  width: 1rem;
+}
+
+.edge-e {
+  bottom: 0;
+  cursor: ew-resize;
+  right: -0.5rem;
+  top: 0;
+  width: 1rem;
+}
+
+/* Visual Handles */
+.crop-handle {
+  background: var(--color-accent);
+  border: 1px solid var(--color-shadow);
+  box-sizing: border-box;
+  position: absolute;
+  touch-action: none;
+  z-index: 15;
+}
+
+/* Corner Handles: 14px */
+.handle-nw { cursor: nwse-resize; height: 0.9rem; left: -0.45rem; top: -0.45rem; width: 0.9rem; }
+.handle-ne { cursor: nesw-resize; height: 0.9rem; right: -0.45rem; top: -0.45rem; width: 0.9rem; }
+.handle-sw { bottom: -0.45rem; cursor: nesw-resize; height: 0.9rem; left: -0.45rem; width: 0.9rem; }
+.handle-se { bottom: -0.45rem; cursor: nwse-resize; height: 0.9rem; right: -0.45rem; width: 0.9rem; }
+
+/* Midpoint Handles: 10px */
+.handle-n { cursor: ns-resize; height: 0.65rem; left: calc(50% - 0.325rem); top: -0.325rem; width: 0.65rem; }
+.handle-s { bottom: -0.325rem; cursor: ns-resize; height: 0.65rem; left: calc(50% - 0.325rem); width: 0.65rem; }
+.handle-w { cursor: ew-resize; height: 0.65rem; left: -0.325rem; top: calc(50% - 0.325rem); width: 0.65rem; }
+.handle-e { cursor: ew-resize; height: 0.65rem; right: -0.325rem; top: calc(50% - 0.325rem); width: 0.65rem; }
+
+.size-badge {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  bottom: 0.5rem;
+  color: var(--color-highlight);
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.45rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0.5rem;
+  z-index: 20;
+}
+
+.cropper-footer {
+  align-items: center;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.cropper-footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button--accent {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}

@@ -9,12 +9,12 @@
 ### 1.1 โครงสร้าง 3 คอลัมน์ (CSS Grid)
 โครงสร้างหลักของเว็บไซต์ใน `web/src/app/app.component.html` จัดวางด้วย CSS Grid ดังนี้:
 
-- **Desktop (≥ 1200px):**
+- **Desktop Wide (≥ 1200px):**
   - คอลัมน์ที่ 1: `288px` (Left Navigation Rail: `.retro-rail`)
   - คอลัมน์ที่ 2: `minmax(0, 1fr)` (Center Content Area: `.app-content`)
   - คอลัมน์ที่ 3: `288px` (Right Ad Sidebar: `.right-ad-sidebar`)
-- **Tablet (769px - 1199px):** 2 คอลัมน์ (`288px minmax(0, 1fr)`) ซ่อนแถบโฆษณาด้านขวา
-- **Mobile (≤ 768px):** คอลัมน์เดียว เมนูเปลี่ยนเป็น Drawer/Off-canvas
+- **Desktop Normal (901px - 1199px):** 2 คอลัมน์ (`288px minmax(0, 1fr)`) ซ่อนแถบโฆษณาด้านขวา
+- **Mobile / Small Screen (≤ 900px):** คอลัมน์เดียวเต็มความกว้าง เมนูซ้ายซ่อนเป็น Drawer/Off-canvas พร้อมปุ่ม Hamburger บน Header
 
 ### 1.2 การป้องกัน Content ทะลุ / ล้นทับ Sidebar (Overflow Prevention)
 เมื่อหน้าจอคอมพิวเตอร์อยู่ในช่วง 1200px - 1450px คอลัมน์กลางจะมีพื้นที่เหลือประมาณ 600px - 750px ซึ่งแคบกว่าปกติ
@@ -113,6 +113,17 @@
   </button>
 </div>
 ```
+
+### 3.4 Admin Master Single-Column Pattern
+ในหน้า CRUD ข้อมูล Master กลางของฝั่ง Admin ที่ใช้งาน Component กลาง `AdminMasterPageComponent` (`<app-admin-master-page>`):
+- **หน้าที่ใช้งานร่วมกัน:**
+  - `/admin/systems` (จัดการเครื่องเกม)
+  - `/admin/translators` (จัดการทีมแปล)
+  - `/admin/tags` (จัดการแท็ก)
+  - `/admin/sidebar-links` (จัดการลิงก์ sidebar)
+- **มาตรฐาน Layout ของรายการ Card:**
+  - กำหนดให้ `.master-card-grid` แสดงผลเป็น **1 คอลัมน์เดี่ยว (`grid-template-columns: 1fr;`) ในทุกขนาดหน้าจอ**
+  - **เหตุผล:** เพื่อป้องกันไม่ให้ข้อมูลสำคัญ (เช่น ชื่อย่อ, ชื่อเต็มภาษาไทยขนาดยาว, ลิงก์ URL, และปุ่มแก้ไข/ลบ) ถูกบีบอัดจนตกบรรทัดหรือเกิดปัญหา layout เบียดเสียดกันเมื่อมีหลายคอลัมน์
 
 ---
 
