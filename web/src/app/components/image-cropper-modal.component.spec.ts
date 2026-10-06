@@ -48,6 +48,24 @@ describe('ImageCropperModalComponent', () => {
     expect(component['cropHeightPx']()).toBe(400);
   });
 
+  it('restores selection from initialCrop correctly', () => {
+    component['stageImgRef'] = {
+      nativeElement: {
+        clientWidth: 300,
+        clientHeight: 200,
+        naturalWidth: 600,
+        naturalHeight: 400
+      } as unknown as HTMLImageElement
+    };
+    // scaleX = 600/300 = 2, scaleY = 400/200 = 2
+    // Natural rect: x=40, y=60, w=200, h=300 -> Display rect: x=20, y=30, w=100, h=150
+    component['restoreSelection']({ x: 40, y: 60, w: 200, h: 300 });
+
+    expect(component['box']()).toEqual({ x: 20, y: 30, w: 100, h: 150 });
+    expect(component['cropWidthPx']()).toBe(200);
+    expect(component['cropHeightPx']()).toBe(300);
+  });
+
   it('resizes box via edge handle when dragged', () => {
     component['stageImgRef'] = {
       nativeElement: {

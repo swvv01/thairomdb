@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
 import { ImageProcessorService } from '../services/image-processor.service';
-import { ImageCropperModalComponent } from './image-cropper-modal.component';
+import { CropRect, CropResult, ImageCropperModalComponent } from './image-cropper-modal.component';
 
 @Component({
   selector: 'app-cover-input',
@@ -19,6 +19,7 @@ export class CoverInputComponent {
   protected readonly rawBlob = signal<Blob | null>(null);
   protected readonly isCropped = signal(false);
   protected readonly cropperOpen = signal(false);
+  protected readonly lastCrop = signal<CropRect | null>(null);
   @ViewChild('coverFile') private coverFile?: ElementRef<HTMLInputElement>;
 
   clear(): void {
@@ -29,6 +30,7 @@ export class CoverInputComponent {
     this.rawBlob.set(null);
     this.isCropped.set(false);
     this.cropperOpen.set(false);
+    this.lastCrop.set(null);
     if (this.coverFile) this.coverFile.nativeElement.value = '';
   }
 
@@ -91,15 +93,17 @@ export class CoverInputComponent {
     this.cropperOpen.set(false);
   }
 
-  protected async onCropped(blob: Blob): Promise<void> {
+  protected async onCropped(result: CropResult): Promise<void> {
     this.closeCropper();
+    this.lastCrop.set(result.cropRect);
     this.isCropped.set(true);
-    await this.process(blob, false);
+    await this.process(result.blob, false);
   }
 
   protected async resetToOriginal(): Promise<void> {
     const raw = this.rawBlob();
     if (raw) {
+      this.lastCrop.set(null);
       await this.process(raw, true);
     }
   }
@@ -110,6 +114,7 @@ export class CoverInputComponent {
       if (isNewRaw) {
         this.rawBlob.set(source);
         this.isCropped.set(false);
+        this.lastCrop.set(null);
       }
       const result = await this.processor.process(source);
       const oldPreview = this.preview();

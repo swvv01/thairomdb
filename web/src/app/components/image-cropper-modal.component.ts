@@ -1,5 +1,17 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild, signal } from '@angular/core';
 
+export interface CropRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface CropResult {
+  blob: Blob;
+  cropRect: CropRect;
+}
+
 interface CropBox {
   x: number;
   y: number;
@@ -15,7 +27,8 @@ interface CropBox {
 })
 export class ImageCropperModalComponent implements OnInit, OnDestroy {
   @Input({ required: true }) imageBlob!: Blob;
-  @Output() readonly cropped = new EventEmitter<Blob>();
+  @Input() initialCrop?: CropRect | null;
+  @Output() readonly cropped = new EventEmitter<CropResult>();
   @Output() readonly cancelled = new EventEmitter<void>();
 
   @ViewChild('stageRef') private stageRef?: ElementRef<HTMLElement>;
@@ -47,7 +60,13 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   }
 
   protected onImageLoaded(): void {
-    requestAnimationFrame(() => this.resetSelection());
+    requestAnimationFrame(() => {
+      if (this.initialCrop) {
+        this.restoreSelection(this.initialCrop);
+      } else {
+        this.resetSelection();
+      }
+    });
   }
 
   protected resetSelection(): void {
@@ -57,6 +76,21 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     const w = img.clientWidth;
     const h = img.clientHeight;
     this.updateBox({ x: 0, y: 0, w, h });
+  }
+
+  protected restoreSelection(rect: CropRect): void {
+    const img = this.stageImgRef?.nativeElement;
+    if (!img || img.clientWidth <= 0 || img.clientHeight <= 0) return;
+
+    const scaleX = img.naturalWidth / img.clientWidth;
+    const scaleY = img.naturalHeight / img.clientHeight;
+
+    const x = Math.round(rect.x / scaleX);
+    const y = Math.round(rect.y / scaleY);
+    const w = Math.round(rect.w / scaleX);
+    const h = Math.round(rect.h / scaleY);
+
+    this.updateBox({ x, y, w, h });
   }
 
   protected onStagePointerDown(event: PointerEvent): void {
@@ -193,6 +227,8 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     const sw = Math.max(1, Math.min(img.naturalWidth - sx, Math.round(currentBox.w * scaleX)));
     const sh = Math.max(1, Math.min(img.naturalHeight - sy, Math.round(currentBox.h * scaleY)));
 
+    const cropRect: CropRect = { x: sx, y: sy, w: sw, h: sh };
+
     const canvas = document.createElement('canvas');
     canvas.width = sw;
     canvas.height = sh;
@@ -205,7 +241,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
 
     canvas.toBlob((blob) => {
       if (blob) {
-        this.cropped.emit(blob);
+        this.cropped.emit({ blob, cropRect });
       }
     }, 'image/png');
   }

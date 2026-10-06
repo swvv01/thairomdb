@@ -37,5 +37,5 @@
 @if (error()) { <p class="mt-2 text-[var(--color-brand)]" role="alert">{{ error() }}</p> }
 
 @if (cropperOpen() && rawBlob()) {
-  <app-image-cropper-modal [imageBlob]="rawBlob()!" (cropped)="onCropped($event)" (cancelled)="closeCropper()" />
+  <app-image-cropper-modal [imageBlob]="rawBlob()!" [initialCrop]="lastCrop()" (cropped)="onCropped($event)" (cancelled)="closeCropper()" />
 }

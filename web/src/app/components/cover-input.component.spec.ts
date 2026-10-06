@@ -40,6 +40,7 @@ describe('CoverInputComponent', () => {
 
     expect(component['rawBlob']()).toBe(rawBlob);
     expect(component['isCropped']()).toBeFalse();
+    expect(component['lastCrop']()).toBeNull();
     expect(component['preview']()).toBeTruthy();
     expect(selectSpy).toHaveBeenCalled();
   });
@@ -53,36 +54,41 @@ describe('CoverInputComponent', () => {
     expect(component['cropperOpen']()).toBeFalse();
   });
 
-  it('handles cropped image, keeps original rawBlob, and sets isCropped to true', async () => {
+  it('handles cropped image, keeps original rawBlob, and remembers lastCrop', async () => {
     const originalBlob = new Blob(['original'], { type: 'image/png' });
     const croppedBlob = new Blob(['cropped'], { type: 'image/png' });
+    const cropRect = { x: 10, y: 20, w: 100, h: 150 };
 
     component['rawBlob'].set(originalBlob);
     component['cropperOpen'].set(true);
 
-    await component['onCropped'](croppedBlob);
+    await component['onCropped']({ blob: croppedBlob, cropRect });
 
     expect(component['cropperOpen']()).toBeFalse();
     expect(component['isCropped']()).toBeTrue();
+    expect(component['lastCrop']()).toEqual(cropRect);
     expect(component['rawBlob']()).toBe(originalBlob);
     expect(mockProcessor.process).toHaveBeenCalledWith(croppedBlob);
   });
 
-  it('resets to original raw image on resetToOriginal()', async () => {
+  it('resets to original raw image and clears lastCrop on resetToOriginal()', async () => {
     const originalBlob = new Blob(['original'], { type: 'image/png' });
     component['rawBlob'].set(originalBlob);
     component['isCropped'].set(true);
+    component['lastCrop'].set({ x: 10, y: 20, w: 100, h: 150 });
 
     await component['resetToOriginal']();
 
     expect(component['isCropped']()).toBeFalse();
+    expect(component['lastCrop']()).toBeNull();
     expect(mockProcessor.process).toHaveBeenCalledWith(originalBlob);
   });
 
-  it('clears preview, rawBlob, isCropped, and cropperOpen on clear()', () => {
+  it('clears preview, rawBlob, isCropped, cropperOpen, and lastCrop on clear()', () => {
     component['rawBlob'].set(new Blob(['test'], { type: 'image/png' }));
     component['isCropped'].set(true);
     component['cropperOpen'].set(true);
+    component['lastCrop'].set({ x: 10, y: 20, w: 100, h: 150 });
 
     component.clear();
 
@@ -90,5 +96,6 @@ describe('CoverInputComponent', () => {
     expect(component['rawBlob']()).toBeNull();
     expect(component['isCropped']()).toBeFalse();
     expect(component['cropperOpen']()).toBeFalse();
+    expect(component['lastCrop']()).toBeNull();
   });
 });
