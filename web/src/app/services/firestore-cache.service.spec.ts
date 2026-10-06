@@ -94,4 +94,25 @@ describe('FirestoreCacheService', () => {
       }
     });
   });
+
+  it('returns cached data immediately when navigator.onLine is false even if cache is stale', (done) => {
+    const cachedData = [{ id: '1', name: 'PS1' }];
+    const staleTime = Date.now() - (24 * 60 * 60 * 1000);
+    window.localStorage.setItem(storageKey, JSON.stringify({
+      savedAt: staleTime,
+      value: cachedData
+    }));
+
+    spyOnProperty(navigator, 'onLine', 'get').and.returnValue(false);
+
+    let loadFreshCalled = false;
+    service.get('systems', () => {
+      loadFreshCalled = true;
+      return of<Array<{ id: string; name: string }>>([]);
+    }).subscribe((data) => {
+      expect(data).toEqual(cachedData);
+      expect(loadFreshCalled).toBeFalse();
+      done();
+    });
+  });
 });

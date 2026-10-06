@@ -26,5 +26,19 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "cover-images",
+      "urls": [
+        "https://pub-6ba6c842bf76437db39aeb21dc0f37e2.r2.dev/**",
+        "https://firebasestorage.googleapis.com/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 500,
+        "maxAge": "30d",
+        "strategy": "performance"
+      }
+    }
   ]
 }

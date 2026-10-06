@@ -44,17 +44,23 @@ export class PatchRepository {
 
   clearCache(): void { this.patchCache.clear(); }
 
-  getById(id: string): Promise<Patch | undefined> {
-    return new Promise((resolve, reject) => {
-      from(get(ref(this.database, `${this.patches}/${id}`))).pipe(
-        map((snapshot) => {
-          if (!snapshot.exists()) return undefined;
-          const row = snapshot.val() as Record<string, unknown>;
-          return { ...row, id, haveUpdateFlag: row['haveUpdateFlag'] === true } as Patch;
-        }),
-        catchError(() => throwError(() => new RepositoryError('ไม่สามารถโหลดข้อมูลแพตช์ได้', 'read')))
-      ).subscribe({ next: resolve, error: reject, complete: () => resolve(undefined) });
-    });
+  async getById(id: string): Promise<Patch | undefined> {
+    try {
+      const snapshot = await get(ref(this.database, `${this.patches}/${id}`));
+      if (!snapshot.exists()) return undefined;
+      const row = snapshot.val() as Record<string, unknown>;
+      return { ...row, id, haveUpdateFlag: row['haveUpdateFlag'] === true } as Patch;
+    } catch {
+      // Offline fallback: check from cached list
+      const cached = await new Promise<Patch | undefined>((resolve) => {
+        this.watchAll().subscribe({
+          next: (patches) => resolve(patches.find((p) => p.id === id)),
+          error: () => resolve(undefined)
+        });
+      });
+      if (cached) return cached;
+      throw new RepositoryError('ไม่สามารถโหลดข้อมูลแพตช์ได้', 'read');
+    }
   }
 
   async create(draft: PatchDraft, coverUrl: string, id?: string): Promise<string> {

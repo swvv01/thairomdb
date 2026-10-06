@@ -1,0 +1,1 @@
+npx http-server dist/cloudflare -p 8080

@@ -151,6 +151,11 @@
   position: fixed;
   right: 1rem;
   z-index: 10;
+  transition: bottom .2s ease;
+}
+
+.browse-floating-actions--elevated {
+  bottom: 5rem;
 }
 
 .browse-floating-actions>* {

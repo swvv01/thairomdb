@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Observable, catchError, defer, of, shareReplay, tap } from 'rxjs';
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-type CacheKey = 'patches' | 'translators' | 'tags' | 'systems' | 'sidebarLinks';
+type CacheKey = 'patches' | 'translators' | 'tags' | 'systems' | 'sidebarLinks' | 'articles';
 
 interface CacheEntry<T> { savedAt: number; value: T; }
 type CacheTimestamps = Record<CacheKey, number | null>;
@@ -11,7 +11,7 @@ type CacheTimestamps = Record<CacheKey, number | null>;
 export class FirestoreCacheService {
   private readonly memory = new Map<CacheKey, Observable<unknown>>();
   private readonly forceFreshKeys = new Set<CacheKey>();
-  private readonly timestamps = signal<CacheTimestamps>({ patches: null, translators: null, tags: null, systems: null, sidebarLinks: null });
+  private readonly timestamps = signal<CacheTimestamps>({ patches: null, translators: null, tags: null, systems: null, sidebarLinks: null, articles: null });
 
   timestamp(key: CacheKey): number | null {
     const current = this.timestamps()[key];
@@ -34,7 +34,7 @@ export class FirestoreCacheService {
   }
 
   invalidateAll(): void {
-    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks'] as const).forEach((key) => this.invalidate(key));
+    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.invalidate(key));
   }
 
   get<T>(key: CacheKey, loadFresh: () => Observable<T>): Observable<T> {
@@ -45,15 +45,19 @@ export class FirestoreCacheService {
     if (entry) this.timestamps.update((timestamps) => ({ ...timestamps, [key]: entry.savedAt }));
 
     const isForced = this.forceFreshKeys.delete(key);
-    const source = (!entry || isStale || isForced)
-      ? defer(loadFresh).pipe(
-          tap((value) => this.write(key, value)),
-          catchError((error) => {
-            if (entry) return of(entry.value);
-            throw error;
-          })
-        )
-      : of(entry.value);
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+
+    const source = (entry && isOffline)
+      ? of(entry.value)
+      : (!entry || isStale || isForced)
+        ? defer(loadFresh).pipe(
+            tap((value) => this.write(key, value)),
+            catchError((error) => {
+              if (entry) return of(entry.value);
+              throw error;
+            })
+          )
+        : of(entry.value);
     const shared = source.pipe(
       shareReplay({ bufferSize: 1, refCount: false }),
       catchError((error) => { this.memory.delete(key); throw error; })
@@ -70,7 +74,7 @@ export class FirestoreCacheService {
   }
 
   clearAll(): void {
-    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks'] as const).forEach((key) => this.clear(key));
+    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.clear(key));
   }
 
   private storageKey(key: CacheKey): string { return `rom-collector:realtime-database:${key}`; }

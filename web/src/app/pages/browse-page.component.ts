@@ -11,6 +11,7 @@ import { BrowseRouteKind, isPortMasterSystem, normalizeBrowseName } from '../sha
 import { SystemMaster, SystemRepository } from '../repositories/system.repository';
 import { PatchCacheService } from '../services/patch-cache.service';
 import { TagRepository } from '../repositories/tag.repository';
+import { StatusMessageService } from '../shared/status-message.service';
 
 @Component({
   selector: 'app-browse-page',
@@ -28,9 +29,12 @@ export class BrowsePageComponent implements OnInit {
   private readonly tagRepository = inject(TagRepository);
   private readonly systemRepository = inject(SystemRepository);
   private readonly patchCache = inject(PatchCacheService);
+  private readonly statusMessageService = inject(StatusMessageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
+  protected readonly isOffline = signal(typeof navigator !== 'undefined' && !navigator.onLine);
+  protected readonly hasBottomBanner = computed(() => this.isOffline() || !!this.statusMessageService.message());
   private lastClearAllRequest = this.filterState.clearAllRequested();
   protected readonly patches = signal<Patch[]>([]);
   protected readonly keyword = signal('');
@@ -346,6 +350,16 @@ export class BrowsePageComponent implements OnInit {
 
   protected updateBackToTopVisibility(): void {
     this.showBackToTop.set(typeof window !== 'undefined' && window.scrollY > 400);
+  }
+
+  @HostListener('window:online')
+  protected onOnline(): void {
+    this.isOffline.set(false);
+  }
+
+  @HostListener('window:offline')
+  protected onOffline(): void {
+    this.isOffline.set(true);
   }
 
   ngOnInit(): void {

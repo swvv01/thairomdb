@@ -5,6 +5,10 @@ import { SettingsRepository } from '../repositories/settings.repository';
 import { StatusMessageService } from '../shared/status-message.service';
 
 export const maintenanceGuard: CanActivateFn = async () => {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return true; // เมื่อออฟไลน์ อนุญาตให้อ่านข้อมูลจากแคชได้ทันที
+  }
+
   const settingsRepo = inject(SettingsRepository);
   const authService = inject(AuthService);
   const router = inject(Router);

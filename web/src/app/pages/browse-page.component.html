@@ -100,7 +100,7 @@
   </div>
 
   @if (auth.isAdmin() || showBackToTop()) {
-  <div class="browse-floating-actions">
+  <div class="browse-floating-actions" [class.browse-floating-actions--elevated]="hasBottomBanner()">
     @if (auth.isAdmin()) {
     <a class="floating-action button btn-primary" routerLink="/add" aria-label="เพิ่มเกม">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
