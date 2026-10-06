@@ -19,10 +19,12 @@
       <span class="sort-row__icon" aria-hidden="true">🔍</span>
       <span class="sort-row__text">ตัวกรองและจัดเรียง</span>
     </div>
-    <button type="button" class="win98-ctrl-btn sort-toggle" [class.sort-row__close-btn]="!sortCollapsed"
-      [class.sort-row__minimize-btn]="!sortCollapsed" [class.sort-row__restore-btn]="sortCollapsed"
-      [class.sort-toggle--closed]="sortCollapsed" (click)="toggleSort(); $event.stopPropagation()"
-      [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'"><i class="fa-solid" [class.fa-angle-down]="sortCollapsed" [class.fa-angle-up]="!sortCollapsed" aria-hidden="true"></i></button>
+    <button type="button" class="win98-ctrl-btn sort-toggle sort-row-button"
+      [class.sort-row__close-btn]="!sortCollapsed" [class.sort-row__minimize-btn]="!sortCollapsed"
+      [class.sort-row__restore-btn]="sortCollapsed" [class.sort-toggle--closed]="sortCollapsed"
+      (click)="toggleSort(); $event.stopPropagation()"
+      [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'"><i class="fa-solid"
+        [class.fa-angle-down]="sortCollapsed" [class.fa-angle-up]="!sortCollapsed" aria-hidden="true"></i></button>
   </div>
 
   <div class="sort-row__content">
@@ -100,7 +102,7 @@
         <option value="system">เครื่องเกม</option>
         <option value="playTime">ความยาวเกม</option>
       </select>
-      <button type="button" class="button"
+      <button type="button" class="sort-row-button button"
         (click)="draft.sortDirection = draft.sortDirection === 'asc' ? 'desc' : 'asc'; emit()">{{ draft.sortDirection
         === 'asc' ? 'น้อย → มาก' : 'มาก → น้อย' }}</button>
     </div>

@@ -181,7 +181,7 @@
   margin: 0.75rem 0 0;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   border: 1px solid var(--color-shadow);
   box-shadow: 2px 1px var(--color-shadow);
@@ -216,7 +216,7 @@
   flex-wrap: nowrap;
 }
 
-.sort-row button {
+.sort-row-button {
   background: var(--color-surface);
   border: none;
   box-sizing: border-box;
@@ -234,8 +234,11 @@
 
 .control-autocomplete {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
 }
 
 .control-autocomplete__input {
@@ -286,8 +289,9 @@
   top: 100%;
   left: 0;
   z-index: 50;
+  box-sizing: border-box;
   width: 100%;
-  min-width: 13rem;
+  min-width: 0;
   max-height: 16rem;
   overflow-y: auto;
   margin: 0.25rem 0 0;
@@ -299,12 +303,15 @@
 }
 
 .control-autocomplete__list li {
+  box-sizing: border-box;
   margin: 0;
+  width: 100%;
 }
 
 .control-autocomplete__option {
   background: transparent !important;
   border: none !important;
+  box-sizing: border-box;
   box-shadow: none !important;
   color: var(--color-text);
   cursor: pointer;
@@ -314,6 +321,10 @@
   padding: 0.55rem 0.65rem !important;
   text-align: left;
   width: 100%;
+}
+
+.control-autocomplete__option button {
+  width: 100% !important;
 }
 
 .control-autocomplete__option:hover,
