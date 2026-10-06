@@ -51,6 +51,12 @@
       [tags]="tags()" [canEdit]="auth.isAdmin()" />
 
     @if (isPageMode()) {
+    @if (currentPage() === totalPages()) {
+    <div class="load-more-end" aria-live="polite">
+      <span class="load-more-end-icon" aria-hidden="true">★</span>
+      <span>แสดงรายการทั้งหมดครบแล้ว ({{ sortedPatches().length }} เกม)</span>
+    </div>
+    }
     @if (totalPages() > 1) {
     <nav class="pagination pagination--bottom" aria-label="การแบ่งหน้ารายการแพตช์">
       <button type="button" class="pagination__button pagination__step_button" [disabled]="currentPage() === 1"

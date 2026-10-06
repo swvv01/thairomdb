@@ -459,6 +459,21 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
     expect(modeToggle.getAttribute('routerLink')).toBe('/');
     expect(modeToggle.textContent).toContain('สลับไปโหมดโหลดต่อเนื่อง');
   });
+
+  it('renders load-more-end message only on the last page in pageMode', () => {
+    // mockPatches has 25 items, pageSize = 10, totalPages = 3
+    fixture.detectChanges();
+    // On page 1: shouldn't show load-more-end
+    expect(fixture.nativeElement.querySelector('.load-more-end')).toBeNull();
+
+    // Navigate to page 3 (last page)
+    (component as unknown as { setPage: (p: number) => void }).setPage(3);
+    fixture.detectChanges();
+
+    const endMsg = fixture.nativeElement.querySelector('.load-more-end');
+    expect(endMsg).toBeTruthy();
+    expect(endMsg.textContent).toContain('แสดงรายการทั้งหมดครบแล้ว (25 เกม)');
+  });
 });
 
 describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
