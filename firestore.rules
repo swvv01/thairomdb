@@ -11,7 +11,7 @@ service cloud.firestore {
       return data.keys().hasOnly([
           'updateDate', 'fileName', 'gameTitle', 'system', 'translatorId', 'translatedBy',
           'patchTool', 'tags', 'coverUrl', 'patchFileUrl', 'patchedRomUrl', 'referenceText', 'referenceUrl', 'walkthroughUrl',
-          'playTime'
+          'playTime', 'playTimeFull'
         ])
         && data.updateDate is string && data.updateDate.size() > 0
         && data.fileName is string && data.fileName.size() > 0
@@ -29,7 +29,8 @@ service cloud.firestore {
         && data.tags is list
         && data.tags.size() <= 30
         && (data.coverUrl == '' || data.coverUrl.matches('https://firebasestorage.googleapis.com/.*'))
-        && (!data.keys().hasAny(['playTime']) || (data.playTime is number && data.playTime >= 0));
+        && (!data.keys().hasAny(['playTime']) || (data.playTime is number && data.playTime >= 0))
+        && (!data.keys().hasAny(['playTimeFull']) || (data.playTimeFull is number && data.playTimeFull >= 0));
     }
 
     function translatorMatches(data) {

@@ -26,6 +26,18 @@ const normalizePatchRow = (row: BackupDocument): BackupDocument => {
   } else {
     throw new Error(`${row.id}.playTime ต้องเป็นตัวเลข`);
   }
+  const rawPlayTimeFull = data['playTimeFull'];
+  if (rawPlayTimeFull === undefined || rawPlayTimeFull === null || rawPlayTimeFull === '') {
+    data['playTimeFull'] = null;
+  } else if (typeof rawPlayTimeFull === 'number') {
+    if (Number.isNaN(rawPlayTimeFull) || rawPlayTimeFull < 0) throw new Error(`${row.id}.playTimeFull ต้องเป็นตัวเลขมากกว่าหรือเท่ากับ 0`);
+  } else if (typeof rawPlayTimeFull === 'string' && !Number.isNaN(Number(rawPlayTimeFull))) {
+    const parsedFull = Number(rawPlayTimeFull);
+    if (parsedFull < 0) throw new Error(`${row.id}.playTimeFull ต้องเป็นตัวเลขมากกว่าหรือเท่ากับ 0`);
+    data['playTimeFull'] = parsedFull;
+  } else {
+    throw new Error(`${row.id}.playTimeFull ต้องเป็นตัวเลข`);
+  }
   return data;
 };
 @Injectable({ providedIn: 'root' }) export class FirestoreDataTransferService {

@@ -24,6 +24,7 @@ export interface Patch {
   haveUpdateFlag: boolean;
   patchVersion: string;
   playTime?: number | null;
+  playTimeFull?: number | null;
   gameTitle: string;
   system: string;
   translatorId: string;

@@ -626,5 +626,38 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     await c.loadEditRecord('patch-1');
     expect(c.scrollToPlayTime).not.toHaveBeenCalled();
   });
+
+  it('copies playTime value to playTimeFull when syncPlayTimeFullFromPlayTime is called', () => {
+    fixture.detectChanges();
+    const c = component as any;
+    c.form.controls.playTime.setValue(35.5);
+    c.syncPlayTimeFullFromPlayTime();
+    expect(c.form.controls.playTimeFull.value).toBe(35.5);
+
+    c.form.controls.playTime.setValue(null);
+    c.syncPlayTimeFullFromPlayTime();
+    expect(c.form.controls.playTimeFull.value).toBeNull();
+  });
+
+  it('loads playTimeFull when present in edit mode', async () => {
+    fixture.detectChanges();
+    const c = component as any;
+    patchRepositoryStub.getById.and.returnValue(Promise.resolve({
+      id: 'patch-2',
+      gameTitle: 'Final Fantasy VI',
+      system: 'SFC',
+      translatorId: 'trans-1',
+      updateDate: '2026-01-01T00:00:00.000Z',
+      tags: [],
+      playTime: 30,
+      playTimeFull: 60,
+      coverUrl: '',
+      patchTool: '',
+      patchFileUrl: ''
+    }));
+
+    await c.loadEditRecord('patch-2');
+    expect(c.form.controls.playTimeFull.value).toBe(60);
+  });
 });
 

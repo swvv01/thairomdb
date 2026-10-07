@@ -72,8 +72,8 @@
         <div class="patch-card__version"><span class="patch-card__label">เวอร์ชันแพตช์: </span><span
             class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span></div>
         }
-        @if (patch.playTime != null && patch.playTime > 0) {
-        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ patch.playTime }} ชั่วโมง</span></div>
+        @if ((patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null && patch.playTimeFull > 0)) {
+        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(patch) }}</span></div>
         }
 
         @if (formatUpdateDate(patch.updateDate); as updateDate) {

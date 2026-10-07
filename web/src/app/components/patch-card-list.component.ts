@@ -58,6 +58,17 @@ export class PatchCardListComponent {
       day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
     }).format(date);
   }
+  protected formatCardPlayTime(patch: Patch): string {
+    const hasPlayTime = patch.playTime != null && patch.playTime > 0;
+    const hasPlayTimeFull = patch.playTimeFull != null && patch.playTimeFull > 0;
+    if (hasPlayTime && hasPlayTimeFull) {
+      return `${patch.playTime} - ${patch.playTimeFull} ชั่วโมง`;
+    }
+    if (hasPlayTime) {
+      return `${patch.playTime} ชั่วโมง`;
+    }
+    return `${patch.playTimeFull} ชั่วโมง`;
+  }
   protected onImageError(event: Event): void {
     const image = event.target as HTMLImageElement;
     image.onerror = null;

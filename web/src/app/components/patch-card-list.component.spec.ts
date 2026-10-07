@@ -81,8 +81,24 @@ describe('PatchCardListComponent', () => {
     expect(descEl?.textContent).toContain('เวลาเล่นจบ: 0.5 ชั่วโมง');
   });
 
+  it('renders playTime and playTimeFull range when both are specified and greater than 0', () => {
+    component.patches = [{ ...basePatch, playTime: 15, playTimeFull: 25.5 }];
+    fixture.detectChanges();
+
+    const descEl = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(descEl?.textContent).toContain('เวลาเล่นจบ: 15 - 25.5 ชั่วโมง');
+  });
+
+  it('renders only playTimeFull when playTime is null', () => {
+    component.patches = [{ ...basePatch, playTime: null, playTimeFull: 30 }];
+    fixture.detectChanges();
+
+    const descEl = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(descEl?.textContent).toContain('เวลาเล่นจบ: 30 ชั่วโมง');
+  });
+
   it('does not render playTime when null or 0', () => {
-    component.patches = [{ ...basePatch, playTime: null }];
+    component.patches = [{ ...basePatch, playTime: null, playTimeFull: null }];
     fixture.detectChanges();
 
     const descEl = fixture.nativeElement.querySelector('.patch-card__description');

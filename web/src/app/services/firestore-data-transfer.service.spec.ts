@@ -72,4 +72,33 @@ describe('FirestoreDataTransferService - playTime import/export', () => {
     const raw = createBackupJson({ playTime: 'fast' });
     expect(() => service.parseBackup(raw)).toThrowError(/test-patch-1\.playTime ต้องเป็นตัวเลข/);
   });
+
+  it('parses valid numeric and decimal playTimeFull correctly', () => {
+    const raw = createBackupJson({ playTimeFull: 25.5 });
+    const backup = service.parseBackup(raw);
+    expect(backup.collections.patches[0]['playTimeFull']).toBe(25.5);
+  });
+
+  it('handles legacy backup lacking playTimeFull by setting null (backward compatibility)', () => {
+    const raw = createBackupJson(); // no playTimeFull
+    const backup = service.parseBackup(raw);
+    expect(backup.collections.patches[0]['playTimeFull']).toBeNull();
+  });
+
+  it('converts numeric string playTimeFull to number', () => {
+    const raw = createBackupJson({ playTimeFull: '30.5' });
+    const backup = service.parseBackup(raw);
+    expect(backup.collections.patches[0]['playTimeFull']).toBe(30.5);
+  });
+
+  it('throws error when playTimeFull is negative', () => {
+    const raw = createBackupJson({ playTimeFull: -2 });
+    expect(() => service.parseBackup(raw)).toThrowError(/test-patch-1\.playTimeFull ต้องเป็นตัวเลขมากกว่าหรือเท่ากับ 0/);
+  });
+
+  it('throws error when playTimeFull is non-numeric string', () => {
+    const raw = createBackupJson({ playTimeFull: 'slow' });
+    expect(() => service.parseBackup(raw)).toThrowError(/test-patch-1\.playTimeFull ต้องเป็นตัวเลข/);
+  });
 });
+

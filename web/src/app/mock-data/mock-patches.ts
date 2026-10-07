@@ -15,6 +15,7 @@ export const MOCK_PATCHES: readonly Patch[] = [
     coverUrl: '',
     patchFileUrl: '#mock-download-ocarina',
     playTime: 30,
+    playTimeFull: 45,
     patchedRomUrl: '', referenceText: '', referenceUrl: '', walkthroughUrl: ''
   },
   {
@@ -31,6 +32,7 @@ export const MOCK_PATCHES: readonly Patch[] = [
     coverUrl: '',
     patchFileUrl: '#mock-download-mother',
     playTime: 25.5,
+    playTimeFull: null,
     patchedRomUrl: '', referenceText: '', referenceUrl: '', walkthroughUrl: ''
   },
   {
@@ -47,6 +49,7 @@ export const MOCK_PATCHES: readonly Patch[] = [
     coverUrl: '',
     patchFileUrl: '#mock-download-patapon',
     playTime: null,
+    playTimeFull: null,
     patchedRomUrl: '', referenceText: '', referenceUrl: '', walkthroughUrl: ''
   }
 ];

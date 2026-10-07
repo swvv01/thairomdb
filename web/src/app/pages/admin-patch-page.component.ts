@@ -52,7 +52,7 @@ export class AdminPatchPageComponent {
   protected systemOptions: SystemMaster[] = [];
   protected systemSearchText = '';
   protected systemAutocompleteOpen = false;
-  protected readonly form = this.fb.nonNullable.group({ updateDate: [this.todayInputDate(), Validators.required], haveUpdateFlag: [false], patchVersion: [''], playTime: [null as number | null, [Validators.min(0)]], gameTitle: ['', Validators.required], system: ['', Validators.required], translatorId: ['', Validators.required], patchTool: [''], patchFileUrl: [''], patchedRomUrl: [''], referenceText: [''], referenceUrl: [''], walkthroughUrl: [''] });
+  protected readonly form = this.fb.nonNullable.group({ updateDate: [this.todayInputDate(), Validators.required], haveUpdateFlag: [false], patchVersion: [''], playTime: [null as number | null, [Validators.min(0)]], playTimeFull: [null as number | null, [Validators.min(0)]], gameTitle: ['', Validators.required], system: ['', Validators.required], translatorId: ['', Validators.required], patchTool: [''], patchFileUrl: [''], patchedRomUrl: [''], referenceText: [''], referenceUrl: [''], walkthroughUrl: [''] });
   protected cover?: Blob;
   protected saving = false;
   protected readonly showFloatingSave = signal(true);
@@ -193,6 +193,7 @@ export class AdminPatchPageComponent {
       const draft = {
         ...value,
         playTime: value.playTime != null && (value.playTime as unknown) !== '' && !Number.isNaN(Number(value.playTime)) && Number(value.playTime) >= 0 ? Number(value.playTime) : null,
+        playTimeFull: value.playTimeFull != null && (value.playTimeFull as unknown) !== '' && !Number.isNaN(Number(value.playTimeFull)) && Number(value.playTimeFull) >= 0 ? Number(value.playTimeFull) : null,
         gameTitle: this.normalizeGameTitle(value.gameTitle.trim()),
         updateDate: this.toIsoDate(value.updateDate),
         patchTool: removeFacebookReference(value.patchTool),
@@ -222,6 +223,7 @@ export class AdminPatchPageComponent {
         haveUpdateFlag: false,
         patchVersion: '',
         playTime: null,
+        playTimeFull: null,
         gameTitle: '',
         system: value.system,
         translatorId: value.translatorId,
@@ -258,6 +260,11 @@ export class AdminPatchPageComponent {
     } finally {
       this.pastingField = null;
     }
+  }
+
+  protected syncPlayTimeFullFromPlayTime(): void {
+    const playTimeValue = this.form.controls.playTime.value;
+    this.form.controls.playTimeFull.setValue(playTimeValue ?? null);
   }
 
   protected openHowLongToBeat(): void {
@@ -309,6 +316,7 @@ export class AdminPatchPageComponent {
       haveUpdateFlag: false,
       patchVersion: '',
       playTime: null,
+      playTimeFull: null,
       gameTitle: '',
       system: '',
       translatorId: '',
@@ -329,7 +337,7 @@ export class AdminPatchPageComponent {
       this.editId = id;
       document.title = `${patch.gameTitle} | THAI ROM DB`;
       this.existingCoverUrl = patch.coverUrl ?? '';
-      this.form.patchValue({ updateDate: this.toInputDate(patch.updateDate), haveUpdateFlag: patch.haveUpdateFlag === true, patchVersion: patch.patchVersion ?? '', playTime: patch.playTime ?? null, gameTitle: patch.gameTitle, system: patch.system, translatorId: patch.translatorId, patchTool: patch.patchTool, patchFileUrl: patch.patchFileUrl, patchedRomUrl: patch.patchedRomUrl ?? '', referenceText: patch.referenceText ?? '', referenceUrl: patch.referenceUrl ?? '', walkthroughUrl: patch.walkthroughUrl ?? '' }, { emitEvent: false });
+      this.form.patchValue({ updateDate: this.toInputDate(patch.updateDate), haveUpdateFlag: patch.haveUpdateFlag === true, patchVersion: patch.patchVersion ?? '', playTime: patch.playTime ?? null, playTimeFull: patch.playTimeFull ?? null, gameTitle: patch.gameTitle, system: patch.system, translatorId: patch.translatorId, patchTool: patch.patchTool, patchFileUrl: patch.patchFileUrl, patchedRomUrl: patch.patchedRomUrl ?? '', referenceText: patch.referenceText ?? '', referenceUrl: patch.referenceUrl ?? '', walkthroughUrl: patch.walkthroughUrl ?? '' }, { emitEvent: false });
       const selectedTranslator = this.translatorOptions.find((item) => item.id === patch.translatorId);
       if (selectedTranslator) this.translatorSearchText = this.translatorLabel(selectedTranslator);
       const selectedSystem = this.systemOptions.find((item) => item.shortName === patch.system);

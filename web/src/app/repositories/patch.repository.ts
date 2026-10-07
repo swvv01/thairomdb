@@ -25,6 +25,7 @@ export class PatchRepository {
         haveUpdateFlag: row['haveUpdateFlag'] === true,
         patchVersion: String(row['patchVersion'] ?? ''),
         playTime: typeof row['playTime'] === 'number' ? row['playTime'] : null,
+        playTimeFull: typeof row['playTimeFull'] === 'number' ? row['playTimeFull'] : null,
         gameTitle: String(row['gameTitle'] ?? ''),
         system: String(row['system'] ?? ''),
         translatorId: String(row['translatorId'] ?? ''),
@@ -120,6 +121,7 @@ export class PatchRepository {
     return {
       updateDate, haveUpdateFlag: draft.haveUpdateFlag === true, patchVersion: draft.patchVersion.trim(),
       playTime: typeof draft.playTime === 'number' && draft.playTime >= 0 ? draft.playTime : null,
+      playTimeFull: typeof draft.playTimeFull === 'number' && draft.playTimeFull >= 0 ? draft.playTimeFull : null,
       gameTitle: clean(draft.gameTitle), system: system.shortName,
       translatorId: translator.id, translatedBy: translator.name, patchTool: clean(draft.patchTool),
       tags, coverUrl: coverUrl.trim(), patchFileUrl: draft.patchFileUrl.trim(),
