@@ -64,6 +64,9 @@
         <a class="retro-rail-link" routerLink="/walkthrough" routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">บทสรุป @if (patchesLoaded()) {<span
             class="sidebar-count">({{ patchCounts().walkthrough }})</span>}</a>
+        <a class="retro-rail-link" routerLink="/library" routerLinkActive="retro-rail-link--active"
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters(); closeSidebar()">คลังเกมของฉัน @if (libraryService.libraryCount() > 0) {<span
+            class="sidebar-count">({{ libraryService.libraryCount() }})</span>}</a>
 
         @if (authService.user()) {
         <a class="retro-rail-link" href="#" (click)="$event.preventDefault(); signOut(); closeSidebar()">ออกจากระบบ</a>

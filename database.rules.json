@@ -52,6 +52,15 @@
         ".validate": "newData.hasChildren(['amount', 'donatedAt']) && newData.child('amount').isNumber() && newData.child('donatedAt').isString()"
       }
     },
+    "userLibraries": {
+      "$email": {
+        ".read": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth.token.email != null && auth.token.email.replace('.', ',') == $email))",
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth.token.email != null && auth.token.email.replace('.', ',') == $email))",
+        "$patchId": {
+          ".validate": "newData.val() == 1 || newData.val() == true"
+        }
+      }
+    },
     "admins": { "$uid": { ".read": "auth != null && auth.uid === $uid", ".write": false } }
   }
 }

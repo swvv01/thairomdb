@@ -12,6 +12,7 @@ import { SystemMaster, SystemRepository } from '../repositories/system.repositor
 import { PatchCacheService } from '../services/patch-cache.service';
 import { TagRepository } from '../repositories/tag.repository';
 import { StatusMessageService } from '../shared/status-message.service';
+import { GameLibraryService } from '../services/game-library.service';
 
 @Component({
   selector: 'app-browse-page',
@@ -30,6 +31,7 @@ export class BrowsePageComponent implements OnInit {
   private readonly systemRepository = inject(SystemRepository);
   private readonly patchCache = inject(PatchCacheService);
   private readonly statusMessageService = inject(StatusMessageService);
+  private readonly libraryService = inject(GameLibraryService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
@@ -44,6 +46,7 @@ export class BrowsePageComponent implements OnInit {
   protected readonly systems = computed(() => {
     const kind = this.routeKind();
     const patches = this.patches().filter((patch) => {
+      if (kind === 'library') return this.libraryService.isInLibrary(patch.id);
       if (kind === 'port') return isPortMasterSystem(patch.system);
       if (kind === null) return !isPortMasterSystem(patch.system);
       return true;
@@ -105,6 +108,7 @@ export class BrowsePageComponent implements OnInit {
   protected readonly activeRouteLabel = computed(() => {
     const kind = this.routeKind();
     const selectedLabels = this.selectedRouteLabels();
+    if (kind === 'library') return this.joinRouteLabels('คลังเกมของฉัน', ...selectedLabels);
     if (kind === 'rom') return this.joinRouteLabels('รอมแปลไทย', ...selectedLabels);
     if (kind === 'port') return this.joinRouteLabels('Port Master', ...selectedLabels);
     if (kind === 'walkthrough') return this.joinRouteLabels('บทสรุป', ...selectedLabels);
@@ -126,6 +130,7 @@ export class BrowsePageComponent implements OnInit {
   private readonly tagsLoaded = signal(false);
   protected readonly filters = computed(() => ({ keyword: this.keyword(), tag: this.selectedTag(), translatorId: this.selectedTranslatorId(), system: this.selectedSystem(), sortBy: this.sortBy(), sortDirection: this.direction() }));
   protected readonly sortedPatches = computed(() => this.patches().filter((patch) => {
+    if (this.routeKind() === 'library' && !this.libraryService.isInLibrary(patch.id)) return false;
     if (this.routeKind() === 'rom' && !patch.patchedRomUrl?.trim()) return false;
     if (this.routeKind() === 'walkthrough' && !patch.walkthroughUrl?.trim()) return false;
     if (this.routeKind() === 'port' && !isPortMasterSystem(patch.system)) return false;

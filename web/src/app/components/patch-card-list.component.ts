@@ -4,6 +4,7 @@ import { Patch, Tag, Translator } from '../models/patch.models';
 import { browseRoute } from '../shared/browse-route.util';
 import { SystemMaster } from '../repositories/system.repository';
 import { StatusMessageService } from '../shared/status-message.service';
+import { GameLibraryService } from '../services/game-library.service';
 
 @Component({
   selector: 'app-patch-card-list',
@@ -15,6 +16,7 @@ import { StatusMessageService } from '../shared/status-message.service';
 export class PatchCardListComponent {
   private static readonly newGameWindowMs = 7 * 24 * 60 * 60 * 1000;
   private readonly status = inject(StatusMessageService);
+  protected readonly libraryService = inject(GameLibraryService);
   @Input() patches: Patch[] = [];
   @Input() translators: Translator[] = [];
   @Input() systems: SystemMaster[] = [];
@@ -22,6 +24,17 @@ export class PatchCardListComponent {
   @Input() canEdit = false;
   protected readonly loadedImages = signal(new Set<string>());
   protected readonly downloadingPatchId = signal<string | null>(null);
+  protected readonly togglingLibraryId = signal<string | null>(null);
+
+  protected async toggleLibrary(patch: Patch): Promise<void> {
+    if (this.togglingLibraryId() === patch.id) return;
+    this.togglingLibraryId.set(patch.id);
+    try {
+      await this.libraryService.toggleLibrary(patch.id, patch.gameTitle);
+    } finally {
+      this.togglingLibraryId.set(null);
+    }
+  }
   protected translatorLink(patch: Patch): string | undefined {
     return this.translators.find((translator) => translator.id === patch.translatorId)?.link;
   }

@@ -19,6 +19,7 @@ import { SidebarLink, SidebarLinkSection } from './models/sidebar-link.models';
 import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { Article } from './models/article.models';
 import { ArticleRepository } from './repositories/article.repository';
+import { GameLibraryService } from './services/game-library.service';
 
 export type AppTheme = 'default' | 'pocket-pet' | 'classic-blue';
 
@@ -57,6 +58,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly articleRepository = inject(ArticleRepository);
   private readonly router = inject(Router);
   private readonly swUpdate = inject(SwUpdate, { optional: true });
+  protected readonly libraryService = inject(GameLibraryService);
   protected readonly filterState = inject(BrowseFilterStateService);
   protected readonly statusMessage = this.statusMessageService.message;
   protected readonly platforms = signal<SystemMaster[]>([]);
@@ -234,6 +236,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.translatorRepository.refreshAll();
       this.systemRepository.refreshAll();
       this.articleRepository.refreshAll();
+      await this.libraryService.refreshFromRemote();
       const patches = await firstValueFrom(this.patchRepository.watchAll());
       this.patches.set(patches);
       this.patchesLoaded.set(true);

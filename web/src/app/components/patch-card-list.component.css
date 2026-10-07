@@ -42,19 +42,12 @@
   padding: .15rem .5rem;
 }
 
-.patch-card__admin-actions {
+.patch-card__actions-row {
   display: flex;
-  justify-content: flex-start;
-  margin-top: 0.5rem;
-}
-
-.edit-button {
   align-items: center;
-  display: inline-flex;
-  gap: 0.35rem;
-  padding: 0.25rem 0.6rem;
-  position: static;
-  text-decoration: none;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .patch-cover-image {

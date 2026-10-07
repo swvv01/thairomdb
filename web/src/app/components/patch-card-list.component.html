@@ -31,15 +31,23 @@
 
       </div>
 
-      @if (canEdit) {
-      <div class="patch-card__admin-actions">
-        <a class="edit-button button btn-primary" [routerLink]="['/add', patch.id]" target="_blank"
-          rel="noopener noreferrer">
+      <div class="patch-card__actions-row">
+        <button type="button" class="button" [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
+          [disabled]="togglingLibraryId() === patch.id"
+          [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
+          (click)="toggleLibrary(patch)">
+          <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
+            aria-hidden="true"></i>
+          <span>{{ libraryService.isInLibrary(patch.id) ? 'อยู่ในคลัง' : 'เก็บเข้าคลัง' }}</span>
+        </button>
+
+        @if (canEdit) {
+        <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
           <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
           <span>แก้ไข</span>
         </a>
+        }
       </div>
-      }
 
       <div class="patch-card__description">
 
@@ -68,18 +76,23 @@
         <div><span class="patch-card__label">ระบบ: </span><a routerLink="/system"
             [queryParams]="{ system: patch.system }">{{ systemName(patch.system) }}</a>
         </div>
-        @if (patch.patchVersion.trim()) {
-        <div class="patch-card__version"><span class="patch-card__label">เวอร์ชันแพตช์: </span><span
-            class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span></div>
-        }
-        @if ((patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null && patch.playTimeFull > 0)) {
-        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(patch) }}</span></div>
-        }
 
         @if (formatUpdateDate(patch.updateDate); as updateDate) {
         <div><span class="patch-card__label">{{ patch.haveUpdateFlag ? 'อัพเดท' : 'เพิ่มเมื่อ' }}: </span><span>{{
             updateDate }}</span></div>
         }
+
+
+        @if ((patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null && patch.playTimeFull > 0)) {
+        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(patch) }}</span></div>
+        }
+
+
+        @if (patch.patchVersion.trim()) {
+        <div class="patch-card__version"><span class="patch-card__label">เวอร์ชันแพตช์: </span><span
+            class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span></div>
+        }
+
 
 
       </div>

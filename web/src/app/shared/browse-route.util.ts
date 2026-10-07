@@ -1,4 +1,4 @@
-export type BrowseRouteKind = 'system' | 'translator' | 'tag' | 'rom' | 'today' | 'week' | 'walkthrough' | 'port';
+export type BrowseRouteKind = 'system' | 'translator' | 'tag' | 'rom' | 'today' | 'week' | 'walkthrough' | 'port' | 'library';
 
 export function normalizeBrowseName(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
@@ -14,6 +14,7 @@ export function browseRoute(kind: BrowseRouteKind, value = ''): string {
   if (kind === 'rom') return '/rom';
   if (kind === 'walkthrough') return '/walkthrough';
   if (kind === 'port') return '/port';
+  if (kind === 'library') return '/library';
   return `/${kind}/${browseSlug(value)}`;
 }
 

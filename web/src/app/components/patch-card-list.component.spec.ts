@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { PatchCardListComponent } from './patch-card-list.component';
 import { StatusMessageService } from '../shared/status-message.service';
+import { GameLibraryService } from '../services/game-library.service';
 import { Patch } from '../models/patch.models';
 
 describe('PatchCardListComponent', () => {
@@ -35,6 +36,14 @@ describe('PatchCardListComponent', () => {
         {
           provide: StatusMessageService,
           useValue: { show: jasmine.createSpy('show') }
+        },
+        {
+          provide: GameLibraryService,
+          useValue: {
+            isInLibrary: () => false,
+            toggleLibrary: () => Promise.resolve(true),
+            libraryPatchIds: () => new Set<string>()
+          }
         }
       ]
     }).compileComponents();
