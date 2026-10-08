@@ -57,6 +57,7 @@ describe('AdminPatchPageComponent - Bug Condition Exploration', () => {
 
   const statusMessageStub = {
     show: jasmine.createSpy('show'),
+    clear: jasmine.createSpy('clear'),
   };
 
   beforeEach(async () => {
@@ -64,6 +65,7 @@ describe('AdminPatchPageComponent - Bug Condition Exploration', () => {
     patchRepositoryStub.update.calls.reset();
     patchRepositoryStub.create.calls.reset();
     statusMessageStub.show.calls.reset();
+    statusMessageStub.clear.calls.reset();
 
     paramMapSubject = new Subject<ParamMap>();
 
@@ -191,7 +193,7 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
     remove: jasmine.createSpy('remove').and.returnValue(Promise.resolve()),
   };
 
-  const statusMessageStub = { show: jasmine.createSpy('show') };
+  const statusMessageStub = { show: jasmine.createSpy('show'), clear: jasmine.createSpy('clear') };
 
   /** Helper: create a fresh TestBed and return the component instance. */
   async function buildComponent(): Promise<AdminPatchPageComponent> {
@@ -200,6 +202,7 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
     patchRepositoryStub.delete.calls.reset();
     patchRepositoryStub.getById.calls.reset();
     statusMessageStub.show.calls.reset();
+    statusMessageStub.clear.calls.reset();
     coverInputSpy.clear.calls.reset();
 
     paramMapSubject = new Subject<ParamMap>();
@@ -444,9 +447,11 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
   const tagRepositoryStub = { watchAll: () => of([]) };
   const systemRepositoryStub = { watchAll: () => of([]) };
   const coverStorageStub = { upload: jasmine.createSpy('upload'), remove: jasmine.createSpy('remove') };
-  const statusMessageStub = { show: jasmine.createSpy('show') };
+  const statusMessageStub = { show: jasmine.createSpy('show'), clear: jasmine.createSpy('clear') };
 
   beforeEach(async () => {
+    statusMessageStub.show.calls.reset();
+    statusMessageStub.clear.calls.reset();
     paramMapSubject = new Subject<ParamMap>();
 
     await TestBed.configureTestingModule({
@@ -658,6 +663,45 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
 
     await c.loadEditRecord('patch-2');
     expect(c.form.controls.playTimeFull.value).toBe(60);
+  });
+
+  it('cancelSave resets saving state and clears status toast', () => {
+    fixture.detectChanges();
+    const c = component as any;
+    c.saving = true;
+    c.cancelSave();
+    expect(c.saving).toBeFalse();
+    expect(statusMessageStub.clear).toHaveBeenCalled();
+  });
+
+  it('cancelSave ignores completion of in-flight save operation', async () => {
+    fixture.detectChanges();
+    const c = component as any;
+
+    let resolveCreate!: (id: string) => void;
+    patchRepositoryStub.create.and.returnValue(new Promise<string>((res) => {
+      resolveCreate = res;
+    }));
+
+    c.form.controls.updateDate.setValue('2026-01-01T00:00');
+    c.form.controls.gameTitle.setValue('Test Game');
+    c.form.controls.system.setValue('SFC');
+    c.form.controls.translatorId.setValue('trans-1');
+
+    const savePromise = c.save();
+    expect(c.saving).toBeTrue();
+
+    c.cancelSave();
+    expect(c.saving).toBeFalse();
+    expect(statusMessageStub.clear).toHaveBeenCalled();
+
+    // Now resolve late in background
+    resolveCreate('new-id');
+    await savePromise;
+
+    // Must not show success message because save was cancelled
+    expect(statusMessageStub.show).not.toHaveBeenCalledWith('บันทึกแพตช์สำเร็จ', 'success');
+    expect(c.saving).toBeFalse();
   });
 });
 

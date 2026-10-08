@@ -78,6 +78,7 @@ export class AdminPatchPageComponent {
   protected savingSystem = false;
   protected loadingData = false;
   private editLoadRequest = 0;
+  private saveRequestId = 0;
   private skipDeactivateConfirm = false;
 
   canDeactivate(): boolean {
@@ -179,14 +180,25 @@ export class AdminPatchPageComponent {
     this.form.controls.translatorId.setValue(translator.id);
   }
 
+  protected cancelSave(): void {
+    this.saveRequestId++;
+    this.saving = false;
+    this.status.clear();
+  }
+
   protected async save(): Promise<void> {
     if (this.saving) return;
     if (this.form.invalid) { this.form.markAllAsTouched(); this.status.show('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
+    const requestId = ++this.saveRequestId;
+    this.saving = true;
     if (await this.isNotAdmin()) {
-      this.status.show('เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถบันทึกแพตช์ได้', 'error');
+      if (requestId === this.saveRequestId) {
+        this.saving = false;
+        this.status.show('เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถบันทึกแพตช์ได้', 'error');
+      }
       return;
     }
-    this.saving = true;
+    if (requestId !== this.saveRequestId) return;
     this.status.show('กำลังบันทึกแพตช์…');
     try {
       const value = this.form.getRawValue();
@@ -205,9 +217,13 @@ export class AdminPatchPageComponent {
       };
       let coverUrl = '';
       const patchId = this.editId ?? crypto.randomUUID();
-      if (this.cover) coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`);
+      if (this.cover) {
+        coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`);
+        if (requestId !== this.saveRequestId) return;
+      }
       if (this.editId) {
         await this.patchRepository.update(this.editId, draft, this.cover ? coverUrl : undefined);
+        if (requestId !== this.saveRequestId) return;
         if (this.cover && this.existingCoverUrl && this.existingCoverUrl !== coverUrl) {
           // Removing an old cover is cleanup only. It must never turn a
           // successful patch save into a failure (especially for migrated
@@ -215,7 +231,10 @@ export class AdminPatchPageComponent {
           void this.coverStorage.remove(this.existingCoverUrl).catch(() => undefined);
         }
       }
-      else await this.patchRepository.create(draft, coverUrl, patchId);
+      else {
+        await this.patchRepository.create(draft, coverUrl, patchId);
+        if (requestId !== this.saveRequestId) return;
+      }
       this.status.show('บันทึกแพตช์สำเร็จ', 'success');
       const translatorModTool = this.translatorOptions.find((item) => item.id === value.translatorId)?.modTool ?? '';
       this.form.reset({
@@ -243,9 +262,12 @@ export class AdminPatchPageComponent {
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
+      if (requestId !== this.saveRequestId) return;
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถบันทึกแพตช์ได้', 'error');
     } finally {
-      this.saving = false;
+      if (requestId === this.saveRequestId) {
+        this.saving = false;
+      }
     }
   }
 

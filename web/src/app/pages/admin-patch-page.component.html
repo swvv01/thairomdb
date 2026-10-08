@@ -203,12 +203,18 @@
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
             [disabled]="loadingData"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>ตอนนี้</button>
         </div>
-        <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between">
-          <button class="w-fit  px-5 py-3 font-bold text-ink disabled:opacity-50 button btn-primary" type="submit"
-            [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ? 'กำลังบันทึกแพตช์…'
-            :
-            'บันทึกแพตช์' }}<i class="fa-solid ml-1" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving"
-              [class.fa-spin]="saving" aria-hidden="true"></i></button>
+        <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="w-fit  px-5 py-3 font-bold text-ink disabled:opacity-50 button btn-primary" type="submit"
+              [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ? 'กำลังบันทึกแพตช์…'
+              :
+              'บันทึกแพตช์' }}<i class="fa-solid ml-1" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving"
+                [class.fa-spin]="saving" aria-hidden="true"></i></button>
+            @if (saving) {
+            <button class="w-fit px-5 py-3 font-bold button border" type="button" (click)="cancelSave()"><i
+                class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก</button>
+            }
+          </div>
           @if (editId) {
           <button class="w-fit  px-5 py-3 font-bold disabled:opacity-50 button btn-danger" type="button"
             [disabled]="saving || loadingData" (click)="deletePatch()"><i class="fa-solid fa-trash mr-1"
@@ -270,11 +276,16 @@
   }
 
   @if (showFloatingSave()) {
-  <button class="floating-action button btn-primary" type="button" (click)="save()"
-    [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving" aria-label="บันทึกแพตช์"
-    title="บันทึกแพตช์">
-    <i class="fa-solid" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving" [class.fa-spin]="saving"
-      aria-hidden="true"></i>
+  @if (saving) {
+  <button class="floating-action button btn-danger" type="button" (click)="cancelSave()" aria-label="ยกเลิกการบันทึก"
+    title="ยกเลิกการบันทึก">
+    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
   </button>
+  } @else {
+  <button class="floating-action button btn-primary" type="button" (click)="save()"
+    [disabled]="form.invalid || loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
+    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+  </button>
+  }
   }
 </main>
