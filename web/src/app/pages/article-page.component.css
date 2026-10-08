@@ -1,24 +1,60 @@
-.article-page>a {
-    color: var(--color-brand)
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.article-page>h1 {
-    margin: 1.5rem 0 0.75rem;
-    color: var(--color-accent);
-    font-size: clamp(2rem, 5vw, 3.25rem);
-    line-height: 1;
+.article-page-shell {
+  min-height: calc(100vh - 2.5rem);
+  background: transparent;
 }
 
-.article-meta {
-    color: var(--color-text-muted)
+.article-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
+  width: 100%;
 }
 
-.excerpt {
-    font-size: 1.1rem;
-    color: var(--color-text-muted)
+/* Base Cards */
+.article-content-card,
+.article-status-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
-.markdown-body {
-    margin-top: 2.5rem;
-    line-height: 1.8
+.article-status-card {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.status-text {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  :host .article-page-shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .article-card-wrap {
+    gap: 1.5rem;
+  }
+
+  .article-content-card,
+  .article-status-card {
+    padding: 1rem;
+  }
 }

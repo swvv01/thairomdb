@@ -114,16 +114,176 @@
 </div>
 ```
 
-### 3.4 Admin Master Single-Column Pattern
+### 3.4 Admin Master Floating Card Stack Pattern
 ในหน้า CRUD ข้อมูล Master กลางของฝั่ง Admin ที่ใช้งาน Component กลาง `AdminMasterPageComponent` (`<app-admin-master-page>`):
 - **หน้าที่ใช้งานร่วมกัน:**
   - `/admin/systems` (จัดการเครื่องเกม)
   - `/admin/translators` (จัดการทีมแปล)
   - `/admin/tags` (จัดการแท็ก)
   - `/admin/sidebar-links` (จัดการลิงก์ sidebar)
-- **มาตรฐาน Layout ของรายการ Card:**
-  - กำหนดให้ `.master-card-grid` แสดงผลเป็น **1 คอลัมน์เดี่ยว (`grid-template-columns: 1fr;`) ในทุกขนาดหน้าจอ**
-  - **เหตุผล:** เพื่อป้องกันไม่ให้ข้อมูลสำคัญ (เช่น ชื่อย่อ, ชื่อเต็มภาษาไทยขนาดยาว, ลิงก์ URL, และปุ่มแก้ไข/ลบ) ถูกบีบอัดจนตกบรรทัดหรือเกิดปัญหา layout เบียดเสียดกันเมื่อมีหลายคอลัมน์
+- **มาตรฐาน Layout แบบ Centered Floating Card Stack:**
+  - จัดวางด้วย Wrapper กลาง `.admin-master-card-wrap` (`max-width: 52rem; margin: 0 auto; gap: 2.4rem;` บนมือถือ `gap: 1.5rem;`)
+  - **Header Card:** แยกเป็นการ์ดหัวข้อและปุ่มเพิ่มข้อมูล 1 ใบ พร้อม Search Box ในตัว (`.admin-master-header-card`)
+  - **Item Cards Stack:** รายการข้อมูลแต่ละรายการแยกเป็น 1 การ์ด (`.master-item-card`) ภายใน `.master-cards-stack` (`gap: 1.25rem;`) ป้องกันไม่ให้ชื่อเต็มขนาดยาวหรือปุ่มจัดการตกบรรทัด
+  - **Card Appearance Parity:** การ์ดทุกใบใช้ `background: var(--color-surface); border: 1px solid var(--color-shadow); box-shadow: 2px 2px 0 var(--color-shadow); padding: 1.45rem;` (มือถือ `1rem;`) เสมอ
+
+### 3.5 Centered Floating Card Stack Pattern (มาตรฐานหน้าแบบการ์ดลอยตรงกลาง)
+
+แบบแผนการจัดหน้ามาตรฐานสำหรับหน้าฟอร์ม, หน้ารายการเฉพาะเรื่อง, หรือหน้าธุรกรรมที่ต้องการให้เนื้อหาจัดวางรวมกลุ่มเป็นระเบียบ สวยงาม และลอยเด่นอยู่กึ่งกลางพื้นที่หน้าจอเสมือนหน้าต่างวินโดว์/เดสก์ท็อป
+
+- **หน้าที่ใช้งานมาตรฐานนี้:**
+  - `/add` (เพิ่ม/แก้ไขแพตช์เกม)
+  - `/donate` (ร่วมสนับสนุนค่าเซิร์ฟเวอร์)
+  - `/donations` (บันทึกประวัติการสนับสนุน)
+  - `/redeem` (แลกรับสิทธิ์ VIP)
+  - `/admin/articles` (จัดการบทความ: รายการบทความ, เพิ่ม/แก้ไข และ พรีวิว)
+  - `/articles` & `/article/:slug` (หน้ารวมบทความและหน้ารายละเอียดบทความสาธารณะ)
+
+#### 1) มาตรฐานพื้นหลังโปร่งใส (Transparent Page Shell Standard)
+- เพื่อให้การ์ดลอยเด่นอยู่บนพื้นหลัง Desktop Shell ของแต่ละธีม (เช่น สี Classic Navy `#004e98` ใน Classic Blue หรือพื้นหลังระบบในธีม Default/Pocket-Pet) คอนเทนเนอร์ระดับหน้า (`main`, `.article-container`, `.[page]-page-shell`) **ต้องกำหนดเป็นพื้นหลังโปร่งใส (`background: transparent;`) เสมอ**
+- ห้ามใส่ `background: var(--color-surface);` ที่แท็กครอบระดับหน้าหรือ `:host` เพราะจะทำให้พื้นหลังทึบตันบดบัง Desktop Shell ทั้งหน้าจอ
+- การใส่สีพื้นหลัง `background: var(--color-surface);` อนุญาตเฉพาะที่ตัวการ์ด (`.card`, `.[page]-card`) เท่านั้น
+
+#### 2) โครงสร้างคอลัมน์กึ่งกลาง (Centered Card Stack Wrapper)
+- ครอบกลุ่มการ์ดทั้งหมดด้วย Wrapper กึ่งกลาง:
+  - `max-width: 52rem;` (ขนาดมาตรฐานความกว้างการ์ดที่สมดุลกับกล่อง QR Code, ฟอร์มกรอกข้อมูล และลิสต์รายการ)
+  - `margin: 0 auto;` (จัดกึ่งกลางแนวนอน)
+  - `display: flex; flex-direction: column;`
+  - **ระยะช่องไฟระหว่างการ์ด (Gap):** กำหนด `gap: 2.4rem;` (ขนาดช่องไฟมาตรฐานเดียวกันกับระยะห่างระหว่าง Game Card `.patch-card` ในหน้าแรก `/`)
+  - **บนจอมือถือ (≤ 640px):** ปรับระยะช่องไฟเป็น `gap: 1.5rem;`
+
+#### 3) ดีไซน์ขอบและเงาของการ์ด (Card Appearance Parity with Game Cards)
+การ์ดทุกใบใน Stack (ทั้งการ์ดหลัก, การ์ดเสริม, และการ์ดแจ้งเตือน) ต้องมีหน้าตาเป็นอันหนึ่งอันเดียวกัน:
+- `background: var(--color-surface);`
+- `border: 1px solid var(--color-shadow);`
+- `box-shadow: 2px 2px 0 var(--color-shadow);` (Pixel art shadow คมชัด 0 blur)
+- `padding: 1.45rem;` (บนจอปกติ) และ `padding: 1rem;` (บนจอมือถือ ≤ 640px)
+- `box-sizing: border-box; width: 100%; min-width: 0;`
+
+#### 4) โครงสร้างหัวข้อภายในการ์ด (Embedded Card Header)
+แทนที่การใช้ Full-bleed Hero Banner แยกส่วนด้านบน ให้ย้ายหัวข้อหลักเข้ามาไว้ที่ส่วนบนสุดภายในการ์ดหลักโดยตรง:
+- มีเส้นกั้นใต้หัวข้อ: `border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem;`
+- ขนาดฟอนต์ `h1`: `clamp(2rem, 5vw, 3.25rem);` พร้อมข้อความเน้นสีด้วย `<span>` เช่น `color: var(--color-highlight)` หรือ `var(--color-link)`
+- คำอธิบาย: `color: var(--color-text-muted); line-height: 1.5;`
+
+#### 5) การ์ดแจ้งเตือนและปุ่มนำทาง (Callout / Action Card Pattern)
+สำหรับการ์ดแจ้งเตือนหรือการ์ดเสริมด้านล่าง (เช่น แจ้งเตือนแลกสิทธิ์ VIP หรือร่วมสนับสนุน):
+- **หัวข้อ:** ใช้ไอคอนสื่อความหมายพร้อมสีไฮไลต์ (เช่น `fa-solid fa-gift text-[var(--color-highlight)]`)
+- **ปุ่มนำทาง (Action Buttons):**
+  - **ปุ่มหลัก (Primary):** `background: var(--color-highlight); color: var(--color-surface); border: 1px solid var(--color-border); box-shadow: 2px 2px 0 var(--color-shadow);`
+  - **ปุ่มรอง (Secondary):** `background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); box-shadow: 2px 2px 0 var(--color-shadow);`
+  - มี Hover effect: `filter: brightness(1.1); transform: translate(-1px, -1px);`
+
+#### 6) Boilerplate Code Template สำหรับหน้าใหม่
+
+```html
+<main class="example-page-shell article-container pb-24 sm:pb-8">
+  <div class="example-card-wrap">
+    <!-- Card 1: Main Content Card -->
+    <article class="example-card">
+      <header class="example-header">
+        <h1 class="example-title">หัวข้อหลักภาษาไทย<br><span>HIGHLIGHT ENGLISH</span></h1>
+        <p class="example-description">คำอธิบายรายละเอียดแบบย่อ...</p>
+      </header>
+
+      <section class="example-body">
+        <!-- ฟอร์ม หรือ คอนเทนต์หลัก -->
+      </section>
+    </article>
+
+    <!-- Card 2: Callout / Action Card (ถ้ามี) -->
+    <article class="callout-card" aria-label="แจ้งเตือนการใช้งาน">
+      <h3 class="callout-heading">
+        <i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
+        ข้อความแนะนำหรือการแจ้งเตือน
+      </h3>
+      <p class="callout-desc">รายละเอียดคำแนะนำสำหรับการดำเนินการถัดไป...</p>
+      <div class="callout-actions">
+        <a routerLink="/primary-route" class="callout-btn callout-btn--primary">ปุ่มหลัก</a>
+        <a routerLink="/secondary-route" class="callout-btn callout-btn--secondary">ปุ่มรอง</a>
+      </div>
+    </article>
+  </div>
+</main>
+```
+
+```css
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.example-page-shell {
+  min-height: calc(100vh - 2.5rem);
+  color: var(--color-text);
+  background: transparent;
+}
+
+.example-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
+  width: 100%;
+}
+
+.example-card,
+.callout-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.example-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
+}
+
+.example-title {
+  color: var(--color-text);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  margin: 0 0 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.example-title span {
+  color: var(--color-highlight);
+}
+
+.example-description {
+  color: var(--color-text-muted);
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  :host .example-page-shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .example-card-wrap {
+    gap: 1.5rem;
+  }
+
+  .example-card,
+  .callout-card {
+    padding: 1rem;
+  }
+}
+```
 
 ---
 

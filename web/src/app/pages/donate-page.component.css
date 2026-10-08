@@ -1,120 +1,81 @@
 :host {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.donate-page {
+.donate-page-shell {
   min-height: calc(100vh - 2.5rem);
-  color: var(--color-text);
-  background: var(--color-surface);
 }
 
-.donate-hero {
-  align-items: end;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+.donate-card-wrap {
   display: flex;
-  justify-content: space-between;
-  min-height: 14rem;
-  overflow: hidden;
-  padding: clamp(.75rem, 2vw, 1.5rem) clamp(1.25rem, 7vw, 7rem) clamp(1.5rem, 3vw, 2.5rem);
-  position: relative;
+  flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
+  width: 100%;
 }
 
-.hero-copy {
-  max-width: 42rem;
-  position: relative;
-  z-index: 1;
+.donate-card,
+.redeem-callout-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
-.eyebrow {
-  color: var(--color-accent);
-  letter-spacing: .14em;
-  margin: 0 0 .85rem;
-  text-transform: uppercase;
+.donate-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
-}
-
-h1 {
+.donate-title {
   color: var(--color-text);
-  font-size: clamp(2.7rem, 7vw, 6.7rem);
-  line-height: .92;
-  margin-bottom: 1.5rem;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  margin: 0 0 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-h1 span {
+.donate-title span {
   color: var(--color-link);
 }
 
-.hero-description {
+.donate-description {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 1.6vw, 1.25rem);
-  line-height: 1.45;
-  max-width: 34rem;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.5;
+  margin: 0 0 1rem;
 }
 
 .server-cost {
   color: var(--color-brand);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  margin: 0;
 }
 
 .server-cost strong {
   color: var(--color-accent);
-  font-size: 1.35em;
+  font-size: 1.25em;
 }
 
-.back-link {
-  color: var(--color-highlight);
-  text-underline-offset: 4px;
+.donate-vip-section {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.hero-mark {
-  color: var(--color-brand);
-  font-family: Arial, sans-serif;
-  font-size: clamp(12rem, 25vw, 25rem);
-  line-height: .65;
-  opacity: .18;
-  position: absolute;
-  right: 3vw;
-  top: 50%;
-  transform: translateY(-40%) rotate(-10deg);
-}
-
-.donate-content {
-  margin: 0 auto;
-  max-width: 76rem;
-  padding: 1rem clamp(1.25rem, 5vw, 4rem);
-}
-
-.section-heading {
-  align-items: end;
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-}
-
-.section-heading .eyebrow {
-  margin-bottom: 0;
-}
-
-h2 {
-  color: var(--color-text);
-  font-size: clamp(1.8rem, 4vw, 3.25rem);
-  line-height: 1;
-  margin-bottom: 0;
-}
-
-.payment-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 42rem);
-  justify-content: center;
+.donate-payment-section {
+  padding-top: 1.5rem;
+  width: 100%;
 }
 
 .payment-switcher {
@@ -131,11 +92,11 @@ h2 {
   color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
-  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
-  gap: .7rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  gap: 0.7rem;
   margin-bottom: -1px;
-  padding: 0 0 1rem;
-  transition: color .2s ease, border-color .2s ease;
+  padding: 0 0 0.85rem;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .payment-tab:hover,
@@ -144,15 +105,23 @@ h2 {
   color: var(--color-accent);
 }
 
+.payment-grid {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 .payment-option {
   margin: 0;
+  width: 100%;
+  max-width: 32rem;
 }
 
 .payment-image-wrap {
   align-items: center;
   display: flex;
   justify-content: center;
-  min-height: 23rem;
+  min-height: 20rem;
   padding-top: 1.2rem;
 }
 
@@ -173,11 +142,11 @@ figcaption {
   padding: 1rem 0 1.25rem;
 }
 
-h3 {
+figcaption h3 {
   color: var(--color-accent);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   line-height: 1;
-  margin-bottom: .35rem;
+  margin-bottom: 0.35rem;
 }
 
 figcaption p {
@@ -187,42 +156,83 @@ figcaption p {
 
 .thank-you {
   color: var(--color-link);
-  font-size: 1.1rem;
-  margin: 1rem 0 0;
+  font-size: 1.05rem;
+  margin: 1.25rem 0 0;
   text-align: center;
 }
 
 .thank-you span {
   color: var(--color-highlight);
-  margin-left: .35rem;
+  margin-left: 0.35rem;
 }
 
-@media (max-width: 700px) {
-  .donate-hero {
-    min-height: 10rem;
+.redeem-callout-heading {
+  align-items: center;
+  color: var(--color-highlight);
+  display: flex;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+}
+
+.redeem-callout-desc {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.callout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.callout-btn {
+  align-items: center;
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  justify-content: center;
+  padding: 0.65rem 1.15rem;
+  text-decoration: none;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.callout-btn:hover {
+  filter: brightness(1.1);
+  transform: translate(-1px, -1px);
+}
+
+.callout-btn:active {
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  transform: translate(1px, 1px);
+}
+
+.callout-btn--primary {
+  background: var(--color-highlight);
+  border: 1px solid var(--color-border);
+  color: var(--color-surface);
+}
+
+.callout-btn--secondary {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  :host .donate-page-shell {
+    padding: 1rem 0.75rem;
   }
 
-  .hero-mark {
-    right: -2rem;
-    top: 75%;
+  .donate-card-wrap {
+    gap: 1.5rem;
   }
 
-  .section-heading {
-    align-items: start;
-    flex-direction: column;
-    gap: .75rem;
-  }
-
-  .payment-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .payment-switcher {
-    gap: 1.25rem;
-  }
-
-  .payment-tab {
-    font-size: 1.05rem;
+  .donate-card,
+  .redeem-callout-card {
+    padding: 1rem;
   }
 
   .payment-image-wrap {

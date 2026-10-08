@@ -1,120 +1,124 @@
-<main class="donations-page">
-  <!-- Hero Section -->
-  <section class="donations-hero" aria-labelledby="donations-title">
-    <div class="hero-copy">
-      <p class="eyebrow">Supporters &amp; Donations</p>
-      <h1 id="donations-title">รายการสนับสนุน<br><span>THAI ROM DB</span></h1>
-      <p class="hero-description">
-        บันทึกประวัติการร่วมสนับสนุนค่าบริการเซิร์ฟเวอร์ เพื่อคงไว้ซึ่งคลังข้อมูลเกมแปลไทยสำหรับทุกคน
-      </p>
-    </div>
-    <div class="hero-mark" aria-hidden="true">♥</div>
-  </section>
-
-  <!-- Main Content Area -->
-  <section class="donations-content" aria-label="ประวัติการบริจาค">
-    @if (loading()) {
-    <div class="text-center py-16" role="status" aria-live="polite">
-      <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-[var(--color-accent)]" aria-hidden="true"></i>
-      <p class="text-base font-bold text-[var(--color-text-muted)]">กำลังโหลดข้อมูลรายการสนับสนุน...</p>
-    </div>
-    } @else if (groupedDonations().length === 0) {
-    <div class="empty-card max-w-lg mx-auto my-8 p-8 text-center">
-      <div class="text-5xl text-[var(--color-text-muted)] opacity-60 mb-4" aria-hidden="true">
-        <i class="fa-solid fa-box-open"></i>
-      </div>
-      <h2 class="text-2xl font-black text-[var(--color-text)] mb-2">ยังไม่มีข้อมูลการสนับสนุน</h2>
-      <p class="text-[var(--color-text-muted)] mb-6 text-sm sm:text-base leading-relaxed">
-        ยังไม่มีรายการสนับสนุนที่บันทึกไว้ในระบบ คุณสามารถร่วมเป็นผู้สนับสนุนคนแรกได้ทันที
-      </p>
-      <div class="flex justify-center">
-        <a routerLink="/donate" class="retro-btn retro-btn--primary">
-          <i class="fa-solid fa-hand-holding-heart mr-2" aria-hidden="true"></i>
-          ร่วมสนับสนุนค่าเซิร์ฟเวอร์
-        </a>
-      </div>
-    </div>
-    } @else {
-    <!-- Tab & Quick Nav Controls -->
-    <div class="flex flex-wrap justify-between items-end border-b-2 border-[var(--color-border)] gap-3 min-w-0">
-      <div class="flex flex-wrap gap-2 -mb-[2px] min-w-0" role="tablist" aria-label="เลือกช่วงเวลาการสนับสนุน">
-        @for (group of groupedDonations(); track group.key) {
-        <button type="button" class="tab-btn" role="tab" [id]="'tab-' + group.key"
-          [attr.aria-selected]="selectedTab() === group.key" [attr.aria-controls]="'panel-' + group.key"
-          [class.tab-btn--active]="selectedTab() === group.key" (click)="selectedTab.set(group.key)">
-          <span>{{ group.label }}</span>
-          <span class="tab-count-badge" [attr.aria-label]="group.donations.length + ' รายการ'">
-            {{ group.donations.length }}
-          </span>
-        </button>
-        }
-      </div>
-    </div>
-
-    <!-- Active Tab Panel Content -->
-    @if (currentGroup(); as group) {
-    <div class="space-y-6 min-w-0" role="tabpanel" [id]="'panel-' + group.key"
-      [attr.aria-labelledby]="'tab-' + group.key">
-
-      <!-- Donations List Card -->
-      @if (group.donations.length === 0) {
-      <div class="empty-tab-box p-8 sm:p-12 text-center">
-        <i class="fa-regular fa-calendar-xmark text-3xl mb-3 text-[var(--color-text-muted)]" aria-hidden="true"></i>
-        <p class="font-bold mb-1 text-[var(--color-text)]">ยังไม่มีรายการสนับสนุนในหมวดนี้</p>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">ร่วมเป็นกำลังใจและสนับสนุนค่าบริการเซิร์ฟเวอร์ได้ตลอดเวลา
+<main class="donations-page-shell article-container pb-24 sm:pb-8">
+  <div class="donations-card-wrap">
+    <!-- Card 1: Main Donations History Card -->
+    <article class="donations-card">
+      <header class="donations-header">
+        <h1 class="donations-title">รายการสนับสนุน<br><span>THAI ROM DB</span></h1>
+        <p class="donations-description">
+          บันทึกประวัติการร่วมสนับสนุนค่าบริการเซิร์ฟเวอร์ เพื่อคงไว้ซึ่งคลังข้อมูลเกมแปลไทยสำหรับทุกคน
         </p>
-        <a routerLink="/donate" class="retro-btn retro-btn--sm">
-          <i class="fa-solid fa-heart mr-1.5" aria-hidden="true"></i> ร่วมสนับสนุน
+      </header>
+
+      <section class="donations-body" aria-label="ประวัติการบริจาค">
+        @if (loading()) {
+        <div class="text-center py-16" role="status" aria-live="polite">
+          <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-[var(--color-accent)]" aria-hidden="true"></i>
+          <p class="text-base font-bold text-[var(--color-text-muted)]">กำลังโหลดข้อมูลรายการสนับสนุน...</p>
+        </div>
+        } @else if (groupedDonations().length === 0) {
+        <div class="empty-state-box text-center py-10">
+          <div class="text-5xl text-[var(--color-text-muted)] opacity-60 mb-4" aria-hidden="true">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <h2 class="text-xl font-black text-[var(--color-text)] mb-2">ยังไม่มีข้อมูลการสนับสนุน</h2>
+          <p class="text-[var(--color-text-muted)] mb-6 text-sm leading-relaxed max-w-md mx-auto">
+            ยังไม่มีรายการสนับสนุนที่บันทึกไว้ในระบบ คุณสามารถร่วมเป็นผู้สนับสนุนคนแรกได้ทันที
+          </p>
+          <div class="flex justify-center">
+            <a routerLink="/donate" class="callout-btn callout-btn--primary">
+              <i class="fa-solid fa-hand-holding-heart mr-2" aria-hidden="true"></i>
+              <span>ร่วมสนับสนุนค่าเซิร์ฟเวอร์</span>
+            </a>
+          </div>
+        </div>
+        } @else {
+        <!-- Tab Controls -->
+        <div class="tab-controls-wrap">
+          <div class="tab-buttons-row" role="tablist" aria-label="เลือกช่วงเวลาการสนับสนุน">
+            @for (group of groupedDonations(); track group.key) {
+            <button type="button" class="tab-btn" role="tab" [id]="'tab-' + group.key"
+              [attr.aria-selected]="selectedTab() === group.key" [attr.aria-controls]="'panel-' + group.key"
+              [class.tab-btn--active]="selectedTab() === group.key" (click)="selectedTab.set(group.key)">
+              <span>{{ group.label }}</span>
+              <span class="tab-count-badge" [attr.aria-label]="group.donations.length + ' รายการ'">
+                {{ group.donations.length }}
+              </span>
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Active Tab Panel Content -->
+        @if (currentGroup(); as group) {
+        <div class="tab-panel-content" role="tabpanel" [id]="'panel-' + group.key"
+          [attr.aria-labelledby]="'tab-' + group.key">
+          @if (group.donations.length === 0) {
+          <div class="empty-tab-box p-8 text-center">
+            <i class="fa-regular fa-calendar-xmark text-3xl mb-3 text-[var(--color-text-muted)]" aria-hidden="true"></i>
+            <p class="font-bold mb-1 text-[var(--color-text)]">ยังไม่มีรายการสนับสนุนในหมวดนี้</p>
+            <p class="text-sm text-[var(--color-text-muted)] mb-4">ร่วมเป็นกำลังใจและสนับสนุนค่าบริการเซิร์ฟเวอร์ได้ตลอดเวลา</p>
+            <a routerLink="/donate" class="callout-btn callout-btn--primary">
+              <i class="fa-solid fa-heart mr-1.5" aria-hidden="true"></i>
+              <span>ร่วมสนับสนุน</span>
+            </a>
+          </div>
+          } @else {
+          <div class="donations-list-container">
+            <ul class="m-0 p-0 list-none" aria-label="รายชื่อผู้สนับสนุน">
+              @for (donation of group.donations; track donation.id) {
+              <li class="donation-item">
+                <div class="donation-item-left">
+                  <div class="donation-avatar" aria-hidden="true">
+                    <i class="fa-solid fa-heart"></i>
+                  </div>
+                  <div class="donation-time">
+                    <div class="donation-date-wrap">
+                      <i class="fa-regular fa-calendar text-xs text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                      <span>{{ formatDate(donation.donatedAt) }}</span>
+                    </div>
+                    @if (isNewDonation(donation.donatedAt)) {
+                    <span class="inline-flex items-center" title="รายการใหม่ภายใน 24 ชม.">
+                      <img src="assets/images/new.gif" alt="NEW" class="h-3.5 w-auto object-contain align-middle" />
+                    </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="donation-item-right">
+                  <span class="donation-amount" [attr.aria-label]="donation.amount + ' บาท'">
+                    <span class="coin-val">+{{ donation.amount | number }}</span>
+                  </span>
+                </div>
+              </li>
+              }
+            </ul>
+          </div>
+          }
+        </div>
+        }
+        }
+      </section>
+    </article>
+
+    <!-- Card 2: Redeem Reminder Callout Card -->
+    <article class="redeem-callout-card" aria-label="แจ้งเตือนการแลกรับสิทธิ์ VIP">
+      <h3 class="redeem-callout-heading">
+        <i class="fa-solid fa-gift text-[var(--color-highlight)] mr-2" aria-hidden="true"></i>
+        ร่วมสนับสนุนแล้ว อย่าลืมแลกรับสิทธิ์ VIP
+      </h3>
+      <p class="redeem-callout-desc">
+        หากคุณได้ร่วมสนับสนุนค่าเซิร์ฟเวอร์แล้ว เมื่อเห็นยอดขึ้นในหน้านี้ สามารถใช้วันเวลาของ transaction (เช่น 202609241105) ไปแลกรับสิทธิ์ VIP Member เพื่อปลดล็อกการบันทึกคลังเกมข้ามเครื่องและสิทธิพิเศษอื่นๆ ได้ทันที
+      </p>
+      <div class="callout-actions">
+        <a routerLink="/redeem" class="callout-btn callout-btn--primary">
+          <i class="fa-solid fa-key mr-2" aria-hidden="true"></i>
+          <span>แลกรับสิทธิ์ VIP</span>
+        </a>
+        <a routerLink="/donate" class="callout-btn callout-btn--secondary">
+          <i class="fa-solid fa-hand-holding-heart mr-2" aria-hidden="true"></i>
+          <span>ร่วมสนับสนุนค่าเซิร์ฟเวอร์</span>
         </a>
       </div>
-      } @else {
-      <div class="donations-list-card overflow-hidden min-w-0">
-        <ul class="m-0 p-0 list-none min-w-0" aria-label="รายชื่อผู้สนับสนุน">
-          @for (donation of group.donations; track donation.id) {
-          <li
-            class="donation-item flex justify-between items-center p-3 sm:p-4 border-b border-[var(--color-border)] last:border-b-0 hover:bg-white/[0.04] transition-colors gap-3 min-w-0">
-            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-              <div
-                class="donation-avatar w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base shrink-0"
-                aria-hidden="true">
-                <i class="fa-solid fa-heart"></i>
-              </div>
-              <div
-                class="donation-time text-sm sm:text-base text-[var(--color-text)] font-semibold flex items-center gap-2 flex-wrap">
-                <div class="flex items-center gap-1.5">
-                  <i class="fa-regular fa-calendar text-xs text-[var(--color-text-muted)]" aria-hidden="true"></i>
-                  <span>{{ formatDate(donation.donatedAt) }}</span>
-                </div>
-                @if (isNewDonation(donation.donatedAt)) {
-                <span class="inline-flex items-center" title="รายการใหม่ภายใน 24 ชม.">
-                  <img src="assets/images/new.gif" alt="NEW" class="h-3.5 w-auto object-contain align-middle" />
-                </span>
-                }
-              </div>
-            </div>
-
-            <div class="shrink-0 flex items-center">
-              <span class="donation-amount" [attr.aria-label]="donation.amount + ' บาท'">
-                <span class="coin-val">+{{ donation.amount | number }}</span>
-              </span>
-            </div>
-          </li>
-          }
-        </ul>
-      </div>
-      }
-    </div>
-    }
-
-    <!-- Page Note & Footer info -->
-    <footer
-      class="donations-footer-note mt-6 p-4 border-l-4 border-[var(--color-accent)] bg-[var(--color-surface-light)] text-sm text-[var(--color-text-muted)]">
-      <p class="m-0 leading-relaxed">
-        <i class="fa-solid fa-circle-info mr-1 text-[var(--color-accent)]" aria-hidden="true"></i>
-        หากคุณได้ร่วมสนับสนุนค่าเซิร์ฟเวอร์แล้ว เมื่อเห็นยอดขึ้นในหน้านี้ สามารถใช้วันเวลาของ transaction (เช่น 202609241105 โดยปีต้องเป็น ค.ศ.) ไปแลกรับสิทธิ์
-        <a routerLink="/redeem" class="inline-link">VIP Member</a> เพื่อรับสิทธิพิเศษในการใช้งานได้
-      </p>
-    </footer>
-    }
-  </section>
+    </article>
+  </div>
 </main>

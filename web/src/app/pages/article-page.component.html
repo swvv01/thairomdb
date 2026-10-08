@@ -1,5 +1,18 @@
-<main class="article-page article-container">
-    <p *ngIf="loading">กำลังโหลด...</p>
-    <app-article-preview *ngIf="!loading && article; else missing" [article]="article" [backLink]="backLink" />
-    <ng-template #missing><p *ngIf="!loading">ไม่พบบทความนี้</p></ng-template>
+<main class="article-page-shell article-container pb-24 sm:pb-8">
+  <div class="article-card-wrap">
+    <article *ngIf="loading" class="article-status-card">
+      <p class="status-text">กำลังโหลดบทความ...</p>
+    </article>
+
+    <article *ngIf="!loading && article" class="article-content-card">
+      <app-article-preview [article]="article" [backLink]="backLink" />
+    </article>
+
+    <article *ngIf="!loading && !article" class="article-status-card">
+      <p class="status-text">ไม่พบบทความนี้</p>
+      <a class="button border px-3 py-1.5 font-bold mt-3 inline-block" routerLink="/articles">
+        ← กลับไปหน้ารวมบทความ
+      </a>
+    </article>
+  </div>
 </main>

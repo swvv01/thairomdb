@@ -1,57 +1,158 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 :host ::ng-deep .admin-input {
-    display: block;
-    margin-top: .35rem;
-    width: 100%;
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    padding: .65rem;
-    pointer-events: auto;
-    user-select: text;
+  display: block;
+  margin-top: .35rem;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-surface);
+  padding: .65rem;
+  pointer-events: auto;
+  user-select: text;
+  box-sizing: border-box;
 }
 
-.master-card-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+.admin-master-page-shell {
+  min-height: calc(100vh - 2.5rem);
 }
 
-.master-card {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    padding: 1rem;
-    box-shadow: 0 .35rem 0 var(--color-surface)
+.admin-master-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
+  width: 100%;
+}
+
+/* Base Cards */
+.admin-master-header-card,
+.master-item-card,
+.master-empty-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Header Card */
+.admin-master-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.25rem;
+}
+
+.admin-master-title {
+  color: var(--color-text);
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.admin-master-description {
+  color: var(--color-text-muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  line-height: 1.5;
+  margin: 0.75rem 0 0;
+}
+
+.admin-master-search-section {
+  padding-top: 1.25rem;
+}
+
+.admin-master-search-section .admin-search-field {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Items Stack */
+.master-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.master-item-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.master-item-content {
+  min-width: 0;
+  width: 100%;
 }
 
 .master-card-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: .5rem;
-    margin-top: .75rem
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
 }
 
+.master-empty-card {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+/* Dialog */
 .master-dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: grid;
-    place-items: center;
-    padding: 1rem;
-    background: var(--color-overlay)
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--color-overlay);
 }
 
 .master-dialog {
-    position: relative;
-    z-index: 21;
-    width: min(100%, 32rem);
-    border: 2px solid var(--color-accent);
-    background: var(--color-surface);
-    padding: 1.25rem;
-    color: var(--color-text);
-    user-select: text
+  position: relative;
+  z-index: 21;
+  width: min(100%, 32rem);
+  border: 2px solid var(--color-accent);
+  background: var(--color-surface);
+  box-shadow: 4px 4px 0 var(--color-shadow);
+  padding: 1.45rem;
+  color: var(--color-text);
+  user-select: text;
 }
 
 .master-dialog label {
-    display: block
+  display: block;
+}
+
+@media (max-width: 640px) {
+  :host .admin-master-page-shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .admin-master-card-wrap {
+    gap: 1.5rem;
+  }
+
+  .admin-master-header-card,
+  .master-item-card,
+  .master-empty-card {
+    padding: 1rem;
+  }
+
+  .master-cards-stack {
+    gap: 1rem;
+  }
 }

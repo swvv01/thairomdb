@@ -1,19 +1,16 @@
-<main class="redeem-page">
-  <section class="redeem-hero" aria-labelledby="redeem-title">
-    <div class="hero-copy">
-      <p class="eyebrow">VIP Membership</p>
-      <h1 id="redeem-title">แลกรับสิทธิ์<br><span>VIP MEMBER</span></h1>
-      <p class="hero-description">
-        ร่วมสนับสนุนค่าเซิร์ฟเวอร์ THAI ROM DB และนำวันเวลาที่โอนมาแลกรับสถานะ VIP เพื่อรับสิทธิพิเศษในการใช้งาน
-      </p>
-    </div>
-    <div class="hero-mark" aria-hidden="true">★</div>
-  </section>
+<main class="redeem-page-shell article-container pb-24 sm:pb-8">
+  <div class="redeem-card-wrap">
+    <!-- Card 1: Main Redeem Card -->
+    <article class="redeem-card">
+      <header class="redeem-header">
+        <p class="eyebrow">VIP Membership</p>
+        <h1 class="redeem-title">แลกรับสิทธิ์<br><span>VIP MEMBER</span></h1>
+        <p class="redeem-description">
+          ร่วมสนับสนุนค่าเซิร์ฟเวอร์ THAI ROM DB และนำวันเวลาที่โอนมาแลกรับสถานะ VIP เพื่อรับสิทธิพิเศษในการใช้งาน
+        </p>
+      </header>
 
-  <section class="redeem-content">
-    <div class="redeem-grid">
-      <!-- Main Action Box -->
-      <div class="redeem-main-card">
+      <div class="redeem-body">
         @if (!authService.user()) {
         <div class="text-center py-4">
           <div
@@ -52,8 +49,7 @@
           </div>
           <h2 class="card-heading">คุณเป็นสมาชิก VIP แล้ว</h2>
           <p class="card-subtext">
-            บัญชีของคุณเปิดใช้งานสิทธิพิเศษ VIP เรียบร้อยแล้ว ขอบคุณอย่างยิ่งที่ร่วมเป็นส่วนหนึ่งในการสนับสนุน THAI ROM
-            DB
+            บัญชีของคุณเปิดใช้งานสิทธิพิเศษ VIP เรียบร้อยแล้ว ขอบคุณอย่างยิ่งที่ร่วมเป็นส่วนหนึ่งในการสนับสนุน THAI ROM DB
           </p>
           <div
             class="inline-flex items-center gap-2 bg-[color-mix(in_srgb,var(--color-status-success)_20%,transparent)] border border-[var(--color-status-success)] text-[var(--color-text)] text-sm font-bold px-3 py-1.5 mb-6">
@@ -128,68 +124,32 @@
         </div>
         }
       </div>
+    </article>
 
-      <!-- Perks & Donate Info Column -->
-      <aside class="perks-sidebar" aria-label="สิทธิพิเศษและข้อมูลการสนับสนุน">
-        <!-- VIP Perks Card -->
-        <div class="perks-card">
-          <h3 class="perks-heading">
-            <i class="fa-solid fa-star text-[var(--color-highlight)] mr-2" aria-hidden="true"></i>
-            สิทธิพิเศษสำหรับสมาชิก VIP
-          </h3>
-          <ul class="m-0 p-0 list-none flex flex-col gap-4">
-            <li class="flex gap-3 items-start">
-              <div
-                class="w-8 h-8 shrink-0 border border-[var(--color-border)] bg-[var(--color-surface-light)] text-[var(--color-accent)] flex items-center justify-center text-sm">
-                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-              </div>
-              <div class="min-w-0">
-                <strong class="text-[var(--color-text)] font-bold block">ดึงข้อมูลล่าสุดได้ทันที</strong>
-                <p class="text-sm text-[var(--color-text-muted)] m-0 mt-0.5 leading-relaxed">
-                  สามารถสั่งดึงข้อมูลเกมอัปเดตล่าสุดได้ทันทีโดยไม่ต้องรอรอบแคชของระบบ</p>
-              </div>
-            </li>
-            <li class="flex gap-3 items-start">
-              <div
-                class="w-8 h-8 shrink-0 border border-[var(--color-border)] bg-[var(--color-surface-light)] text-[var(--color-accent)] flex items-center justify-center text-sm">
-                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-              </div>
-              <div class="min-w-0">
-                <strong class="text-[var(--color-text)] font-bold block">เข้าใช้งานช่วงปิดปรับปรุง</strong>
-                <p class="text-sm text-[var(--color-text-muted)] m-0 mt-0.5 leading-relaxed">
-                  สามารถเข้าถึงและใช้งานเว็บไซต์ได้ตามปกติแม้ในช่วงที่มีการปิดปรับปรุงเซิร์ฟเวอร์</p>
-              </div>
-            </li>
-            <li class="flex gap-3 items-start">
-              <div
-                class="w-8 h-8 shrink-0 border border-[var(--color-border)] bg-[var(--color-surface-light)] text-[var(--color-accent)] flex items-center justify-center text-sm">
-                <i class="fa-solid fa-heart" aria-hidden="true"></i>
-              </div>
-              <div class="min-w-0">
-                <strong class="text-[var(--color-text)] font-bold block">ร่วมสนับสนุนชุมชน</strong>
-                <p class="text-sm text-[var(--color-text-muted)] m-0 mt-0.5 leading-relaxed">
-                  ช่วยสมทบทุนค่าใช้จ่ายเซิร์ฟเวอร์เพื่อให้เว็บ THAI ROM DB เปิดให้บริการได้อย่างต่อเนื่อง</p>
-              </div>
-            </li>
-          </ul>
-        </div>
+    <!-- Card 2: VIP Perks Card -->
+    <article class="redeem-vip-section" aria-label="สิทธิพิเศษสำหรับสมาชิก VIP">
+      <app-vip-perks-card />
+    </article>
 
-        <!-- Donate Callout Card -->
-        <div class="donate-callout-card">
-          <h4 class="text-base font-bold text-[var(--color-text)] mb-1.5">ยังไม่ได้สนับสนุน
-            หรือต้องการตรวจดูยอดโอน?</h4>
-          <p class="text-sm text-[var(--color-text-muted)] mb-4 leading-relaxed">
-            สามารถร่วมสนับสนุนค่าเซิร์ฟเวอร์ผ่าน PromptPay หรือ TrueMoney แล้วตรวจดูยอดเพื่อนำวันเวลาของ transaction มา
-            Redeem ได้เลย
-          </p>
-          <div class="flex flex-col gap-2">
-            <a routerLink="/donate" class="donate-link-btn">
-              <span>ไปที่หน้าช่วยเหลือค่าเซิร์ฟเวอร์</span>
-              <i class="fa-solid fa-arrow-right ml-2" aria-hidden="true"></i>
-            </a>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </section>
+    <!-- Card 3: Donate & Check Transactions Callout Card -->
+    <article class="donate-callout-card" aria-label="ช่วยเหลือค่าเซิร์ฟเวอร์หรือตรวจดูยอดโอน">
+      <h3 class="callout-heading">
+        <i class="fa-solid fa-circle-question text-[var(--color-highlight)] mr-2" aria-hidden="true"></i>
+        ยังไม่ได้สนับสนุน หรือต้องการตรวจดูยอดโอน?
+      </h3>
+      <p class="callout-desc">
+        สามารถร่วมสนับสนุนค่าเซิร์ฟเวอร์ผ่าน PromptPay หรือ TrueMoney แล้วตรวจดูยอดเพื่อนำวันเวลาของ transaction มา Redeem ได้เลย
+      </p>
+      <div class="callout-actions">
+        <a routerLink="/donate" class="callout-btn callout-btn--primary">
+          <i class="fa-solid fa-hand-holding-heart mr-2" aria-hidden="true"></i>
+          <span>ไปที่หน้าช่วยเหลือค่าเซิร์ฟเวอร์</span>
+        </a>
+        <a routerLink="/donations" class="callout-btn callout-btn--secondary">
+          <i class="fa-solid fa-clock-rotate-left mr-2" aria-hidden="true"></i>
+          <span>ตรวจสอบยอดโอน</span>
+        </a>
+      </div>
+    </article>
+  </div>
 </main>

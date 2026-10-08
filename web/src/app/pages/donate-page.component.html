@@ -1,58 +1,88 @@
-<main class="donate-page">
-  <section class="donate-hero" aria-labelledby="donate-title">
-    <div class="hero-copy">
-      <h1 id="donate-title">ช่วยกันดูแล<br><span>THAI ROM DB</span></h1>
-      <p class="hero-description">
-        การสนับสนุนของคุณช่วยเป็นค่าเซิร์ฟเวอร์และดูแลให้ฐานข้อมูลเกมแปลไทยยังเปิดให้ทุกคนเข้าถึงได้
+<main class="donate-page-shell article-container pb-24 sm:pb-8">
+  <div class="donate-card-wrap">
+    <!-- Card 1: Donate & Payment Card -->
+    <article class="donate-card">
+      <header class="donate-header">
+        <h1 class="donate-title">ช่วยกันดูแล<br><span>THAI ROM DB</span></h1>
+        <p class="donate-description">
+          การสนับสนุนของคุณช่วยเป็นค่าเซิร์ฟเวอร์และดูแลให้ฐานข้อมูลเกมแปลไทยยังเปิดให้ทุกคนเข้าถึงได้
+        </p>
+        @if (serverCost() !== null) {
+        <p class="server-cost">ค่าเซิร์ฟเวอร์เดือนนี้ <strong>{{ serverCost() | number:'1.0-2' }}฿</strong></p>
+        }
+      </header>
+
+      <section class="donate-payment-section" aria-labelledby="payment-section-title">
+        <h2 id="payment-section-title" class="sr-only">ช่องทางการสนับสนุน</h2>
+
+        <div class="payment-switcher" role="tablist" aria-label="เลือกช่องทางการสนับสนุน">
+          <button class="payment-tab" type="button" role="tab" [attr.aria-selected]="selectedMethod() === 'promptpay'"
+            [class.payment-tab--active]="selectedMethod() === 'promptpay'" (click)="selectMethod('promptpay')">
+            <span>PromptPay</span>
+          </button>
+          <button class="payment-tab" type="button" role="tab" [attr.aria-selected]="selectedMethod() === 'truemoney'"
+            [class.payment-tab--active]="selectedMethod() === 'truemoney'" (click)="selectMethod('truemoney')">
+            <span>TrueMoney</span>
+          </button>
+        </div>
+
+        <div class="payment-grid">
+          @if (selectedMethod() === 'promptpay') {
+          <figure class="payment-option">
+            <div class="payment-image-wrap">
+              <img src="assets/images/prompt_pay.png" alt="QR Code สำหรับบริจาคผ่าน PromptPay" />
+            </div>
+            <figcaption>
+              <div>
+                <h3>PromptPay</h3>
+                <p>สแกน QR Code ผ่านแอปธนาคารของคุณ</p>
+              </div>
+            </figcaption>
+          </figure>
+          } @else {
+          <figure class="payment-option">
+            <div class="payment-image-wrap">
+              <img src="assets/images/true_money.png" alt="QR Code สำหรับบริจาคผ่าน TrueMoney" />
+            </div>
+            <figcaption>
+              <div>
+                <h3>TrueMoney</h3>
+                <p>สแกน QR Code ผ่านแอป TrueMoney Wallet</p>
+              </div>
+            </figcaption>
+          </figure>
+          }
+        </div>
+
+        <p class="thank-you">ขอบคุณที่ช่วยให้ THAI ROM DB เดินหน้าต่อไปได้ <span aria-hidden="true">✦</span></p>
+      </section>
+    </article>
+
+    <!-- Card 2: Redeem Reminder Callout Card -->
+    <article class="redeem-callout-card" aria-label="แจ้งเตือนการแลกรับสิทธิ์ VIP">
+      <h3 class="redeem-callout-heading">
+        <i class="fa-solid fa-gift text-[var(--color-highlight)] mr-2" aria-hidden="true"></i>
+        ร่วมสนับสนุนแล้ว อย่าลืมแลกรับสิทธิ์ VIP
+      </h3>
+      <p class="redeem-callout-desc">
+        เมื่อโอนเงินสนับสนุนแล้ว สามารถนำวันเวลาที่โอน (เช่น 202609241105) ไปแลกรับสถานะ VIP
+        เพื่อปลดล็อกการบันทึกคลังเกมข้ามเครื่องและสิทธิพิเศษอื่นๆ ได้ทันที
       </p>
-      @if (serverCost() !== null) {
-      <p class="server-cost">ค่าเซิร์ฟเวอร์เดือนนี้ <strong>{{ serverCost() | number:'1.0-2' }}฿</strong></p>
-      }
-    </div>
-    <div class="hero-mark" aria-hidden="true">♥</div>
-  </section>
+      <div class="callout-actions">
+        <a routerLink="/redeem" class="callout-btn callout-btn--primary">
+          <i class="fa-solid fa-key mr-2" aria-hidden="true"></i>
+          <span>แลกรับสิทธิ์ VIP</span>
+        </a>
+        <a routerLink="/donations" class="callout-btn callout-btn--secondary">
+          <i class="fa-solid fa-clock-rotate-left mr-2" aria-hidden="true"></i>
+          <span>ตรวจสอบยอดโอน</span>
+        </a>
+      </div>
+    </article>
 
-  <section class="donate-content" aria-labelledby="payment-title">    
-
-    <div class="payment-switcher" role="tablist" aria-label="เลือกช่องทางการสนับสนุน">
-      <button class="payment-tab" type="button" role="tab" [attr.aria-selected]="selectedMethod() === 'promptpay'"
-        [class.payment-tab--active]="selectedMethod() === 'promptpay'" (click)="selectMethod('promptpay')">
-        <span>PromptPay</span>
-      </button>
-      <button class="payment-tab" type="button" role="tab" [attr.aria-selected]="selectedMethod() === 'truemoney'"
-        [class.payment-tab--active]="selectedMethod() === 'truemoney'" (click)="selectMethod('truemoney')">
-        <span>TrueMoney</span>
-      </button>
-    </div>
-
-    <div class="payment-grid">
-      @if (selectedMethod() === 'promptpay') {
-      <figure class="payment-option">
-        <div class="payment-image-wrap">
-          <img src="assets/images/prompt_pay.png" alt="QR Code สำหรับบริจาคผ่าน PromptPay" />
-        </div>
-        <figcaption>
-          <div>
-            <h3>PromptPay</h3>
-            <p>สแกน QR Code ผ่านแอปธนาคารของคุณ</p>
-          </div>
-        </figcaption>
-      </figure>
-      } @else {
-      <figure class="payment-option">
-        <div class="payment-image-wrap">
-          <img src="assets/images/true_money.png" alt="QR Code สำหรับบริจาคผ่าน TrueMoney" />
-        </div>
-        <figcaption>
-          <div>
-            <h3>TrueMoney</h3>
-            <p>สแกน QR Code ผ่านแอป TrueMoney Wallet</p>
-          </div>
-        </figcaption>
-      </figure>
-      }
-    </div>
-
-    <p class="thank-you">ขอบคุณที่ช่วยให้ THAI ROM DB เดินหน้าต่อไปได้ <span aria-hidden="true">✦</span></p>
-  </section>
+    <!-- Card 3: VIP Perks Card -->
+    <article class="donate-vip-section" aria-label="สิทธิพิเศษสำหรับสมาชิก VIP">
+      <app-vip-perks-card />
+    </article>
+  </div>
 </main>

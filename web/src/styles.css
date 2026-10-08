@@ -962,11 +962,16 @@ a:hover .fa-regular,
 
 .article-container {
   padding: 2rem;
+  background: transparent;
+}
+
+main,
+.app-content>main {
+  background: transparent;
 }
 
 app-article-page {
   margin: auto;
-  background-color: var(--color-surface);
   height: stretch;
 }
 

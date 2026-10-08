@@ -1,46 +1,184 @@
-.articles-page {
-    max-width: 70rem;
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.description {
-    color: var(--color-text-muted)
+.articles-page-shell {
+  min-height: calc(100vh - 2.5rem);
+  background: transparent;
 }
 
-.article-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem
+.articles-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
+  width: 100%;
 }
 
-.article-card {
-    display: block;
-    border: 2px solid var(--color-border);
-    background: var(--color-surface);
+/* Base Cards */
+.articles-header-card,
+.articles-status-card,
+.public-article-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Header Card */
+.articles-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.25rem;
+}
+
+.articles-title {
+  color: var(--color-text);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  margin: 0 0 0.5rem;
+}
+
+.articles-description {
+  color: var(--color-text-muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Articles Stack */
+.articles-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.public-article-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.public-article-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--color-shadow);
+}
+
+.article-link-wrap {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  gap: 1rem;
+}
+
+.article-cover-wrap {
+  width: 100%;
+  height: 12rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.article-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.public-article-card:hover .article-cover-img {
+  transform: scale(1.02);
+}
+
+.article-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.article-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.category-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-highlight);
+  color: var(--color-highlight);
+  background: var(--color-surface);
+}
+
+.date-tag {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.article-title {
+  color: var(--color-text);
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.article-excerpt {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.read-more-link {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-link);
+  margin-top: 0.25rem;
+}
+
+.articles-status-card {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.status-text {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  :host .articles-page-shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .articles-card-wrap {
+    gap: 1.5rem;
+  }
+
+  .articles-header-card,
+  .articles-status-card,
+  .public-article-card {
     padding: 1rem;
-    box-shadow: .3rem .3rem var(--color-surface);
-    text-decoration: none
-}
+  }
 
-.article-card img {
-    width: 100%;
-    height: 10rem;
-    object-fit: cover
-}
-
-.article-card h2 {
-    color: var(--color-text)
-}
-
-.article-card span {
-    color: var(--color-brand);
-}
-
-.article-meta {
-    color: var(--color-text-muted)
-}
-
-h1 {
-    margin: .3rem 0;
-    color: var(--color-accent);
-    font-size: clamp(2rem, 5vw, 3.5rem);
+  .article-cover-wrap {
+    height: 9rem;
+  }
 }

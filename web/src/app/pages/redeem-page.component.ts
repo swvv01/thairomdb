@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { RedeemRepository } from '../repositories/redeem.repository';
 import { StatusMessageService } from '../shared/status-message.service';
+import { VipPerksCardComponent } from '../components/vip-perks-card.component';
 
 @Component({
   selector: 'app-redeem-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, VipPerksCardComponent],
   templateUrl: './redeem-page.component.html',
   styleUrl: './redeem-page.component.css'
 })

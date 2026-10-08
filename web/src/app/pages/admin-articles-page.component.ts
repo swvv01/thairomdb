@@ -12,6 +12,19 @@ import { StatusMessageService } from '../shared/status-message.service';
 export class AdminArticlesPageComponent {
   private readonly repo = inject(ArticleRepository); private readonly status = inject(StatusMessageService); private readonly router = inject(Router); private readonly route = inject(ActivatedRoute);
   protected items: Article[] = []; protected editing: string | null = null; protected busy = false; protected isEdit = false; protected isPreview = false; protected form: ArticleDraft = this.blank(); private loadedRouteKey: string | null = null;
+  protected searchText = '';
+
+  protected get filteredItems(): Article[] {
+    const query = this.searchText.trim().toLowerCase();
+    if (!query) return this.items;
+    return this.items.filter(item =>
+      (item.title && item.title.toLowerCase().includes(query)) ||
+      (item.slug && item.slug.toLowerCase().includes(query)) ||
+      (item.excerpt && item.excerpt.toLowerCase().includes(query)) ||
+      (item.category && item.category.toLowerCase().includes(query))
+    );
+  }
+
   constructor() { void this.loadItems(); combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(([params, query]) => void this.syncRoute(params.get('id'), query.get('preview') === 'true')); }
   private blank(): ArticleDraft { return { title: '', slug: '', excerpt: '', content: '', coverUrl: '', category: 'ความรู้', tags: [], status: 'draft', author: 'admin' }; }
   private async loadItems() { this.items = await this.repo.all(true); }

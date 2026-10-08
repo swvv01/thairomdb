@@ -2,11 +2,12 @@ import { DecimalPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServerCostRepository } from '../repositories/server-cost.repository';
+import { VipPerksCardComponent } from '../components/vip-perks-card.component';
 
 @Component({
   selector: 'app-donate-page',
   standalone: true,
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, VipPerksCardComponent],
   templateUrl: './donate-page.component.html',
   styleUrl: './donate-page.component.css'
 })

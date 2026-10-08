@@ -1,97 +1,177 @@
-<main class="admin-articles article-container">
-    <header class="page-heading">
-        <div>
-            <p class="eyebrow">CONTENT WORKSPACE</p>
-            <h1>จัดการบทความ</h1>
-        </div><button *ngIf="!isEdit" class="primary-button" type="button" (click)="start()">+ เพิ่มบทความ</button>
-    </header>
-    <section *ngIf="!isEdit" class="list-mode">
-        <div class="section-heading">
+<main class="admin-articles-shell article-container pb-24 sm:pb-8">
+  <div class="admin-articles-card-wrap">
+
+    <!-- 1. List Mode -->
+    <ng-container *ngIf="!isEdit">
+      <!-- Header Card -->
+      <article class="admin-articles-header-card">
+        <header class="admin-articles-header">
+          <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h2>บทความทั้งหมด</h2>
-                <p>{{ items.length }} รายการ</p>
+              <p class="admin-articles-eyebrow">CONTENT WORKSPACE</p>
+              <h1 class="admin-articles-title">จัดการบทความ</h1>
             </div>
-        </div>
-        <div class="article-list">
-            <article *ngFor="let item of items" class="article-row surface">
-                <div class="article-row-main">
-                    <span class="status" [class.published]="item.status === 'published'">
-                        {{
-                        item.status === 'published' ? 'เผยแพร่แล้ว' : 'ฉบับร่าง' }}
-                    </span>
-                    <h3>{{ item.title || 'ไม่มีชื่อบทความ' }}</h3>
-                </div>
-                <div class="row-actions">
-                    @if (item.status === 'published') {
-                    <button type="button" class="button publish-button" [disabled]="busy"
-                        (click)="unpublish(item)">Unpublish</button>
-                    }
-                    @else{
-                    <button type="button" class="button btn-primary publish-button" [disabled]="busy"
-                        (click)="publish(item)">Publish</button>
-                    }
+            <button class="button px-4 py-2 font-bold text-ink" type="button" (click)="start()">
+              <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+              เพิ่มบทความ
+            </button>
+          </div>
+          <p class="admin-articles-description">จัดการ สร้าง และแก้ไขบทความสาระน่ารู้ คู่มือการใช้งานระบบ</p>
+        </header>
 
-                    <button type="button" class="button" (click)="start(item)">Edit</button>
-                    <button type="button" class="button" (click)="openPreview(item)">Preview</button>
-                    <button class="button btn-danger" type="button" [disabled]="busy" (click)="remove(item)">ลบ</button>
-                </div>
-            </article>
-            <p *ngIf="!items.length" class="empty-state">ยังไม่มีบทความ เริ่มจากการเพิ่มบทความแรก</p>
+        <div *ngIf="items.length" class="admin-articles-search-section">
+          <label class="admin-search-field" for="article-search">
+            <span class="admin-search-icon" aria-hidden="true">⌕</span>
+            <span class="sr-only">ค้นหาบทความ</span>
+            <input id="article-search" class="admin-search-input" type="search" [(ngModel)]="searchText"
+              placeholder="ค้นหาชื่อเรื่อง, slug, หมวดหมู่..." autocomplete="off" />
+          </label>
         </div>
-    </section>
-    <section *ngIf="isEdit && !isPreview" class="workspace-mode">
-        <div class="mode-toolbar">
-            <button type="button" (click)="backToList()">รายการบทความ</button>
-            <h2>{{ editing ? 'แก้ไขบทความ' : 'เพิ่มบทความ' }}</h2>
-            <button type="button" (click)="togglePreview(true)">Preview</button>
-        </div>
-        <div class="editor-layout">
-            <form class="editor-form" (submit)="$event.preventDefault(); save('draft')">
-                <label>
-                    ชื่อบทความ
-                    <input name="title" [(ngModel)]="form.title" (blur)="slugify()" placeholder="ชื่อบทความ">
-                </label>
+      </article>
 
-                <label>
-                    เนื้อหา Markdown
-                    <textarea name="content" [(ngModel)]="form.content" rows="18"
-                        placeholder="# หัวข้อบทความ"></textarea>
-                </label>
+      <!-- Items Stack -->
+      <section *ngIf="items.length" class="article-cards-stack" aria-label="รายการบทความ">
+        <ng-container *ngIf="filteredItems.length; else noResults">
+          <article *ngFor="let item of filteredItems" class="article-item-card">
+            <div class="article-item-main">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="status-badge" [class.status-badge--published]="item.status === 'published'">
+                  <i class="fa-solid" [class.fa-check]="item.status === 'published'"
+                    [class.fa-file-lines]="item.status !== 'published'" aria-hidden="true"></i>
+                  {{ item.status === 'published' ? 'เผยแพร่แล้ว' : 'ฉบับร่าง' }}
+                </span>
+                <span *ngIf="item.category" class="category-badge">{{ item.category }}</span>
+              </div>
+              <h2 class="article-item-title">{{ item.title || 'ไม่มีชื่อบทความ' }}</h2>
+              <p *ngIf="item.excerpt" class="article-item-excerpt">{{ item.excerpt }}</p>
+              <div class="article-item-meta">
+                <span class="slug-tag">/article/{{ item.slug }}</span>
+                <span *ngIf="item.publishedAt" class="date-tag">{{ item.publishedAt | date:'d MMM yyyy' }}</span>
+              </div>
+            </div>
 
-                <label>
-                    Slug
-                    <input name="slug" [(ngModel)]="form.slug" placeholder="how-to-patch">
-                </label>
-                <div class="field-grid">
-                    <label>
-                        หมวดหมู่
-                        <input name="category" [(ngModel)]="form.category">
-                    </label>
-                    <label>
-                        รูปปก URL
-                        <input name="coverUrl" [(ngModel)]="form.coverUrl">
-                    </label>
-                </div>
-                <label>
-                    คำโปรย
-                    <textarea name="excerpt" [(ngModel)]="form.excerpt" rows="3"></textarea>
-                </label>
+            <div class="article-item-actions">
+              <button *ngIf="item.status === 'published'" type="button" class="button border px-3 py-1.5 font-bold"
+                [disabled]="busy" (click)="unpublish(item)">
+                <i class="fa-solid fa-eye-slash mr-1" aria-hidden="true"></i>Unpublish
+              </button>
+              <button *ngIf="item.status !== 'published'" type="button" class="button border px-3 py-1.5 font-bold text-ink"
+                [disabled]="busy" (click)="publish(item)">
+                <i class="fa-solid fa-upload mr-1" aria-hidden="true"></i>Publish
+              </button>
+              <button type="button" class="button border px-3 py-1.5 font-bold" (click)="start(item)">
+                <i class="fa-solid fa-pen-to-square mr-1" aria-hidden="true"></i>Edit
+              </button>
+              <button type="button" class="button border px-3 py-1.5 font-bold" (click)="openPreview(item)">
+                <i class="fa-solid fa-eye mr-1" aria-hidden="true"></i>Preview
+              </button>
+              <button type="button" class="button border px-3 py-1.5 font-bold btn-danger" [disabled]="busy"
+                (click)="remove(item)">
+                <i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>ลบ
+              </button>
+            </div>
+          </article>
+        </ng-container>
 
-                <div class="form-actions">
-                    <button class="primary-button" type="submit" [disabled]="busy">บันทึก</button>
-                </div>
-            </form>
+        <ng-template #noResults>
+          <article class="article-empty-card">
+            <p class="text-sm text-[var(--color-text-muted)] m-0">ไม่พบบทความที่ตรงกับคำค้นหา</p>
+          </article>
+        </ng-template>
+      </section>
+
+      <!-- Empty State -->
+      <article *ngIf="!items.length" class="article-empty-card">
+        <p class="text-sm text-[var(--color-text-muted)] m-0">ยังไม่มีบทความ เริ่มจากการเพิ่มบทความแรก</p>
+      </article>
+    </ng-container>
+
+    <!-- 2. Editor Mode -->
+    <article *ngIf="isEdit && !isPreview" class="admin-articles-editor-card">
+      <header class="editor-header">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button type="button" class="button border px-3 py-1.5 font-bold" (click)="backToList()">
+            <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i>รายการบทความ
+          </button>
+          <h1 class="editor-title">{{ editing ? 'แก้ไขบทความ' : 'เพิ่มบทความ' }}</h1>
+          <button type="button" class="button border px-3 py-1.5 font-bold" (click)="togglePreview(true)">
+            <i class="fa-solid fa-eye mr-1" aria-hidden="true"></i>Preview
+          </button>
         </div>
-    </section>
-    <section *ngIf="isEdit && isPreview" class="preview-mode">
-        <div class="mode-toolbar">
-            <button type="button" (click)="backToList()">รายการบทความ</button>
-            <h2>Preview บทความ</h2>
-            <button type="button" (click)="togglePreview(false)">แก้ไขบทความ</button>
+      </header>
+
+      <form class="editor-form" (submit)="$event.preventDefault(); save()">
+        <label>
+          <span class="field-label required">ชื่อบทความ</span>
+          <input class="admin-input" name="title" [(ngModel)]="form.title" (blur)="slugify()" placeholder="ชื่อบทความ" required>
+        </label>
+
+        <label>
+          <span class="field-label required">เนื้อหา Markdown</span>
+          <textarea class="admin-input editor-content" name="content" [(ngModel)]="form.content" rows="16"
+            placeholder="# หัวข้อบทความ..." required></textarea>
+        </label>
+
+        <label>
+          <span class="field-label required">Slug (URL)</span>
+          <input class="admin-input" name="slug" [(ngModel)]="form.slug" placeholder="how-to-patch" required>
+        </label>
+
+        <div class="field-grid">
+          <label>
+            <span class="field-label">หมวดหมู่</span>
+            <input class="admin-input" name="category" [(ngModel)]="form.category" placeholder="เช่น ความรู้, คู่มือ">
+          </label>
+          <label>
+            <span class="field-label">รูปปก URL</span>
+            <input class="admin-input" name="coverUrl" [(ngModel)]="form.coverUrl" placeholder="https://...">
+          </label>
         </div>
+
+        <label>
+          <span class="field-label">คำโปรย (Excerpt)</span>
+          <textarea class="admin-input" name="excerpt" [(ngModel)]="form.excerpt" rows="3"
+            placeholder="สรุปเนื้อหาสั้นๆ สำหรับแสดงในการ์ด..."></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="button px-5 py-2 font-bold text-ink" type="submit" [disabled]="busy">
+            <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i>บันทึกบทความ
+          </button>
+          <button class="button border px-4 py-2 font-bold" type="button" (click)="backToList()">
+            ยกเลิก
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <!-- 3. Preview Mode -->
+    <article *ngIf="isEdit && isPreview" class="admin-articles-preview-card">
+      <header class="editor-header">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button type="button" class="button border px-3 py-1.5 font-bold" (click)="backToList()">
+            <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i>รายการบทความ
+          </button>
+          <h1 class="editor-title">Preview บทความ</h1>
+          <button type="button" class="button border px-3 py-1.5 font-bold" (click)="togglePreview(false)">
+            <i class="fa-solid fa-pen mr-1" aria-hidden="true"></i>กลับไปแก้ไข
+          </button>
+        </div>
+      </header>
+
+      <div class="preview-content-wrap">
         <app-article-preview [article]="form" />
-        <div class="form-actions preview-actions">
-            <button class="primary-button" type="button" [disabled]="busy" (click)="save()">บันทึก</button>
-        </div>
-    </section>
+      </div>
+
+      <div class="form-actions preview-actions">
+        <button class="button px-5 py-2 font-bold text-ink" type="button" [disabled]="busy" (click)="save()">
+          <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i>บันทึกบทความ
+        </button>
+        <button class="button border px-4 py-2 font-bold" type="button" (click)="togglePreview(false)">
+          แก้ไขต่อ
+        </button>
+      </div>
+    </article>
+
+  </div>
 </main>

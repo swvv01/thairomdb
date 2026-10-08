@@ -6,39 +6,42 @@
   box-sizing: border-box;
 }
 
-.redeem-page {
+.redeem-page-shell {
   min-height: calc(100vh - 2.5rem);
-  color: var(--color-text);
-  background: var(--color-surface);
+}
+
+.redeem-card-wrap {
   display: flex;
   flex-direction: column;
+  gap: 2.4rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 52rem;
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
 }
 
-/* Hero Section */
-.redeem-hero {
-  align-items: end;
+/* Base Cards */
+.redeem-card,
+.donate-callout-card {
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  justify-content: space-between;
-  min-height: 10rem;
-  overflow: hidden;
-  padding: clamp(0.75rem, 2vw, 1.5rem) clamp(1rem, 3.5vw, 2.5rem);
-  position: relative;
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  padding: 1.45rem;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+}
+
+.redeem-vip-section {
+  width: 100%;
   box-sizing: border-box;
 }
 
-.hero-copy {
-  max-width: 100%;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
+/* Header */
+.redeem-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
 }
 
 .eyebrow {
@@ -48,99 +51,39 @@
   text-transform: uppercase;
 }
 
-h1 {
+.redeem-title {
   color: var(--color-text);
-  font-size: clamp(1.85rem, 4.5vw, 3.25rem);
+  font-size: clamp(2rem, 5vw, 3.25rem);
   line-height: 1.05;
   margin: 0 0 0.85rem;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-h1 span {
+.redeem-title span {
   color: var(--color-highlight);
 }
 
-.hero-description {
+.redeem-description {
   color: var(--color-text-muted);
-  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
   line-height: 1.5;
   margin: 0;
-  max-width: 36rem;
+  max-width: 42rem;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-.hero-mark {
-  color: var(--color-brand);
-  font-family: Arial, sans-serif;
-  font-size: clamp(8rem, 16vw, 16rem);
-  line-height: 0.65;
-  opacity: 0.15;
-  position: absolute;
-  right: 2vw;
-  top: 50%;
-  transform: translateY(-40%) rotate(8deg);
-  pointer-events: none;
-}
-
-/* Content Area - Single Column */
-.redeem-content {
-  margin: 0 auto;
-  max-width: min(50rem, 100%);
-  padding: 1.5rem clamp(0.75rem, 2.5vw, 2rem) 3rem;
+.redeem-body {
+  padding-top: 1.5rem;
   width: 100%;
   box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
-}
-
-.redeem-grid,
-.perks-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  width: 100%;
-  min-width: 0;
-}
-
-/* Cards */
-.redeem-main-card,
-.perks-card,
-.donate-callout-card {
-  background: var(--color-surface-light);
-  border: 1px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-shadow);
-  padding: clamp(1.25rem, 3vw, 2rem);
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.perks-card {
-  background: var(--color-surface);
-}
-
-.donate-callout-card {
-  border-style: dashed;
-  border-width: 2px;
-}
-
-.card-heading,
-.perks-heading {
-  color: var(--color-highlight);
-  margin: 0 0 0.5rem;
 }
 
 .card-heading {
+  color: var(--color-highlight);
   font-size: 1.4rem;
-}
-
-.perks-heading {
-  font-size: 1.25rem;
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
+  margin: 0 0 0.5rem;
 }
 
 .card-subtext {
@@ -175,7 +118,7 @@ h1 span {
   background: var(--color-accent);
   color: var(--color-accent-text);
   border: 1px solid var(--color-border);
-  box-shadow: 3px 3px 0 var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
   cursor: pointer;
   padding: 0.75rem 1.25rem;
   min-height: 44px;
@@ -200,7 +143,7 @@ h1 span {
   background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
-  box-shadow: 3px 3px 0 var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
   cursor: pointer;
   padding: 0.75rem 1.5rem;
   width: 100%;
@@ -235,37 +178,73 @@ h1 span {
   color: var(--color-text);
 }
 
-.donate-link-btn {
-  display: flex;
+/* Donate Callout Card */
+.callout-heading {
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
-  padding: 0.65rem 0.85rem;
+  color: var(--color-highlight);
+  display: flex;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+}
+
+.callout-desc {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.callout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.callout-btn {
+  align-items: center;
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  justify-content: center;
+  padding: 0.65rem 1.15rem;
   text-decoration: none;
-  min-height: 44px;
-  line-height: 1.4;
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
 
-.donate-link-btn span {
-  flex: 1;
-  text-align: left;
+.callout-btn:hover {
+  filter: brightness(1.1);
+  transform: translate(-1px, -1px);
 }
 
-.donate-link-btn:hover {
-  background: var(--color-accent);
-  color: var(--color-accent-text);
+.callout-btn:active {
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  transform: translate(1px, 1px);
 }
 
-@media (max-width: 700px) {
-  .redeem-hero {
-    min-height: 9rem;
+.callout-btn--primary {
+  background: var(--color-highlight);
+  border: 1px solid var(--color-border);
+  color: var(--color-surface);
+}
+
+.callout-btn--secondary {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  :host .redeem-page-shell {
+    padding: 1rem 0.75rem;
   }
 
-  .hero-mark {
-    right: -1rem;
-    top: 70%;
+  .redeem-card-wrap {
+    gap: 1.5rem;
+  }
+
+  .redeem-card,
+  .donate-callout-card {
+    padding: 1rem;
   }
 }
