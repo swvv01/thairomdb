@@ -37,6 +37,7 @@ describe('BrowsePageComponent - Load More Functionality', () => {
   }));
 
   beforeEach(async () => {
+    window.localStorage.clear();
     queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
@@ -281,12 +282,18 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect((component as unknown as { sortBy: () => string }).sortBy()).toBe('playTime');
   });
 
-  it('renders mode toggle link to /page in load more mode', () => {
+  it('renders mode toggle button in load more mode and toggles to page mode', () => {
     fixture.detectChanges();
     const modeToggle = fixture.nativeElement.querySelector('.mode-toggle-link');
     expect(modeToggle).toBeTruthy();
-    expect(modeToggle.getAttribute('routerLink')).toBe('/page');
     expect(modeToggle.textContent).toContain('สลับไปโหมดแบ่งหน้า');
+
+    modeToggle.click();
+    fixture.detectChanges();
+
+    expect((component as unknown as { isPageMode: () => boolean }).isPageMode()).toBeTrue();
+    expect(window.localStorage.getItem(BrowsePageComponent.viewModeStorageKey)).toBe('page');
+    expect(fixture.nativeElement.querySelector('.mode-toggle-link').textContent).toContain('สลับไปโหมดโหลดต่อเนื่อง');
   });
 });
 
@@ -316,6 +323,7 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
   }));
 
   beforeEach(async () => {
+    window.localStorage.clear();
     queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
@@ -449,15 +457,11 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/page', { replaceUrl: true });
   });
 
-  it('renders top and bottom pagination controls and mode toggle link to /', () => {
+  it('renders top and bottom pagination controls and does not render mode toggle button on /page', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.pagination--top')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.pagination--bottom')).toBeTruthy();
-
-    const modeToggle = fixture.nativeElement.querySelector('.mode-toggle-link');
-    expect(modeToggle).toBeTruthy();
-    expect(modeToggle.getAttribute('routerLink')).toBe('/');
-    expect(modeToggle.textContent).toContain('สลับไปโหมดโหลดต่อเนื่อง');
+    expect(fixture.nativeElement.querySelector('.mode-toggle-link')).toBeNull();
   });
 
   it('renders load-more-end message only on the last page in pageMode', () => {
@@ -473,6 +477,116 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
     const endMsg = fixture.nativeElement.querySelector('.load-more-end');
     expect(endMsg).toBeTruthy();
     expect(endMsg.textContent).toContain('แสดงรายการทั้งหมดครบแล้ว (25 เกม)');
+  });
+});
+
+describe('BrowsePageComponent - Persistent View Mode', () => {
+  let component: BrowsePageComponent;
+  let fixture: ComponentFixture<BrowsePageComponent>;
+  let router: jasmine.SpyObj<Router>;
+  let queryParamMapSubject: BehaviorSubject<ParamMap>;
+
+  const mockPatches: Patch[] = Array.from({ length: 25 }, (_, i) => ({
+    id: `patch-${i + 1}`,
+    gameTitle: `Game ${i + 1}`,
+    system: 'SNES',
+    patchVersion: '1.0',
+    translatedBy: 'Team A',
+    translatorId: 'translator-1',
+    haveUpdateFlag: false,
+    patchTool: '',
+    referenceText: '',
+    referenceUrl: '',
+    patchFileUrl: '',
+    patchedRomUrl: '',
+    walkthroughUrl: '',
+    coverUrl: '',
+    tags: [],
+    updateDate: '2026-01-01T00:00:00Z'
+  }));
+
+  beforeEach(async () => {
+    window.localStorage.clear();
+    window.localStorage.setItem(BrowsePageComponent.viewModeStorageKey, 'page');
+    queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
+
+    await TestBed.configureTestingModule({
+      imports: [BrowsePageComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: PatchRepository,
+          useValue: { watchAll: () => of(mockPatches) }
+        },
+        {
+          provide: TranslatorRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: TagRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: SystemRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: PatchCacheService,
+          useValue: { refreshRequested: () => 0 }
+        },
+        {
+          provide: AuthService,
+          useValue: { isAdmin: () => false }
+        },
+        BrowseFilterStateService,
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            data: of({}),
+            paramMap: of(convertToParamMap({})),
+            queryParamMap: queryParamMapSubject.asObservable(),
+            snapshot: {
+              data: {},
+              queryParamMap: convertToParamMap({})
+            }
+          }
+        }
+      ]
+    }).compileComponents();
+
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
+    spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    fixture = TestBed.createComponent(BrowsePageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('restores page mode from localStorage when accessing root route without forced pageMode', () => {
+    expect((component as unknown as { isPageMode: () => boolean }).isPageMode()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.pagination--top')).toBeTruthy();
+    const modeToggle = fixture.nativeElement.querySelector('.mode-toggle-link');
+    expect(modeToggle).toBeTruthy();
+    expect(modeToggle.textContent).toContain('สลับไปโหมดโหลดต่อเนื่อง');
+  });
+
+  it('toggles from saved page mode back to scroll mode, updates localStorage, and clears page queryParam', () => {
+    const modeToggle = fixture.nativeElement.querySelector('.mode-toggle-link');
+    modeToggle.click();
+    fixture.detectChanges();
+
+    expect((component as unknown as { isPageMode: () => boolean }).isPageMode()).toBeFalse();
+    expect(window.localStorage.getItem(BrowsePageComponent.viewModeStorageKey)).toBe('scroll');
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      relativeTo: jasmine.anything(),
+      queryParams: { page: null },
+      queryParamsHandling: 'merge'
+    });
+    expect(fixture.nativeElement.querySelector('.mode-toggle-link').textContent).toContain('สลับไปโหมดแบ่งหน้า');
   });
 });
 

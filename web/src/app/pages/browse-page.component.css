@@ -208,6 +208,19 @@
   cursor: pointer;
 }
 
+.mode-toggle-link {
+  background: transparent;
+  border: 0;
+  color: var(--color-brand);
+  font: inherit;
+  text-decoration: underline;
+}
+
+.mode-toggle-link:hover {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
 .load-more-button {
   min-height: 44px;
   padding: .75rem 1.25rem;

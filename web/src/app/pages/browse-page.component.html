@@ -73,12 +73,14 @@
         aria-label="ไปหน้าถัดไป" (click)="setPage(currentPage() + 1)">&gt;</button>
     </nav>
     }
+    @if (!isForcedPageMode()) {
     <div class="mode-toggle-section">
-      <a href="/" (click)="switchMode($event, '/')" class="mode-toggle-link"
+      <button type="button" class="no-button mode-toggle-link" (click)="toggleMode($event)"
         aria-label="สลับไปโหมดโหลดต่อเนื่อง">
         <span>สลับไปโหมดโหลดต่อเนื่อง</span>
-      </a>
+      </button>
     </div>
+    }
     } @else {
     <div class="load-more-section">
       @if (sortedPatches().length > pageSize) {
@@ -96,10 +98,12 @@
       </div>
       }
       }
-      <a href="/page" (click)="switchMode($event, '/page')" class="mode-toggle-link"
+      @if (!isForcedPageMode()) {
+      <button type="button" class="no-button mode-toggle-link" (click)="toggleMode($event)"
         aria-label="สลับไปโหมดแบ่งหน้า">
         <span>สลับไปโหมดแบ่งหน้า</span>
-      </a>
+      </button>
+      }
     </div>
     }
     }

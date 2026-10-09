@@ -32,6 +32,13 @@
       </div>
 
       <div class="patch-card__actions-row">
+        @if (canEdit) {
+        <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
+          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+          <span>แก้ไข</span>
+        </a>
+        }
+
         <button type="button" class="button" [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
           [disabled]="togglingLibraryId() === patch.id"
           [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
@@ -41,12 +48,7 @@
           <span>{{ libraryService.isInLibrary(patch.id) ? 'อยู่ในคลัง' : 'เก็บเข้าคลัง' }}</span>
         </button>
 
-        @if (canEdit) {
-        <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
-          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-          <span>แก้ไข</span>
-        </a>
-        }
+
       </div>
 
       <div class="patch-card__description">

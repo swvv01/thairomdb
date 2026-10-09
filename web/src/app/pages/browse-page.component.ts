@@ -61,7 +61,31 @@ export class BrowsePageComponent implements OnInit {
   protected readonly unavailable = signal(false);
   protected readonly showBackToTop = signal(false);
   protected readonly showFloatingAddGame = signal(false);
-  protected readonly isPageMode = signal(!!this.route.snapshot.data['pageMode']);
+  public static readonly viewModeStorageKey = 'thairomdb_browse_view_mode';
+
+  private static getSavedViewMode(): 'scroll' | 'page' {
+    if (typeof window === 'undefined') return 'scroll';
+    try {
+      const saved = window.localStorage.getItem(BrowsePageComponent.viewModeStorageKey);
+      return saved === 'page' ? 'page' : 'scroll';
+    } catch {
+      return 'scroll';
+    }
+  }
+
+  private static saveViewMode(mode: 'scroll' | 'page'): void {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(BrowsePageComponent.viewModeStorageKey, mode);
+    } catch {
+      // storage can be unavailable
+    }
+  }
+
+  protected readonly isForcedPageMode = signal(!!this.route.snapshot.data['pageMode']);
+  protected readonly isPageMode = signal(
+    !!this.route.snapshot.data['pageMode'] || BrowsePageComponent.getSavedViewMode() === 'page'
+  );
   protected readonly currentPage = signal(1);
   protected readonly pageSize = 10;
   protected readonly sortBy = signal<GameListSortField>('updateDate');
@@ -294,7 +318,7 @@ export class BrowsePageComponent implements OnInit {
   protected clearAllFilters(): void {
     this.filterState.clearAll();
     this.currentPage.set(1);
-    const targetUrl = this.isPageMode() ? '/page' : '/';
+    const targetUrl = this.isForcedPageMode() ? '/page' : '/';
     void this.router.navigateByUrl(targetUrl, { replaceUrl: true });
   }
   protected toggleTag(tag: string): void { this.selectedTag.update((current) => current === tag ? null : tag); this.currentPage.set(1); }
@@ -330,12 +354,21 @@ export class BrowsePageComponent implements OnInit {
     if (filters.sortDirection !== 'desc') params['dir'] = filters.sortDirection;
     return params;
   });
-  protected switchMode(event: MouseEvent, route: string): void {
-    event.preventDefault();
-    const scrollY = window.scrollY;
-    this.router.navigate([route], { queryParams: this.currentFilterQueryParams() }).then(() => {
-      requestAnimationFrame(() => window.scrollTo(0, scrollY));
+  protected toggleMode(event?: Event): void {
+    event?.preventDefault();
+    if (this.isForcedPageMode()) return;
+    const nextMode = !this.isPageMode();
+    this.isPageMode.set(nextMode);
+    BrowsePageComponent.saveViewMode(nextMode ? 'page' : 'scroll');
+    this.currentPage.set(1);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: null },
+      queryParamsHandling: 'merge'
     });
+  }
+  protected switchMode(event?: MouseEvent, _route?: string): void {
+    this.toggleMode(event);
   }
   protected loadMore(): void {
     if (!this.hasMore()) return;
@@ -382,9 +415,11 @@ export class BrowsePageComponent implements OnInit {
     this.tagRepository.watchAll().subscribe({ next: (tags) => { this.tags.set(tags); this.tagsLoaded.set(true); }, error: () => this.unavailable.set(true) });
     this.route.data.subscribe((data) => {
       this.routeKind.set((data['browseKind'] as BrowseRouteKind | undefined) ?? null);
-      const pageMode = !!data['pageMode'];
-      this.isPageMode.set(pageMode);
-      if (pageMode) {
+      const isForcedPage = !!data['pageMode'];
+      this.isForcedPageMode.set(isForcedPage);
+      const activePageMode = isForcedPage || BrowsePageComponent.getSavedViewMode() === 'page';
+      this.isPageMode.set(activePageMode);
+      if (activePageMode) {
         const pageParam = this.route.snapshot.queryParamMap.get('page');
         const parsedPage = pageParam ? Number.parseInt(pageParam, 10) : 1;
         if (Number.isInteger(parsedPage) && parsedPage > 0) {
