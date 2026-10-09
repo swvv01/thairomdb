@@ -109,7 +109,6 @@
     }
   </div>
 
-  @if (auth.isAdmin() || showBackToTop()) {
   <div class="browse-floating-actions" [class.browse-floating-actions--elevated]="hasBottomBanner()">
     @if (auth.isAdmin()) {
     <a class="floating-action button btn-primary" routerLink="/add" aria-label="เพิ่มเกม">
@@ -121,7 +120,10 @@
     <button class="back-to-top button btn-primary" type="button" (click)="backToTop()" aria-label="กลับไปด้านบน">
       <span aria-hidden="true">↑</span>กลับไปด้านบน
     </button>
+    } @else {
+    <button class="to-bottom button btn-primary" type="button" (click)="scrollToBottom()" aria-label="ไปด้านล่าง">
+      <span aria-hidden="true">↓</span>ไปด้านล่าง
+    </button>
     }
   </div>
-  }
 </main>

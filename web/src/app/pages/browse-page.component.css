@@ -162,18 +162,17 @@
   pointer-events: auto;
 }
 
-.back-to-top {
+.back-to-top,
+.to-bottom {
   align-items: center;
   cursor: pointer;
   display: flex;
   gap: .4rem;
-}
-
-.back-to-top {
   padding: .55rem .8rem;
 }
 
-.back-to-top span {
+.back-to-top span,
+.to-bottom span {
   font-size: 1.35rem;
   line-height: 1;
 }
@@ -243,6 +242,7 @@
 }
 
 .back-to-top:focus-visible,
+.to-bottom:focus-visible,
 .floating-action:focus-visible,
 .load-more-button:focus-visible,
 .mode-toggle-link:focus-visible,

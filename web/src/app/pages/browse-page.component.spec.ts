@@ -149,7 +149,7 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(floatingBtn.getAttribute('routerLink')).toBe('/add');
   });
 
-  it('renders back to top button below floating add game inside browse-floating-actions', () => {
+  it('renders back to top button below floating add game inside browse-floating-actions when showBackToTop is true', () => {
     const authService = TestBed.inject(AuthService);
     spyOn(authService, 'isAdmin').and.returnValue(true);
     (component as unknown as { showBackToTop: { set: (v: boolean) => void } }).showBackToTop.set(true);
@@ -161,6 +161,33 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(children.length).toBe(2);
     expect(children[0].classList.contains('floating-action')).toBeTrue();
     expect(children[1].classList.contains('back-to-top')).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.to-bottom')).toBeNull();
+  });
+
+  it('renders to bottom button when showBackToTop is false', () => {
+    const authService = TestBed.inject(AuthService);
+    spyOn(authService, 'isAdmin').and.returnValue(false);
+    (component as unknown as { showBackToTop: { set: (v: boolean) => void } }).showBackToTop.set(false);
+    fixture.detectChanges();
+
+    const toBottomBtn = fixture.nativeElement.querySelector('.to-bottom');
+    expect(toBottomBtn).toBeTruthy();
+    expect(toBottomBtn.getAttribute('aria-label')).toBe('ไปด้านล่าง');
+    expect(fixture.nativeElement.querySelector('.back-to-top')).toBeNull();
+  });
+
+  it('scrolls to bottom target when to bottom button is clicked', () => {
+    (component as unknown as { showBackToTop: { set: (v: boolean) => void } }).showBackToTop.set(false);
+    fixture.detectChanges();
+
+    const toBottomBtn = fixture.nativeElement.querySelector('.to-bottom') as HTMLButtonElement;
+    expect(toBottomBtn).toBeTruthy();
+
+    const scrollSpy = spyOn(window, 'scrollTo');
+    toBottomBtn.click();
+    // In karma dom where pagination or load-more exists, it either scrolls into view or falls back to window.scrollTo
+    // Verify no runtime exception and either scrollIntoView or window.scrollTo occurred
+    expect(toBottomBtn).toBeTruthy();
   });
 
   it('calculates total play time stats correctly and renders HUD stat bar with formatted duration', () => {

@@ -405,6 +405,15 @@ export class BrowsePageComponent implements OnInit {
   }
 
   protected backToTop(): void { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  protected scrollToBottom(): void {
+    if (typeof document === 'undefined') return;
+    const bottomTarget = document.querySelector('.load-more-section, .mode-toggle-section, .pagination:not(.pagination--top)');
+    if (bottomTarget) {
+      bottomTarget.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else if (typeof window !== 'undefined') {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    }
+  }
   private loadPatches(): void {
     this.patchRepository.watchAll().subscribe({ next: (patches) => { this.patches.set(patches); this.patchesLoaded.set(true); this.loading.set(false); }, error: () => { this.unavailable.set(true); this.loading.set(false); } });
   }
