@@ -97,8 +97,8 @@
 
         <div>
           <label><i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)<input
-              class="admin-input" formControlName="playTimeFull" type="number" step="0.1" min="0"
-              placeholder="เช่น 25 หรือ 15.5" /></label>
+              #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.1" min="0"
+              placeholder="เช่น 25 หรือ 15.5" (focus)="playTimeFullInput.select()" /></label>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="syncPlayTimeFullFromPlayTime()"
               [disabled]="loadingData"><i class="fa-solid fa-copy mr-1"
@@ -277,12 +277,12 @@
 
   @if (showFloatingSave()) {
   @if (saving) {
-  <button class="floating-action button btn-danger" type="button" (click)="cancelSave()" aria-label="ยกเลิกการบันทึก"
+  <button class="floating-action button btn-danger" [class.floating-action--elevated]="hasBottomBanner()" type="button" (click)="cancelSave()" aria-label="ยกเลิกการบันทึก"
     title="ยกเลิกการบันทึก">
     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
   </button>
   } @else {
-  <button class="floating-action button btn-primary" type="button" (click)="save()"
+  <button class="floating-action button btn-primary" [class.floating-action--elevated]="hasBottomBanner()" type="button" (click)="save()"
     [disabled]="form.invalid || loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
   </button>

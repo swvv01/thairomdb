@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, HostListener, ViewChild, computed, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -56,6 +56,8 @@ export class AdminPatchPageComponent {
   protected cover?: Blob;
   protected saving = false;
   protected readonly showFloatingSave = signal(true);
+  protected readonly isOffline = signal(typeof navigator !== 'undefined' && !navigator.onLine);
+  protected readonly hasBottomBanner = computed(() => this.isOffline() || !!(typeof this.status.message === 'function' ? this.status.message() : false));
   protected pastingField: string | null = null;
   protected deleteConfirmOpen = false;
   protected editId: string | null = null;
@@ -290,7 +292,8 @@ export class AdminPatchPageComponent {
   }
 
   protected openHowLongToBeat(): void {
-    const title = this.form.controls.gameTitle.value.trim();
+    const rawTitle = this.form.controls.gameTitle.value;
+    const title = rawTitle.replace(/[:-]/g, ' ').replace(/\s+/g, ' ').trim();
     const query = encodeURIComponent(encodeURIComponent(title));
     const url = title ? `https://howlongtobeat.com/?q=${query}` : 'https://howlongtobeat.com';
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -439,6 +442,14 @@ export class AdminPatchPageComponent {
     this.tagAutocompleteOpen = false;
     this.translatorAutocompleteOpen = false;
     this.systemAutocompleteOpen = false;
+  }
+  @HostListener('window:online')
+  protected onOnline(): void {
+    this.isOffline.set(false);
+  }
+  @HostListener('window:offline')
+  protected onOffline(): void {
+    this.isOffline.set(true);
   }
   protected async createTag(): Promise<void> {
     const name = this.newTagName.trim();

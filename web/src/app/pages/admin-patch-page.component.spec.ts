@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -447,11 +448,16 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
   const tagRepositoryStub = { watchAll: () => of([]) };
   const systemRepositoryStub = { watchAll: () => of([]) };
   const coverStorageStub = { upload: jasmine.createSpy('upload'), remove: jasmine.createSpy('remove') };
-  const statusMessageStub = { show: jasmine.createSpy('show'), clear: jasmine.createSpy('clear') };
+  const statusMessageStub = {
+    show: jasmine.createSpy('show'),
+    clear: jasmine.createSpy('clear'),
+    message: signal<{ text: string; tone: string } | null>(null),
+  };
 
   beforeEach(async () => {
     statusMessageStub.show.calls.reset();
     statusMessageStub.clear.calls.reset();
+    statusMessageStub.message.set(null);
     paramMapSubject = new Subject<ParamMap>();
 
     await TestBed.configureTestingModule({
@@ -507,6 +513,23 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     c.form.controls.gameTitle.setValue('gta sa');
     c.openHowLongToBeat();
     expect(window.open).toHaveBeenCalledWith('https://howlongtobeat.com/?q=gta%2520sa', '_blank', 'noopener,noreferrer');
+  });
+
+  it('strips colons and hyphens and collapses spaces in howlongtobeat query without mutating form value', () => {
+    const c = component as any;
+    spyOn(window, 'open');
+    c.form.controls.gameTitle.setValue('Final Fantasy VII: Crisis Core - Reunion');
+    c.openHowLongToBeat();
+    expect(window.open).toHaveBeenCalledWith('https://howlongtobeat.com/?q=Final%2520Fantasy%2520VII%2520Crisis%2520Core%2520Reunion', '_blank', 'noopener,noreferrer');
+    expect(c.form.controls.gameTitle.value).toBe('Final Fantasy VII: Crisis Core - Reunion');
+  });
+
+  it('opens howlongtobeat home when gameTitle consists only of colons and hyphens', () => {
+    const c = component as any;
+    spyOn(window, 'open');
+    c.form.controls.gameTitle.setValue(':-: - :');
+    c.openHowLongToBeat();
+    expect(window.open).toHaveBeenCalledWith('https://howlongtobeat.com', '_blank', 'noopener,noreferrer');
   });
 
   it('opens howlongtobeat home when gameTitle is empty', () => {
@@ -665,6 +688,14 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     expect(c.form.controls.playTimeFull.value).toBe(60);
   });
 
+  it('selects all text when playTimeFull input is focused', () => {
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+    spyOn(input, 'select');
+    input.dispatchEvent(new Event('focus'));
+    expect(input.select).toHaveBeenCalled();
+  });
+
   it('cancelSave resets saving state and clears status toast', () => {
     fixture.detectChanges();
     const c = component as any;
@@ -702,6 +733,34 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     // Must not show success message because save was cancelled
     expect(statusMessageStub.show).not.toHaveBeenCalledWith('บันทึกแพตช์สำเร็จ', 'success');
     expect(c.saving).toBeFalse();
+  });
+
+  it('applies floating-action--elevated when hasBottomBanner is true', () => {
+    fixture.detectChanges();
+    const floatingBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.floating-action');
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeFalse();
+
+    statusMessageStub.message.set({ text: 'กำลังบันทึกแพตช์…', tone: 'info' });
+    fixture.detectChanges();
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeTrue();
+
+    statusMessageStub.message.set(null);
+    fixture.detectChanges();
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeFalse();
+  });
+
+  it('applies floating-action--elevated when offline', () => {
+    fixture.detectChanges();
+    const floatingBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.floating-action');
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeFalse();
+
+    window.dispatchEvent(new Event('offline'));
+    fixture.detectChanges();
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeTrue();
+
+    window.dispatchEvent(new Event('online'));
+    fixture.detectChanges();
+    expect(floatingBtn.classList.contains('floating-action--elevated')).toBeFalse();
   });
 });
 

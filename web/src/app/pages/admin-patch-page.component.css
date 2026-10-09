@@ -158,6 +158,11 @@ label.required::before {
   position: fixed;
   right: 1rem;
   bottom: 1rem;
+  transition: bottom .2s ease;
+}
+
+.floating-action--elevated {
+  bottom: 5rem;
 }
 
 .floating-action:disabled {
