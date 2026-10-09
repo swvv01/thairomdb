@@ -106,7 +106,23 @@ describe('PatchCardListComponent', () => {
     expect(descEl?.textContent).toContain('เวลาเล่นจบ: 30 ชั่วโมง');
   });
 
-  it('does not render playTime when null or 0', () => {
+  it('renders "ไม่มีข้อมูล" when playTime is 0', () => {
+    component.patches = [{ ...basePatch, playTime: 0 }];
+    fixture.detectChanges();
+
+    const descEl = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(descEl?.textContent).toContain('เวลาเล่นจบ: ไม่มีข้อมูล');
+  });
+
+  it('renders "ไม่มีข้อมูล" when playTime is 0 even if playTimeFull is specified', () => {
+    component.patches = [{ ...basePatch, playTime: 0, playTimeFull: 20 }];
+    fixture.detectChanges();
+
+    const descEl = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(descEl?.textContent).toContain('เวลาเล่นจบ: ไม่มีข้อมูล');
+  });
+
+  it('does not render playTime when playTime and playTimeFull are null', () => {
     component.patches = [{ ...basePatch, playTime: null, playTimeFull: null }];
     fixture.detectChanges();
 

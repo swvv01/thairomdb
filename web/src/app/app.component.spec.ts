@@ -195,6 +195,8 @@ describe('AppComponent', () => {
         rom: number;
         port: number;
         walkthrough: number;
+        missingPlayTime: number;
+        missingPlayTimeMax: number;
         bySystem: Record<string, number>;
         byTranslator: Record<string, number>;
         byTag: Record<string, number>;
@@ -207,6 +209,8 @@ describe('AppComponent', () => {
     expect(counts.week).toBe(1);
     expect(counts.rom).toBe(1);
     expect(counts.walkthrough).toBe(1);
+    expect(counts.missingPlayTime).toBe(2);
+    expect(counts.missingPlayTimeMax).toBe(0);
     expect(counts.bySystem['sfc']).toBe(2);
     expect(counts.bySystem['portmaster']).toBe(1);
     expect(counts.bySystem['port']).toBe(1);
@@ -285,5 +289,16 @@ describe('AppComponent', () => {
 
     // Clean up
     selectTheme({ target: { value: 'default' } } as unknown as Event);
+  });
+
+  it('should render admin playTime status links when user is admin', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.isAdmin.set(true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const text = compiled.textContent ?? '';
+    expect(text).toContain('ยังไม่ระบุเวลาเล่น (2)');
+    expect(text).toContain('ยังไม่ระบุเวลาเล่นสูงสุด (0)');
   });
 });

@@ -95,6 +95,20 @@
       <nav aria-label="Main navigation">
         <a class="retro-rail-link" routerLink="/add" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">เพิ่มเกม</a>
+        <a class="retro-rail-link" routerLink="/" [queryParams]="{ playTimeStatus: 'missing' }"
+          routerLinkActive="retro-rail-link--active"
+          [routerLinkActiveOptions]="{ matrixParams: 'ignored', queryParams: 'exact', paths: 'exact', fragment: 'ignored' }"
+          (click)="closeSidebar()">
+          <span class="sidebar-link-text">ยังไม่ระบุเวลาเล่น</span> @if (patchesLoaded()) {<span
+            class="sidebar-count">({{ patchCounts().missingPlayTime }})</span>}
+        </a>
+        <a class="retro-rail-link" routerLink="/" [queryParams]="{ playTimeStatus: 'no-max' }"
+          routerLinkActive="retro-rail-link--active"
+          [routerLinkActiveOptions]="{ matrixParams: 'ignored', queryParams: 'exact', paths: 'exact', fragment: 'ignored' }"
+          (click)="closeSidebar()">
+          <span class="sidebar-link-text">ยังไม่ระบุเวลาเล่นสูงสุด</span> @if (patchesLoaded()) {<span
+            class="sidebar-count">({{ patchCounts().missingPlayTimeMax }})</span>}
+        </a>
         <a class="retro-rail-link" routerLink="/admin/systems" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">จัดการเครื่องเกม</a>
         <a class="retro-rail-link" routerLink="/admin/translators" routerLinkActive="retro-rail-link--active"

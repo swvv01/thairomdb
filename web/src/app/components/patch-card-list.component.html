@@ -85,7 +85,7 @@
         }
 
 
-        @if ((patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null && patch.playTimeFull > 0)) {
+        @if (patch.playTime === 0 || (patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null && patch.playTimeFull > 0)) {
         <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(patch) }}</span></div>
         }
 

@@ -90,6 +90,7 @@ export class BrowsePageComponent implements OnInit {
   protected readonly pageSize = 10;
   protected readonly sortBy = signal<GameListSortField>('updateDate');
   protected readonly direction = signal<'asc' | 'desc'>('desc');
+  protected readonly playTimeStatus = signal<'missing' | 'no-max' | null>(null);
   private readonly queryStateReady = signal(false);
   private readonly translatorQuery = signal<string | null>(null);
   protected readonly routeKind = signal<BrowseRouteKind | null>(null);
@@ -99,6 +100,7 @@ export class BrowsePageComponent implements OnInit {
     if (request === this.lastClearAllRequest) return;
     this.lastClearAllRequest = request;
     this.keyword.set('');
+    this.playTimeStatus.set(null);
     this.sortBy.set('updateDate');
     this.direction.set('desc');
   }, { allowSignalWrites: true });
@@ -106,12 +108,14 @@ export class BrowsePageComponent implements OnInit {
     if (!this.queryStateReady()) return;
     const filters = this.filters();
     const page = untracked(() => this.currentPage());
+    const playTimeStatus = untracked(() => this.playTimeStatus());
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         q: filters.keyword.trim() || null,
         translator: this.translators().find((item) => item.id === filters.translatorId)?.shortName || null,
         system: filters.system || null,
+        playTimeStatus: playTimeStatus || null,
         sort: filters.sortBy === 'updateDate' ? null : filters.sortBy,
         dir: filters.sortDirection === 'desc' ? null : filters.sortDirection,
         page: this.isPageMode() && page > 1 ? page : null
@@ -143,6 +147,9 @@ export class BrowsePageComponent implements OnInit {
       const tag = this.tags().find((item) => item.slug === (slug ? decodeURIComponent(slug) : ''));
       return this.joinRouteLabels(tag?.name ?? '', ...selectedLabels) || 'เกมทั้งหมด';
     }
+    const playTimeStatus = this.playTimeStatus();
+    if (playTimeStatus === 'missing') return this.joinRouteLabels('ยังไม่ระบุเวลาเล่น', ...selectedLabels);
+    if (playTimeStatus === 'no-max') return this.joinRouteLabels('ยังไม่ระบุเวลาเล่นสูงสุด', ...selectedLabels);
     return this.joinRouteLabels(...selectedLabels) || 'เกมทั้งหมด';
   });
 
@@ -161,6 +168,9 @@ export class BrowsePageComponent implements OnInit {
     if (this.routeKind() === null && isPortMasterSystem(patch.system)) return false;
     const kind = this.routeKind();
     if ((kind === 'today' || kind === 'week') && !this.isInRecentWindow(patch.updateDate, kind)) return false;
+    const playTimeStatus = this.playTimeStatus();
+    if (playTimeStatus === 'missing' && patch.playTime != null) return false;
+    if (playTimeStatus === 'no-max' && !(typeof patch.playTime === 'number' && patch.playTime > 0 && patch.playTimeFull == null)) return false;
     const tag = this.selectedTag();
     if (tag && !patch.tags.includes(tag)) return false;
     const translatorId = this.selectedTranslatorId();
@@ -318,6 +328,7 @@ export class BrowsePageComponent implements OnInit {
   protected clearAllFilters(): void {
     this.filterState.clearAll();
     this.currentPage.set(1);
+    this.playTimeStatus.set(null);
     const targetUrl = this.isForcedPageMode() ? '/page' : '/';
     void this.router.navigateByUrl(targetUrl, { replaceUrl: true });
   }
@@ -451,6 +462,8 @@ export class BrowsePageComponent implements OnInit {
     this.route.queryParamMap.subscribe((params) => {
       const sort = params.get('sort');
       const direction = params.get('dir');
+      const playTimeStatus = params.get('playTimeStatus');
+      this.playTimeStatus.set(playTimeStatus === 'missing' || playTimeStatus === 'no-max' ? playTimeStatus : null);
       this.keyword.set(params.get('q') ?? '');
       this.translatorQuery.set(params.get('translator'));
       this.filterState.selectedSystem.set(params.get('system'));

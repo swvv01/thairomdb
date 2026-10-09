@@ -72,6 +72,9 @@ export class PatchCardListComponent {
     }).format(date);
   }
   protected formatCardPlayTime(patch: Patch): string {
+    if (patch.playTime === 0) {
+      return 'ไม่มีข้อมูล';
+    }
     const hasPlayTime = patch.playTime != null && patch.playTime > 0;
     const hasPlayTimeFull = patch.playTimeFull != null && patch.playTimeFull > 0;
     if (hasPlayTime && hasPlayTimeFull) {

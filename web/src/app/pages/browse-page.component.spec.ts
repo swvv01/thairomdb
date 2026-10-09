@@ -778,5 +778,41 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
     const systems = (component as unknown as { systems: () => string[] }).systems();
     expect(systems).toEqual(['PORT', 'PortMaster']);
   });
+
+  it('filters patches with missing playTime and updates label when playTimeStatus is missing', () => {
+    const patchesWithPlayTime: Patch[] = [
+      { ...mockPatches[0], id: 'p-null', playTime: null },
+      { ...mockPatches[1], id: 'p-zero', playTime: 0 },
+      { ...mockPatches[2], id: 'p-valid', playTime: 10, playTimeFull: 20 }
+    ];
+    (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches.set(patchesWithPlayTime);
+
+    queryParamMapSubject.next(convertToParamMap({ playTimeStatus: 'missing' }));
+    fixture.detectChanges();
+
+    const sorted = (component as unknown as { sortedPatches: () => Patch[] }).sortedPatches();
+    expect(sorted.map((p) => p.id)).toEqual(['p-null']);
+
+    const label = (component as unknown as { activeRouteLabel: () => string }).activeRouteLabel();
+    expect(label).toBe('ยังไม่ระบุเวลาเล่น');
+  });
+
+  it('filters patches with playtime > 0 and playTimeMax = null when playTimeStatus is no-max', () => {
+    const patchesWithPlayTime: Patch[] = [
+      { ...mockPatches[0], id: 'p-null', playTime: null },
+      { ...mockPatches[1], id: 'p-no-max', playTime: 10, playTimeFull: null },
+      { ...mockPatches[2], id: 'p-has-max', playTime: 10, playTimeFull: 20 }
+    ];
+    (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches.set(patchesWithPlayTime);
+
+    queryParamMapSubject.next(convertToParamMap({ playTimeStatus: 'no-max' }));
+    fixture.detectChanges();
+
+    const sorted = (component as unknown as { sortedPatches: () => Patch[] }).sortedPatches();
+    expect(sorted.map((p) => p.id)).toEqual(['p-no-max']);
+
+    const label = (component as unknown as { activeRouteLabel: () => string }).activeRouteLabel();
+    expect(label).toBe('ยังไม่ระบุเวลาเล่นสูงสุด');
+  });
 });
 

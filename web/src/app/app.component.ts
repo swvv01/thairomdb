@@ -86,6 +86,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     let rom = 0;
     let port = 0;
     let walkthrough = 0;
+    let missingPlayTime = 0;
+    let missingPlayTimeMax = 0;
     const bySystem: Record<string, number> = {};
     const byTranslator: Record<string, number> = {};
     const byTag: Record<string, number> = {};
@@ -96,6 +98,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         port++;
       } else {
         total++;
+        if (patch.playTime == null) {
+          missingPlayTime++;
+        }
+        if (typeof patch.playTime === 'number' && patch.playTime > 0 && patch.playTimeFull == null) {
+          missingPlayTimeMax++;
+        }
       }
 
       if (patch.patchedRomUrl?.trim()) rom++;
@@ -125,7 +133,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    return { total, today, week, rom, port, walkthrough, bySystem, byTranslator, byTag };
+    return { total, today, week, rom, port, walkthrough, missingPlayTime, missingPlayTimeMax, bySystem, byTranslator, byTag };
   });
 
   protected systemCount(shortName: string): number {
