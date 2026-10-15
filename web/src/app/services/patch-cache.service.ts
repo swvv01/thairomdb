@@ -8,7 +8,7 @@ export class PatchCacheService {
   private readonly cache = inject(FirestoreCacheService);
   readonly lastUpdated = this.cache.timestampSignal('patches');
 
-  get<T>(loadFresh: () => Observable<T>): Observable<T> {
+  get<T>(loadFresh: (isForced?: boolean) => Observable<T>): Observable<T> {
     return this.cache.get('patches', loadFresh);
   }
 
@@ -17,6 +17,10 @@ export class PatchCacheService {
   requestForceRefresh(): void {
     this.cache.invalidate('patches');
     this.refreshRequested.update((value) => value + 1);
+  }
+
+  setSavedAt(timestamp: number): void {
+    this.cache.setSavedAt('patches', timestamp);
   }
 
 }

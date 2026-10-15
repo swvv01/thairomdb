@@ -37,7 +37,7 @@ export class FirestoreCacheService {
     (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.invalidate(key));
   }
 
-  get<T>(key: CacheKey, loadFresh: () => Observable<T>): Observable<T> {
+  get<T>(key: CacheKey, loadFresh: (isForced?: boolean) => Observable<T>): Observable<T> {
     const existing = this.memory.get(key);
     if (existing) return existing as Observable<T>;
 
@@ -50,7 +50,7 @@ export class FirestoreCacheService {
     const source = (entry && isOffline)
       ? of(entry.value)
       : (!entry || isStale || isForced)
-        ? defer(loadFresh).pipe(
+        ? defer(() => loadFresh(isForced)).pipe(
             tap((value) => this.write(key, value)),
             catchError((error) => {
               if (entry) return of(entry.value);
@@ -75,6 +75,17 @@ export class FirestoreCacheService {
 
   clearAll(): void {
     (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.clear(key));
+  }
+
+  setSavedAt(key: CacheKey, timestamp: number): void {
+    this.timestamps.update((timestamps) => ({ ...timestamps, [key]: timestamp }));
+    const { entry } = this.readEntry<unknown>(key);
+    if (entry) {
+      entry.savedAt = timestamp;
+      try {
+        window.localStorage.setItem(this.storageKey(key), JSON.stringify(entry));
+      } catch { /* ignore storage errors */ }
+    }
   }
 
   private storageKey(key: CacheKey): string { return `rom-collector:realtime-database:${key}`; }

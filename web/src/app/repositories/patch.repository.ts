@@ -5,6 +5,7 @@ import { Patch, PatchDraft, Translator, Tag } from '../models/patch.models';
 import { RepositoryError } from './repository-error';
 import { PatchCacheService } from '../services/patch-cache.service';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
+import { environment } from '../../environments/environment';
 
 type PatchDocument = Omit<Patch, 'id'>;
 
@@ -17,8 +18,44 @@ export class PatchRepository {
   private readonly cache = inject(FirestoreCacheService);
   private readonly patches = 'patches';
 
+  private async fetchPatches(isForced?: boolean): Promise<Record<string, unknown>> {
+    const workerUrl = environment.r2?.workerUrl;
+    if (workerUrl) {
+      try {
+        const query = isForced ? '?fresh=true' : '';
+        const headers: Record<string, string> = {};
+        if (isForced && environment.r2?.purgeKey) {
+          headers['X-Purge-Key'] = environment.r2.purgeKey;
+        }
+
+        const res = await fetch(`${workerUrl}/api/data/patches${query}`, { headers });
+        if (!res.ok) {
+          throw new Error(`Worker HTTP ${res.status}`);
+        }
+
+        const edgeCachedAt = res.headers.get('X-Edge-Cached-At');
+        if (edgeCachedAt) {
+          const timestamp = Date.parse(edgeCachedAt);
+          if (!Number.isNaN(timestamp)) {
+            this.patchCache.setSavedAt(timestamp);
+          }
+        }
+
+        return (await res.json()) as Record<string, unknown>;
+      } catch (err) {
+        console.warn('Edge Worker fetch failed, falling back to Firebase RTDB:', err);
+      }
+    }
+
+    // Fallback: ดึงตรงจาก Firebase RTDB SDK
+    const snapshot = await get(ref(this.database, this.patches));
+    return (snapshot.val() ?? {}) as Record<string, unknown>;
+  }
+
   watchAll(): Observable<Patch[]> {
-    return this.patchCache.get(() => from(get(ref(this.database, this.patches))).pipe(map((snapshot) => Object.entries((snapshot.val() ?? {}) as Record<string, unknown>).map(([id, data]) => ({ id, ...(data as Record<string, unknown>) } as Record<string, unknown>))))).pipe(
+    return this.patchCache.get((isForced) => from(this.fetchPatches(isForced)).pipe(
+      map((val) => Object.entries(val ?? {}).map(([id, data]) => ({ id, ...(data as Record<string, unknown>) } as Record<string, unknown>)))
+    )).pipe(
       map((rows) => rows.map((row) => ({
         id: String(row['id']),
         updateDate: String(row['updateDate'] ?? ''),

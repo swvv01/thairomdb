@@ -12,6 +12,7 @@ export interface FirebaseEnvironment {
   r2?: {
     workerUrl: string;
     publicUrl: string;
+    purgeKey?: string;
   };
 }
 
@@ -32,6 +33,7 @@ export const environment: FirebaseEnvironment = {
   },
   r2: {
     workerUrl: 'https://r2-upload-worker.thairomdb.workers.dev',
-    publicUrl: 'https://pub-6ba6c842bf76437db39aeb21dc0f37e2.r2.dev'
+    publicUrl: 'https://pub-6ba6c842bf76437db39aeb21dc0f37e2.r2.dev',
+    purgeKey: 'thairomdb-cache-key-2026'
   }
 };
