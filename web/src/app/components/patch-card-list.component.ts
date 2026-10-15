@@ -97,9 +97,7 @@ export class PatchCardListComponent {
     this.loadedImages.update((loaded) => new Set(loaded).add(patchId));
   }
   protected imageUrl(patch: Patch): string {
-    if (!patch.coverUrl) return 'assets/images/no-image.jpg';
-    const version = encodeURIComponent(patch.updateDate || patch.id);
-    return `${patch.coverUrl}${patch.coverUrl.includes('?') ? '&' : '?'}v=${version}`;
+    return patch.coverUrl || 'assets/images/no-image.jpg';
   }
   protected async downloadCover(event: Event, patch: Patch): Promise<void> {
     const mouseEvent = event as MouseEvent;

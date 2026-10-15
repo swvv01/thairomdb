@@ -4,7 +4,6 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideDatabase, getDatabase } from '@angular/fire/database';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideAuth, getAuth } from '@angular/fire/auth';
-import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideHttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
@@ -24,7 +23,6 @@ export const appConfig: ApplicationConfig = {
     // Kept during the cutover for the legacy backup/import screen and rollback.
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
-    provideStorage(() => getStorage()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: environment.production && !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'

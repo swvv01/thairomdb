@@ -69,4 +69,26 @@ describe('StatusMessageService', () => {
     current?.action?.onClick?.();
     expect(onClick).toHaveBeenCalled();
   });
+
+  it('should not auto-dismiss progress messages starting with "กำลัง" by default', fakeAsync(() => {
+    service.show('กำลังบันทึกข้อมูล...');
+    expect(service.message()).toEqual({ text: 'กำลังบันทึกข้อมูล...', tone: 'info' });
+
+    tick(10000);
+    expect(service.message()).toEqual({ text: 'กำลังบันทึกข้อมูล...', tone: 'info' });
+
+    service.show('บันทึกสำเร็จ', 'success');
+    expect(service.message()).toEqual({ text: 'บันทึกสำเร็จ', tone: 'success' });
+
+    tick(5000);
+    expect(service.message()).toBeNull();
+  }));
+
+  it('should allow overriding autoDismiss for progress messages when explicitly specified', fakeAsync(() => {
+    service.show('กำลังโหลด...', 'info', true);
+    expect(service.message()).toEqual({ text: 'กำลังโหลด...', tone: 'info' });
+
+    tick(5000);
+    expect(service.message()).toBeNull();
+  }));
 });

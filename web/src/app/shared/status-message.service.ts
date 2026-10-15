@@ -31,11 +31,12 @@ export class StatusMessageService {
   show(
     text: string,
     tone: StatusMessageTone = 'info',
-    autoDismissOrOptions: boolean | StatusMessageOptions = true
+    autoDismissOrOptions?: boolean | StatusMessageOptions
   ): void {
+    const isProgress = text.trim().startsWith('กำลัง');
     const autoDismiss = typeof autoDismissOrOptions === 'boolean'
       ? autoDismissOrOptions
-      : (autoDismissOrOptions.autoDismiss ?? true);
+      : (autoDismissOrOptions?.autoDismiss ?? !isProgress);
     const action = typeof autoDismissOrOptions === 'object'
       ? autoDismissOrOptions.action
       : undefined;

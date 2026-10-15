@@ -275,15 +275,17 @@ export class AdminPatchPageComponent implements OnInit {
       if (this.cover) {
         coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`);
         if (requestId !== this.saveRequestId) return;
+        coverUrl = `${coverUrl.split('?')[0]}?t=${Date.now()}`;
       }
       if (this.editId) {
         await this.patchRepository.update(this.editId, draft, this.cover ? coverUrl : undefined);
         if (requestId !== this.saveRequestId) return;
-        if (this.cover && this.existingCoverUrl && this.existingCoverUrl !== coverUrl) {
-          // Removing an old cover is cleanup only. It must never turn a
-          // successful patch save into a failure (especially for migrated
-          // covers that belong to the former Firebase project).
-          void this.coverStorage.remove(this.existingCoverUrl).catch(() => undefined);
+        if (this.cover && this.existingCoverUrl) {
+          const oldBasePath = this.existingCoverUrl.split('?')[0];
+          const newBasePath = coverUrl.split('?')[0];
+          if (oldBasePath && oldBasePath !== newBasePath) {
+            void this.coverStorage.remove(this.existingCoverUrl).catch(() => undefined);
+          }
         }
       }
       else {

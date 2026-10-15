@@ -303,4 +303,27 @@ describe('AppComponent', () => {
     expect(text).toContain('(2)');
     expect(text).toContain('(0)');
   });
+
+  it('should toggle update button visibility based on updatingApp state when update is ready', () => {
+    const statusService = TestBed.inject(StatusMessageService);
+    (statusService.message as any).set({ text: 'มีเวอร์ชันใหม่พร้อมใช้งาน', tone: 'info' });
+    (app as any).appUpdateReady.set(true);
+    (app as any).updatingApp.set(false);
+    fixture.detectChanges();
+
+    let actionBtn = fixture.nativeElement.querySelector('.status-message-action');
+    expect(actionBtn).toBeTruthy();
+    expect(actionBtn.textContent.trim()).toBe('อัปเดต');
+
+    // While updating app
+    (app as any).updatingApp.set(true);
+    (statusService.message as any).set({ text: 'กำลังอัปเดต...', tone: 'info' });
+    fixture.detectChanges();
+
+    actionBtn = fixture.nativeElement.querySelector('.status-message-action');
+    expect(actionBtn).toBeNull();
+
+    const closeBtn = fixture.nativeElement.querySelector('.status-message-close');
+    expect(closeBtn).toBeTruthy();
+  });
 });

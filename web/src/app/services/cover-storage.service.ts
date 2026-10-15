@@ -1,15 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Storage } from '@angular/fire/storage';
 import { Auth } from '@angular/fire/auth';
-import { deleteObject, ref as firebaseRef } from 'firebase/storage';
 import { firstValueFrom } from 'rxjs';
 import { RepositoryError } from '../repositories/repository-error';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CoverStorageService {
-  private readonly storage = inject(Storage);
   private readonly http = inject(HttpClient);
   private readonly auth = inject(Auth);
   private readonly workerUrl = environment.r2?.workerUrl;
@@ -47,18 +44,6 @@ export class CoverStorageService {
   async remove(downloadUrl: string): Promise<void> {
     if (!downloadUrl) return;
 
-    // หากเป็นรูปที่อยู่ใน Firebase Storage เดิม
-    if (this.belongsToCurrentBucket(downloadUrl)) {
-      try {
-        await deleteObject(firebaseRef(this.storage, downloadUrl));
-      } catch (e) {
-        console.error('Delete from Firebase failed:', e);
-        throw new RepositoryError('ไม่สามารถลบรูปปกเก่าได้', 'update');
-      }
-      return;
-    }
-
-    // หากเป็นรูปที่อยู่ใน Cloudflare R2
     if (this.belongsToR2(downloadUrl)) {
       if (!this.workerUrl) return;
 
@@ -67,28 +52,18 @@ export class CoverStorageService {
         if (!user) throw new RepositoryError('ต้องเข้าสู่ระบบก่อนลบ', 'update');
         const token = await user.getIdToken();
 
+        const cleanUrl = downloadUrl.split('?')[0];
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         await firstValueFrom(
           this.http.delete(`${this.workerUrl}/delete`, { 
             headers,
-            body: { url: downloadUrl } 
+            body: { url: cleanUrl } 
           })
         );
       } catch (e) {
         console.error('Delete from R2 failed:', e);
         throw new RepositoryError('ไม่สามารถลบรูปปกเก่าได้', 'update');
       }
-    }
-  }
-
-  private belongsToCurrentBucket(downloadUrl: string): boolean {
-    try {
-      const url = new URL(downloadUrl);
-      const bucket = this.storage.app.options.storageBucket;
-      return Boolean(bucket) && url.hostname === 'firebasestorage.googleapis.com' &&
-        decodeURIComponent(url.pathname).startsWith(`/v0/b/${bucket}/o/covers/`);
-    } catch {
-      return false;
     }
   }
 

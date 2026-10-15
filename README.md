@@ -1,14 +1,14 @@
 # RomCollector
 
-RomCollector เป็นเว็บแอปสำหรับจัดเก็บและค้นหาข้อมูลเกม/แพตช์ โดยมี Angular เป็น frontend และใช้ Firebase เป็น backend service สำหรับ authentication, database, storage และ hosting
+RomCollector เป็นเว็บแอปสำหรับจัดเก็บและค้นหาข้อมูลเกม/แพตช์ โดยมี Angular เป็น frontend และใช้ Firebase เป็น backend service สำหรับ authentication, database พร้อม Cloudflare (Pages, Workers, R2) สำหรับ hosting, storage และ edge caching
 
 ## How It Works
 
-1. ผู้ใช้เปิดเว็บที่ deploy อยู่บน Firebase Hosting
-2. Angular โหลดข้อมูลและจัดการหน้าจอผ่าน routes, components และ services
+1. ผู้ใช้เปิดเว็บที่ deploy อยู่บน Cloudflare Pages (และ redirect จาก Firebase Hosting)
+2. Angular โหลดข้อมูลผ่าน Edge Cache Proxy บน Cloudflare Worker เพื่อประหยัดแบนด์วิดท์ Firebase
 3. ผู้ใช้เข้าสู่ระบบผ่าน Firebase Authentication
-4. ข้อมูลเกมและแพตช์ถูกอ่านหรือเขียนผ่าน Firebase/AngularFire
-5. รูปภาพปกและไฟล์ที่เกี่ยวข้องจัดเก็บผ่าน Firebase Storage
+4. ข้อมูลเกมและแพตช์ถูกอ่านหรือเขียนผ่าน Firebase Realtime Database
+5. รูปภาพปกจัดเก็บผ่าน Cloudflare R2 Storage
 6. Firestore, Realtime Database และ Storage Rules ใช้ควบคุมสิทธิ์การเข้าถึงข้อมูล
 
 แอปเป็น Angular standalone application โดย logic ที่ใช้ร่วมกันอยู่ใน `web/src/app/shared` และการเชื่อมต่อข้อมูลหลักอยู่ใน `web/src/app/services`
@@ -21,8 +21,9 @@ RomCollector เป็นเว็บแอปสำหรับจัดเก�
 - AngularFire และ Firebase JavaScript SDK
 - Firebase Authentication
 - Cloud Firestore และ Realtime Database
-- Firebase Storage
-- Firebase Hosting
+- Cloudflare Pages (Frontend Hosting & CI/CD)
+- Cloudflare Workers (R2 Storage API & Edge Cache Proxy)
+- Cloudflare R2 Storage (Cover Images)
 - Tailwind CSS
 - Font Awesome
 - Angular Service Worker / PWA
@@ -35,7 +36,8 @@ RomCollector เป็นเว็บแอปสำหรับจัดเก�
 ├── database.rules.json      # กฎความปลอดภัยของ Realtime Database
 ├── storage.rules            # กฎความปลอดภัยของ Storage
 ├── firebase.json            # Firebase Hosting และ service configuration
-├── docs/                    # เอกสาร design, requirements และ tasks
+├── docs/                    # เอกสาร architecture, design และ tasks
+├── r2-worker/               # Cloudflare Worker สำหรับ R2 storage และ Edge Cache Proxy
 └── web/
     ├── src/app/components/  # Angular UI components
     ├── src/app/services/    # Authentication, cache และ data services
