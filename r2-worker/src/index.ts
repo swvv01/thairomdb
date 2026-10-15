@@ -15,7 +15,7 @@ export default {
     const url = new URL(request.url);
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*', // ปรับเป็นโดเมนของแอปจริงเมื่อ deploy production
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, HEAD, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Purge-Key',
       'Access-Control-Expose-Headers': 'X-Edge-Cached-At, X-Cache-Status',
     };
@@ -25,8 +25,8 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Endpoint: ดึงข้อมูลแพตช์พร้อม Cloudflare Edge Cache
-    if (request.method === 'GET' && url.pathname === '/api/data/patches') {
+    // Endpoint: ดึงข้อมูลแพตช์พร้อม Cloudflare Edge Cache (รองรับทั้ง GET และ HEAD)
+    if (['GET', 'HEAD'].includes(request.method) && url.pathname === '/api/data/patches') {
       const isFresh = url.searchParams.get('fresh') === 'true' || url.searchParams.get('fresh') === '1';
       const purgeKey = request.headers.get('X-Purge-Key');
       const expectedKey = (env as unknown as { PURGE_KEY?: string }).PURGE_KEY || 'thairomdb-cache-key-2026';
@@ -42,7 +42,7 @@ export default {
           const headers = new Headers(cachedResponse.headers);
           Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
           headers.set('X-Cache-Status', 'HIT');
-          return new Response(cachedResponse.body, {
+          return new Response(request.method === 'HEAD' ? null : cachedResponse.body, {
             status: cachedResponse.status,
             headers
           });
@@ -72,6 +72,9 @@ export default {
         });
 
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        if (request.method === 'HEAD') {
+          return new Response(null, { status: 200, headers: response.headers });
+        }
         return response;
       } catch (err) {
         console.error('Fetch from Firebase failed:', err);

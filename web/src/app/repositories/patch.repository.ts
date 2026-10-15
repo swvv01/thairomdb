@@ -18,10 +18,29 @@ export class PatchRepository {
   private readonly cache = inject(FirestoreCacheService);
   private readonly patches = 'patches';
 
-  private async fetchPatches(isForced?: boolean): Promise<Record<string, unknown>> {
+  private async fetchPatches(isForced?: boolean, localSavedAt?: number | null): Promise<{ data: Record<string, unknown>; isSameAsLocal?: boolean }> {
     const workerUrl = environment.r2?.workerUrl;
     if (workerUrl) {
       try {
+        // 1. ถ้าไม่ใช่ Force Reload และมี timestamp แคชในเครื่อง ให้ส่ง HEAD ไปเช็คเวลาก่อน
+        if (!isForced && localSavedAt) {
+          try {
+            const headRes = await fetch(`${workerUrl}/api/data/patches`, { method: 'HEAD' });
+            if (headRes.ok) {
+              const edgeCachedAt = headRes.headers.get('X-Edge-Cached-At');
+              if (edgeCachedAt) {
+                const edgeTimestamp = Date.parse(edgeCachedAt);
+                if (!Number.isNaN(edgeTimestamp) && edgeTimestamp === localSavedAt) {
+                  // เวลาตรงกัน! ข้อมูลในเครื่องยังตรงกับ Edge Cache ไม่ต้องดาวน์โหลด JSON ก้อนใหญ่
+                  return { data: {}, isSameAsLocal: true };
+                }
+              }
+            }
+          } catch (headErr) {
+            console.warn('HEAD check failed, continuing to GET:', headErr);
+          }
+        }
+
         const query = isForced ? '?fresh=true' : '';
         const headers: Record<string, string> = {};
         if (isForced && environment.r2?.purgeKey) {
@@ -41,7 +60,8 @@ export class PatchRepository {
           }
         }
 
-        return (await res.json()) as Record<string, unknown>;
+        const data = (await res.json()) as Record<string, unknown>;
+        return { data, isSameAsLocal: false };
       } catch (err) {
         console.warn('Edge Worker fetch failed, falling back to Firebase RTDB:', err);
       }
@@ -49,12 +69,38 @@ export class PatchRepository {
 
     // Fallback: ดึงตรงจาก Firebase RTDB SDK
     const snapshot = await get(ref(this.database, this.patches));
-    return (snapshot.val() ?? {}) as Record<string, unknown>;
+    return { data: (snapshot.val() ?? {}) as Record<string, unknown>, isSameAsLocal: false };
   }
 
   watchAll(): Observable<Patch[]> {
-    return this.patchCache.get((isForced) => from(this.fetchPatches(isForced)).pipe(
-      map((val) => Object.entries(val ?? {}).map(([id, data]) => ({ id, ...(data as Record<string, unknown>) } as Record<string, unknown>)))
+    return this.patchCache.get((isForced, localSavedAt) => from(this.fetchPatches(isForced, localSavedAt)).pipe(
+      map((result) => {
+        if (result.isSameAsLocal) {
+          return { data: [] as Patch[], isSameAsLocal: true };
+        }
+        const rows = Object.entries(result.data ?? {}).map(([id, data]) => ({ id, ...(data as Record<string, unknown>) } as Record<string, unknown>));
+        const patches: Patch[] = rows.map((row) => ({
+          id: String(row['id']),
+          updateDate: String(row['updateDate'] ?? ''),
+          haveUpdateFlag: row['haveUpdateFlag'] === true,
+          patchVersion: String(row['patchVersion'] ?? ''),
+          playTime: typeof row['playTime'] === 'number' ? row['playTime'] : null,
+          playTimeFull: typeof row['playTimeFull'] === 'number' ? row['playTimeFull'] : null,
+          gameTitle: String(row['gameTitle'] ?? ''),
+          system: String(row['system'] ?? ''),
+          translatorId: String(row['translatorId'] ?? ''),
+          translatedBy: String(row['translatedBy'] ?? ''),
+          patchTool: String(row['patchTool'] ?? ''),
+          tags: Array.isArray(row['tags']) ? row['tags'].map(String) : [],
+          coverUrl: String(row['coverUrl'] ?? ''),
+          patchFileUrl: String(row['patchFileUrl'] ?? ''),
+          patchedRomUrl: String(row['patchedRomUrl'] ?? ''),
+          referenceText: String(row['referenceText'] ?? ''),
+          referenceUrl: String(row['referenceUrl'] ?? ''),
+          walkthroughUrl: String(row['walkthroughUrl'] ?? '')
+        }));
+        return { data: patches, isSameAsLocal: false };
+      })
     )).pipe(
       map((rows) => rows.map((row) => ({
         id: String(row['id']),

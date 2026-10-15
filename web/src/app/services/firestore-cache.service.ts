@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, catchError, defer, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, defer, map, of, shareReplay, tap } from 'rxjs';
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 type CacheKey = 'patches' | 'translators' | 'tags' | 'systems' | 'sidebarLinks' | 'articles';
@@ -37,7 +37,7 @@ export class FirestoreCacheService {
     (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.invalidate(key));
   }
 
-  get<T>(key: CacheKey, loadFresh: (isForced?: boolean) => Observable<T>): Observable<T> {
+  get<T>(key: CacheKey, loadFresh: (isForced?: boolean, localSavedAt?: number | null) => Observable<{ data: T; isSameAsLocal?: boolean } | T>): Observable<T> {
     const existing = this.memory.get(key);
     if (existing) return existing as Observable<T>;
 
@@ -47,11 +47,20 @@ export class FirestoreCacheService {
     const isForced = this.forceFreshKeys.delete(key);
     const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
 
-    const source = (entry && isOffline)
+    const source: Observable<T> = (entry && isOffline)
       ? of(entry.value)
       : (!entry || isStale || isForced)
-        ? defer(() => loadFresh(isForced)).pipe(
-            tap((value) => this.write(key, value)),
+        ? defer(() => loadFresh(isForced, entry?.savedAt ?? null)).pipe(
+            map((result: { data: T; isSameAsLocal?: boolean } | T): T => {
+              if (result && typeof result === 'object' && 'isSameAsLocal' in result && (result as { isSameAsLocal?: boolean }).isSameAsLocal && entry) {
+                return entry.value;
+              }
+              const value = (result && typeof result === 'object' && 'data' in result)
+                ? (result as { data: T }).data
+                : (result as T);
+              this.write(key, value);
+              return value;
+            }),
             catchError((error) => {
               if (entry) return of(entry.value);
               throw error;
@@ -62,7 +71,7 @@ export class FirestoreCacheService {
       shareReplay({ bufferSize: 1, refCount: false }),
       catchError((error) => { this.memory.delete(key); throw error; })
     );
-    this.memory.set(key, shared);
+    this.memory.set(key, shared as Observable<unknown>);
     return shared;
   }
 
@@ -99,15 +108,16 @@ export class FirestoreCacheService {
         window.localStorage.removeItem(this.storageKey(key));
         return { isStale: true };
       }
-      return { entry, isStale: Date.now() - entry.savedAt >= CACHE_TTL_MS };
+      return { entry, isStale: key === 'patches' ? true : Date.now() - entry.savedAt >= CACHE_TTL_MS };
     } catch {
       try { window.localStorage.removeItem(this.storageKey(key)); } catch { /* ignore storage errors */ }
       return { isStale: true };
     }
   }
 
-  private write<T>(key: CacheKey, value: T): void {
-    const savedAt = Date.now();
+  private write<T>(key: CacheKey, value: T, customSavedAt?: number): void {
+    const current = this.timestamps()[key];
+    const savedAt = customSavedAt ?? current ?? Date.now();
     this.timestamps.update((timestamps) => ({ ...timestamps, [key]: savedAt }));
     try { window.localStorage.setItem(this.storageKey(key), JSON.stringify({ savedAt, value } satisfies CacheEntry<T>)); }
     catch { /* storage can be unavailable or full */ }
