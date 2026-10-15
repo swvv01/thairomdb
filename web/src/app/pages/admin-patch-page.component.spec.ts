@@ -762,5 +762,132 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     fixture.detectChanges();
     expect(floatingBtn.classList.contains('floating-action--elevated')).toBeFalse();
   });
+
+  describe('Android Back Button & Exit Confirmation', () => {
+    it('pushes exit guard state into history on ngOnInit', () => {
+      spyOn(window.history, 'pushState');
+      component.ngOnInit();
+      expect(window.history.pushState).toHaveBeenCalledWith(
+        { appExitGuard: true },
+        '',
+        window.location.href
+      );
+    });
+
+    it('opens exit confirm dialog on popstate when form is dirty', () => {
+      const comp = component as any;
+      comp.form.markAsDirty();
+      comp.exitConfirmOpen = false;
+      comp.skipDeactivateConfirm = false;
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      fixture.detectChanges();
+
+      expect(comp.exitConfirmOpen).toBeTrue();
+      const dialog = fixture.nativeElement.querySelector('app-confirm-dialog');
+      expect(dialog).toBeTruthy();
+    });
+
+    it('exits smoothly on popstate without opening dialog when form is pristine', () => {
+      const comp = component as any;
+      comp.form.markAsPristine();
+      comp.exitConfirmOpen = false;
+      comp.skipDeactivateConfirm = false;
+      spyOn(window, 'close');
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      fixture.detectChanges();
+
+      expect(comp.exitConfirmOpen).toBeFalse();
+      expect(comp.skipDeactivateConfirm).toBeTrue();
+      expect(window.close).toHaveBeenCalled();
+      expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/', { replaceUrl: true });
+    });
+
+    it('cancels exit and closes dialog on popstate when dialog is already open', () => {
+      const comp = component as any;
+      comp.form.markAsDirty();
+      comp.exitConfirmOpen = true;
+      spyOn(window.history, 'pushState');
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      fixture.detectChanges();
+
+      expect(comp.exitConfirmOpen).toBeFalse();
+      expect(window.history.pushState).toHaveBeenCalled();
+    });
+
+    it('does not open exit confirm dialog on popstate if skipDeactivateConfirm is true', () => {
+      const comp = component as any;
+      comp.form.markAsDirty();
+      comp.exitConfirmOpen = false;
+      comp.skipDeactivateConfirm = true;
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      fixture.detectChanges();
+
+      expect(comp.exitConfirmOpen).toBeFalse();
+    });
+
+    it('cancelExit closes the dialog and re-pushes exit guard history state', () => {
+      const comp = component as any;
+      comp.exitConfirmOpen = true;
+      spyOn(window.history, 'pushState');
+
+      comp.cancelExit();
+      expect(comp.exitConfirmOpen).toBeFalse();
+      expect(window.history.pushState).toHaveBeenCalledWith(
+        { appExitGuard: true },
+        '',
+        window.location.href
+      );
+    });
+
+    it('confirmExit sets skipDeactivateConfirm, tries window.close, and navigates to / if window remains open', () => {
+      const comp = component as any;
+      comp.exitConfirmOpen = true;
+      spyOn(window, 'close');
+
+      comp.confirmExit();
+
+      expect(comp.exitConfirmOpen).toBeFalse();
+      expect(comp.skipDeactivateConfirm).toBeTrue();
+      expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/', { replaceUrl: true });
+    });
+
+    it('prevents unload on beforeunload event when form is dirty', () => {
+      const comp = component as any;
+      comp.form.markAsDirty();
+      comp.skipDeactivateConfirm = false;
+
+      const event = { preventDefault: jasmine.createSpy('preventDefault'), returnValue: '' } as unknown as BeforeUnloadEvent;
+      comp.onBeforeUnload(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(event.returnValue).toBe('');
+    });
+
+    it('does not prevent unload on beforeunload event when form is pristine', () => {
+      const comp = component as any;
+      comp.form.markAsPristine();
+      comp.skipDeactivateConfirm = false;
+
+      const event = { preventDefault: jasmine.createSpy('preventDefault'), returnValue: '' } as unknown as BeforeUnloadEvent;
+      comp.onBeforeUnload(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('does not prevent unload on beforeunload event when skipDeactivateConfirm is true even if dirty', () => {
+      const comp = component as any;
+      comp.form.markAsDirty();
+      comp.skipDeactivateConfirm = true;
+
+      const event = { preventDefault: jasmine.createSpy('preventDefault'), returnValue: '' } as unknown as BeforeUnloadEvent;
+      comp.onBeforeUnload(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+  });
 });
 

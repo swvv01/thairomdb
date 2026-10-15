@@ -275,6 +275,11 @@
     confirmLabel="ยืนยันลบแพตช์" [danger]="true" (confirmed)="confirmDelete()" (cancelled)="cancelDelete()" />
   }
 
+  @if (exitConfirmOpen) {
+  <app-confirm-dialog title="ต้องการออกจากหน้านี้หรือไม่?" message="ข้อมูลที่ยังไม่ได้บันทึกจะหายไป"
+    confirmLabel="ออกจากหน้า" [danger]="true" (confirmed)="confirmExit()" (cancelled)="cancelExit()" />
+  }
+
   @if (showFloatingSave()) {
   @if (saving) {
   <button class="floating-action button btn-danger" [class.floating-action--elevated]="hasBottomBanner()" type="button" (click)="cancelSave()" aria-label="ยกเลิกการบันทึก"

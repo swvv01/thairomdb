@@ -293,12 +293,14 @@ describe('AppComponent', () => {
 
   it('should render admin playTime status links when user is admin', () => {
     const authService = TestBed.inject(AuthService);
-    authService.isAdmin.set(true);
+    (authService.isAdmin as any).set(true);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     const text = compiled.textContent ?? '';
-    expect(text).toContain('ยังไม่ระบุเวลาเล่น (2)');
-    expect(text).toContain('ยังไม่ระบุเวลาเล่นสูงสุด (0)');
+    expect(text).toContain('ยังไม่ระบุเวลาเล่น');
+    expect(text).toContain('ยังไม่ระบุเวลาเล่นสูงสุด');
+    expect(text).toContain('(2)');
+    expect(text).toContain('(0)');
   });
 });

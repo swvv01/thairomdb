@@ -621,6 +621,7 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
   let component: BrowsePageComponent;
   let fixture: ComponentFixture<BrowsePageComponent>;
   let routeDataSubject: BehaviorSubject<Record<string, unknown>>;
+  let queryParamMapSubject: BehaviorSubject<ParamMap>;
 
   const testPatches: Patch[] = [
     {
@@ -699,6 +700,7 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
 
   beforeEach(async () => {
     routeDataSubject = new BehaviorSubject<Record<string, unknown>>({});
+    queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
       imports: [BrowsePageComponent],
@@ -734,7 +736,7 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
           useValue: {
             data: routeDataSubject.asObservable(),
             paramMap: of(convertToParamMap({})),
-            queryParamMap: of(convertToParamMap({})),
+            queryParamMap: queryParamMapSubject.asObservable(),
             snapshot: {
               data: {},
               queryParamMap: convertToParamMap({})
@@ -781,9 +783,9 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
 
   it('filters patches with missing playTime and updates label when playTimeStatus is missing', () => {
     const patchesWithPlayTime: Patch[] = [
-      { ...mockPatches[0], id: 'p-null', playTime: null },
-      { ...mockPatches[1], id: 'p-zero', playTime: 0 },
-      { ...mockPatches[2], id: 'p-valid', playTime: 10, playTimeFull: 20 }
+      { ...testPatches[0], id: 'p-null', playTime: null },
+      { ...testPatches[1], id: 'p-zero', playTime: 0 },
+      { ...testPatches[2], id: 'p-valid', playTime: 10, playTimeFull: 20 }
     ];
     (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches.set(patchesWithPlayTime);
 
@@ -799,9 +801,9 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
 
   it('filters patches with playtime > 0 and playTimeMax = null when playTimeStatus is no-max', () => {
     const patchesWithPlayTime: Patch[] = [
-      { ...mockPatches[0], id: 'p-null', playTime: null },
-      { ...mockPatches[1], id: 'p-no-max', playTime: 10, playTimeFull: null },
-      { ...mockPatches[2], id: 'p-has-max', playTime: 10, playTimeFull: 20 }
+      { ...testPatches[0], id: 'p-null', playTime: null },
+      { ...testPatches[1], id: 'p-no-max', playTime: 10, playTimeFull: null },
+      { ...testPatches[2], id: 'p-has-max', playTime: 10, playTimeFull: 20 }
     ];
     (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches.set(patchesWithPlayTime);
 

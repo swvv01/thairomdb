@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, ElementRef, HostListener, ViewChild, computed, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, HostListener, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -26,7 +26,7 @@ const defaultDocumentTitle = 'เกมแปลไทย เกมย้อน�
   imports: [ReactiveFormsModule, AsyncPipe, CoverInputComponent, ConfirmDialogComponent],
   templateUrl: './admin-patch-page.component.html'
 })
-export class AdminPatchPageComponent {
+export class AdminPatchPageComponent implements OnInit {
   @ViewChild(CoverInputComponent) private coverInput?: CoverInputComponent;
   @ViewChild('tagInput') private tagInput?: ElementRef<HTMLInputElement>;
   @ViewChild('playTimeInput') private playTimeInput?: ElementRef<HTMLInputElement>;
@@ -82,10 +82,63 @@ export class AdminPatchPageComponent {
   private editLoadRequest = 0;
   private saveRequestId = 0;
   private skipDeactivateConfirm = false;
+  protected exitConfirmOpen = false;
+  private hasExitGuardState = false;
 
   canDeactivate(): boolean {
     if (this.skipDeactivateConfirm) return true;
     return window.confirm('ต้องการออกจากหน้านี้หรือไม่? ข้อมูลที่ยังไม่ได้บันทึกจะหายไป');
+  }
+
+  ngOnInit(): void {
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.pushState({ appExitGuard: true }, '', window.location.href);
+      this.hasExitGuardState = true;
+    }
+  }
+
+  @HostListener('window:popstate')
+  protected onPopState(): void {
+    if (this.skipDeactivateConfirm) return;
+    this.hasExitGuardState = false;
+    if (this.exitConfirmOpen) {
+      this.cancelExit();
+      return;
+    }
+    if (!this.form.dirty) {
+      this.skipDeactivateConfirm = true;
+      window.close();
+      if (!window.closed) {
+        void this.router.navigateByUrl('/', { replaceUrl: true });
+      }
+      return;
+    }
+    this.exitConfirmOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  protected cancelExit(): void {
+    this.exitConfirmOpen = false;
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.pushState({ appExitGuard: true }, '', window.location.href);
+      this.hasExitGuardState = true;
+    }
+  }
+
+  protected confirmExit(): void {
+    this.exitConfirmOpen = false;
+    this.skipDeactivateConfirm = true;
+    window.close();
+    if (!window.closed) {
+      void this.router.navigateByUrl('/', { replaceUrl: true });
+    }
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  protected onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.skipDeactivateConfirm || !this.form.dirty) return;
+    event.preventDefault();
+    event.returnValue = '';
   }
   constructor() {
     this.initializeFilenameGeneration();
