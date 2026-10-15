@@ -78,6 +78,9 @@ export class PatchCardListComponent {
     const hasPlayTime = patch.playTime != null && patch.playTime > 0;
     const hasPlayTimeFull = patch.playTimeFull != null && patch.playTimeFull > 0;
     if (hasPlayTime && hasPlayTimeFull) {
+      if (patch.playTime === patch.playTimeFull) {
+        return `${patch.playTime} ชั่วโมง`;
+      }
       return `${patch.playTime} - ${patch.playTimeFull} ชั่วโมง`;
     }
     if (hasPlayTime) {

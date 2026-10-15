@@ -98,6 +98,15 @@ describe('PatchCardListComponent', () => {
     expect(descEl?.textContent).toContain('เวลาเล่นจบ: 15 - 25.5 ชั่วโมง');
   });
 
+  it('renders single value when playTime and playTimeFull are equal', () => {
+    component.patches = [{ ...basePatch, playTime: 11, playTimeFull: 11 }];
+    fixture.detectChanges();
+
+    const descEl = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(descEl?.textContent).toContain('เวลาเล่นจบ: 11 ชั่วโมง');
+    expect(descEl?.textContent).not.toContain('11 - 11');
+  });
+
   it('renders only playTimeFull when playTime is null', () => {
     component.patches = [{ ...basePatch, playTime: null, playTimeFull: 30 }];
     fixture.detectChanges();
