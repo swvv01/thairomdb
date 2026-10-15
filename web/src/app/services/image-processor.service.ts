@@ -42,8 +42,7 @@ export class ImageProcessorService {
       stepCanvas.height = step.height;
       const stepCtx = stepCanvas.getContext('2d');
       if (stepCtx) {
-        stepCtx.imageSmoothingEnabled = true;
-        stepCtx.imageSmoothingQuality = 'high';
+        stepCtx.imageSmoothingEnabled = false;
         stepCtx.drawImage(currentSource, 0, 0, step.width, step.height);
       }
       currentSource = stepCanvas;
