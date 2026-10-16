@@ -16,22 +16,31 @@
 @if (preview()) {
   <div class="cover-preview-wrapper mt-3">
     <img class="cover-preview" [src]="preview()" alt="Cover preview" />
-    <div class="cover-actions mt-2 flex flex-wrap gap-2">
-      <button class="px-3 py-2 font-bold transition button button--accent" type="button" (click)="openCropper()">
-        <i class="fa-solid fa-crop-simple mr-1" aria-hidden="true"></i>
-        ครอบตัด
-      </button>
-      @if (isCropped()) {
-        <button class="px-3 py-2 font-bold transition button" type="button" (click)="resetToOriginal()">
-          <i class="fa-solid fa-rotate-left mr-1" aria-hidden="true"></i>
-          รีเซ็ตรูปต้นฉบับ
+    @if (rawBlob()) {
+      <div class="cover-actions mt-2 flex flex-wrap gap-2">
+        <button class="px-3 py-2 font-bold transition button button--accent" type="button" (click)="openCropper()">
+          <i class="fa-solid fa-crop-simple mr-1" aria-hidden="true"></i>
+          ครอบตัด
         </button>
-      }
-      <button class="px-3 py-2 font-bold transition button" type="button" (click)="clear()">
-        <i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>
-        ล้างรูป
-      </button>
-    </div>
+        @if (isCropped()) {
+          <button class="px-3 py-2 font-bold transition button" type="button" (click)="resetToOriginal()">
+            <i class="fa-solid fa-rotate-left mr-1" aria-hidden="true"></i>
+            รีเซ็ตรูปต้นฉบับ
+          </button>
+        }
+        @if (_existingCoverUrl()) {
+          <button class="px-3 py-2 font-bold transition button" type="button" (click)="revertToExisting()">
+            <i class="fa-solid fa-arrow-rotate-left mr-1" aria-hidden="true"></i>
+            ย้อนกลับไปใช้รูปเดิม
+          </button>
+        } @else {
+          <button class="px-3 py-2 font-bold transition button" type="button" (click)="clear()">
+            <i class="fa-solid fa-trash mr-1" aria-hidden="true"></i>
+            ล้างรูป
+          </button>
+        }
+      </div>
+    }
   </div>
 }
 @if (error()) { <p class="mt-2 text-[var(--color-brand)]" role="alert">{{ error() }}</p> }

@@ -98,4 +98,32 @@ describe('CoverInputComponent', () => {
     expect(component['cropperOpen']()).toBeFalse();
     expect(component['lastCrop']()).toBeNull();
   });
+
+  it('displays existingCoverUrl in preview and leaves rawBlob null', () => {
+    component.existingCoverUrl = 'https://example.com/cover.png';
+    fixture.detectChanges();
+
+    expect(component['preview']()).toBe('https://example.com/cover.png');
+    expect(component['rawBlob']()).toBeNull();
+    expect(component.existingCoverUrl).toBe('https://example.com/cover.png');
+  });
+
+  it('reverts to existing cover and emits undefined when revertToExisting() is called', async () => {
+    component.existingCoverUrl = 'https://example.com/cover.png';
+    fixture.detectChanges();
+
+    const newBlob = new Blob(['new image'], { type: 'image/png' });
+    await component['process'](newBlob, true);
+
+    expect(component['preview']()).not.toBe('https://example.com/cover.png');
+    expect(component['rawBlob']()).toBe(newBlob);
+
+    const selectSpy = spyOn(component.selected, 'emit');
+    component['revertToExisting']();
+
+    expect(component['preview']()).toBe('https://example.com/cover.png');
+    expect(component['rawBlob']()).toBeNull();
+    expect(component['isCropped']()).toBeFalse();
+    expect(selectSpy).toHaveBeenCalledWith(undefined);
+  });
 });

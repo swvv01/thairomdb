@@ -83,7 +83,7 @@
         <div [class.pointer-events-none]="loadingData" [class.opacity-50]="loadingData">
           <label><i class="fa-solid fa-image mr-1" aria-hidden="true"></i>ภาพปก</label>
           <app-cover-input class="block" [gameTitle]="form.controls.gameTitle.value"
-            [system]="form.controls.system.value" (selected)="cover = $event" />
+            [system]="form.controls.system.value" [existingCoverUrl]="existingCoverUrl" (selected)="cover = $event" />
         </div>
 
         <div>

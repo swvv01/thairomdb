@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
 import { ImageProcessorService } from '../services/image-processor.service';
 import { CropRect, CropResult, ImageCropperModalComponent } from './image-cropper-modal.component';
 
@@ -12,26 +12,63 @@ import { CropRect, CropResult, ImageCropperModalComponent } from './image-croppe
 export class CoverInputComponent {
   @Input() gameTitle = '';
   @Input() system = '';
-  @Output() selected = new EventEmitter<Blob>();
+  @Input() set existingCoverUrl(value: string | null | undefined) {
+    const url = value?.trim() || null;
+    this._existingCoverUrl.set(url);
+    if (!this.rawBlob()) {
+      this.revokePreviewBlob();
+      this.preview.set(url);
+    }
+  }
+  get existingCoverUrl(): string | null {
+    return this._existingCoverUrl();
+  }
+  @Output() selected = new EventEmitter<Blob | undefined>();
   private readonly processor = inject(ImageProcessorService);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly preview = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly rawBlob = signal<Blob | null>(null);
   protected readonly isCropped = signal(false);
   protected readonly cropperOpen = signal(false);
   protected readonly lastCrop = signal<CropRect | null>(null);
+  protected readonly _existingCoverUrl = signal<string | null>(null);
   @ViewChild('coverFile') private coverFile?: ElementRef<HTMLInputElement>;
 
-  clear(): void {
+  constructor() {
+    this.destroyRef.onDestroy(() => this.revokePreviewBlob());
+  }
+
+  private revokePreviewBlob(): void {
     const previewUrl = this.preview();
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  }
+
+  clear(): void {
+    this.revokePreviewBlob();
     this.preview.set(null);
     this.error.set(null);
     this.rawBlob.set(null);
     this.isCropped.set(false);
     this.cropperOpen.set(false);
     this.lastCrop.set(null);
+    this._existingCoverUrl.set(null);
     if (this.coverFile) this.coverFile.nativeElement.value = '';
+    this.selected.emit(undefined);
+  }
+
+  protected revertToExisting(): void {
+    this.revokePreviewBlob();
+    this.error.set(null);
+    this.rawBlob.set(null);
+    this.isCropped.set(false);
+    this.cropperOpen.set(false);
+    this.lastCrop.set(null);
+    if (this.coverFile) this.coverFile.nativeElement.value = '';
+    this.preview.set(this._existingCoverUrl());
+    this.selected.emit(undefined);
   }
 
   protected async select(event: Event): Promise<void> {
@@ -117,8 +154,7 @@ export class CoverInputComponent {
         this.lastCrop.set(null);
       }
       const result = await this.processor.process(source);
-      const oldPreview = this.preview();
-      if (oldPreview) URL.revokeObjectURL(oldPreview);
+      this.revokePreviewBlob();
       this.preview.set(URL.createObjectURL(result.blob));
       this.selected.emit(result.blob);
     } catch (error) {

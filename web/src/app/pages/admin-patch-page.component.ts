@@ -61,7 +61,7 @@ export class AdminPatchPageComponent implements OnInit {
   protected pastingField: string | null = null;
   protected deleteConfirmOpen = false;
   protected editId: string | null = null;
-  private existingCoverUrl = '';
+  protected existingCoverUrl = '';
   protected newTranslatorName = '';
   protected newTranslatorShortName = '';
   protected newTranslatorLink = '';
@@ -310,7 +310,7 @@ export class AdminPatchPageComponent implements OnInit {
         referenceUrl: '',
         walkthroughUrl: ''
       });
-      this.selectedTags = []; this.cover = undefined; this.coverInput?.clear();
+      this.selectedTags = []; this.cover = undefined; this.existingCoverUrl = ''; this.coverInput?.clear();
       if (this.editId) {
         this.editId = null;
         this.skipDeactivateConfirm = true;
