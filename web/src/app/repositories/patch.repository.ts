@@ -25,7 +25,7 @@ export class PatchRepository {
         // 1. ถ้าไม่ใช่ Force Reload และมี timestamp แคชในเครื่อง ให้ส่ง HEAD ไปเช็คเวลาก่อน
         if (!isForced && localSavedAt) {
           try {
-            const headRes = await fetch(`${workerUrl}/api/data/patches`, { method: 'HEAD' });
+            const headRes = await fetch(`${workerUrl}/api/data/patches`, { method: 'HEAD', cache: 'no-cache' });
             if (headRes.ok) {
               const edgeCachedAt = headRes.headers.get('X-Edge-Cached-At');
               if (edgeCachedAt) {
@@ -41,13 +41,16 @@ export class PatchRepository {
           }
         }
 
-        const query = isForced ? '?fresh=true' : '';
+        const query = isForced ? `?fresh=true&t=${Date.now()}` : '';
         const headers: Record<string, string> = {};
         if (isForced && environment.r2?.purgeKey) {
           headers['X-Purge-Key'] = environment.r2.purgeKey;
         }
 
-        const res = await fetch(`${workerUrl}/api/data/patches${query}`, { headers });
+        const res = await fetch(`${workerUrl}/api/data/patches${query}`, {
+          headers,
+          cache: isForced ? 'no-store' : 'no-cache'
+        });
         if (!res.ok) {
           throw new Error(`Worker HTTP ${res.status}`);
         }
@@ -152,7 +155,6 @@ export class PatchRepository {
     const data = await this.buildDocument(draft, coverUrl, draft.updateDate);
     try {
       await set(ref(this.database, `${this.patches}/${patchId}`), data);
-      this.patchCache.requestForceRefresh();
       return patchId;
     } catch (error) {
       if (this.isPermissionDenied(error)) {
@@ -173,7 +175,6 @@ export class PatchRepository {
       if (!existing) throw new RepositoryError('ไม่พบแพตช์ที่ต้องการแก้ไข', 'update');
       const data = await this.buildDocument(draft, coverUrl ?? existing.coverUrl, draft.updateDate || existing.updateDate);
       await set(ref(this.database, `${this.patches}/${id}`), data);
-      this.patchCache.requestForceRefresh();
     } catch (error) {
       if (error instanceof RepositoryError) throw error;
       if (this.isPermissionDenied(error)) {
@@ -186,7 +187,6 @@ export class PatchRepository {
   async delete(id: string): Promise<void> {
     try {
       await remove(ref(this.database, `${this.patches}/${id}`));
-      this.patchCache.requestForceRefresh();
     } catch (error) {
       if (this.isPermissionDenied(error)) {
         throw new RepositoryError('ไม่มีสิทธิ์ลบแพตช์: ตรวจสอบว่า UID นี้อยู่ใน admins และ deploy Firestore Rules แล้ว', 'delete');

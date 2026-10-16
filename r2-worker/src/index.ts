@@ -65,7 +65,7 @@ export default {
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
-            'Cache-Control': 'public, max-age=300, s-maxage=64800',
+            'Cache-Control': 'public, max-age=0, s-maxage=64800, must-revalidate',
             'X-Edge-Cached-At': cachedAt,
             'X-Cache-Status': isAuthorizedBypass ? 'BYPASS' : 'MISS'
           }
