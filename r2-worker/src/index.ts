@@ -4,6 +4,7 @@ const FIREBASE_PROJECT_ID = 'thairomdb';
 const FIREBASE_DATABASE_URL = 'https://thairomdb-default-rtdb.asia-southeast1.firebasedatabase.app';
 const JWKS_URI = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
+const ALLOWED_COLLECTIONS = new Set(['patches', 'tags', 'systems', 'translators', 'sidebarLinks', 'articles']);
 
 export interface Env {
   COVERS_BUCKET: R2Bucket;
@@ -25,8 +26,17 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Endpoint: ดึงข้อมูลแพตช์พร้อม Cloudflare Edge Cache (รองรับทั้ง GET และ HEAD)
-    if (['GET', 'HEAD'].includes(request.method) && url.pathname === '/api/data/patches') {
+    // Endpoint: ดึงข้อมูลพร้อม Cloudflare Edge Cache (รองรับทั้ง GET และ HEAD)
+    const dataMatch = url.pathname.match(/^\/api\/data\/([a-zA-Z0-9_-]+)$/);
+    if (['GET', 'HEAD'].includes(request.method) && dataMatch) {
+      const collection = dataMatch[1];
+      if (!ALLOWED_COLLECTIONS.has(collection)) {
+        return new Response(JSON.stringify({ error: `Collection '${collection}' not found or not allowed` }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       const isFresh = url.searchParams.get('fresh') === 'true' || url.searchParams.get('fresh') === '1';
       const purgeKey = request.headers.get('X-Purge-Key');
       const expectedKey = (env as unknown as { PURGE_KEY?: string }).PURGE_KEY || 'thairomdb-cache-key-2026';
@@ -50,7 +60,7 @@ export default {
       }
 
       try {
-        const fbRes = await fetch(`${FIREBASE_DATABASE_URL}/patches.json`);
+        const fbRes = await fetch(`${FIREBASE_DATABASE_URL}/${collection}.json`);
         if (!fbRes.ok) {
           return new Response(JSON.stringify({ error: `Firebase responded with status ${fbRes.status}` }), {
             status: fbRes.status,
@@ -77,15 +87,15 @@ export default {
         }
         return response;
       } catch (err) {
-        console.error('Fetch from Firebase failed:', err);
-        return new Response(JSON.stringify({ error: 'Failed to fetch from Firebase RTDB' }), {
+        console.error(`Fetch from Firebase failed for ${collection}:`, err);
+        return new Response(JSON.stringify({ error: `Failed to fetch ${collection} from Firebase RTDB` }), {
           status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
 
-    // Endpoint: เคลียร์ Cloudflare Edge Cache สำหรับ patches (กรณีฉุกเฉินหรือ manual maintenance)
+    // Endpoint: เคลียร์ Cloudflare Edge Cache (กรณีฉุกเฉินหรือ manual maintenance)
     if (request.method === 'POST' && url.pathname === '/api/clear-cache') {
       const purgeKey = request.headers.get('X-Purge-Key');
       const expectedKey = (env as unknown as { PURGE_KEY?: string }).PURGE_KEY || 'thairomdb-cache-key-2026';
@@ -93,10 +103,34 @@ export default {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
       }
       try {
+        let targetCollection = url.searchParams.get('collection');
+        if (!targetCollection) {
+          try {
+            const body = await request.clone().json() as { collection?: string };
+            if (body && typeof body.collection === 'string') {
+              targetCollection = body.collection;
+            }
+          } catch {
+            // body is optional or not JSON
+          }
+        }
+
         const cache = caches.default;
-        const cacheUrl = new URL('/api/data/patches', url.origin);
-        await cache.delete(new Request(cacheUrl.toString()));
-        return new Response(JSON.stringify({ success: true, message: 'Patches cache cleared' }), {
+        const collectionsToPurge = targetCollection
+          ? [targetCollection]
+          : Array.from(ALLOWED_COLLECTIONS);
+
+        await Promise.all(
+          collectionsToPurge.map((col) => {
+            const cacheUrl = new URL(`/api/data/${col}`, url.origin);
+            return cache.delete(new Request(cacheUrl.toString()));
+          })
+        );
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: targetCollection ? `Cache cleared for ${targetCollection}` : 'All data caches cleared'
+        }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

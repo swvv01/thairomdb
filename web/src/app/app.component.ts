@@ -231,7 +231,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.closeSidebar();
   }
   protected async forceRefreshPatches(): Promise<void> {
-    if (this.refreshingPatches()) return;
+    if (this.refreshingPatches() || !this.authService.isAdmin()) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       this.statusMessageService.show('ไม่สามารถดึงข้อมูลล่าสุดได้ขณะออฟไลน์', 'error');
       return;

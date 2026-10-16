@@ -45,28 +45,29 @@
       <p class="retro-rail-heading">THAI ROM DB</p>
       <nav aria-label="Main navigation">
         <a class="retro-rail-link" routerLink="/" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมทั้งหมด @if (patchesLoaded()) {<span
-            class="sidebar-count">({{ patchCounts().total }})</span>}</a>
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมทั้งหมด @if (patchesLoaded())
+          {<span class="sidebar-count">({{ patchCounts().total }})</span>}</a>
         <a class="retro-rail-link" routerLink="/today" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมใหม่วันนี้ @if (patchesLoaded()) {<span
-            class="sidebar-count">({{ patchCounts().today }})</span>}</a>
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมใหม่วันนี้ @if (patchesLoaded())
+          {<span class="sidebar-count">({{ patchCounts().today }})</span>}</a>
         <a class="retro-rail-link" routerLink="/new" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมใหม่สัปดาห์นี้ @if (patchesLoaded()) {<span
-            class="sidebar-count">({{ patchCounts().week }})</span>}</a>
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">เกมใหม่สัปดาห์นี้ @if
+          (patchesLoaded()) {<span class="sidebar-count">({{ patchCounts().week }})</span>}</a>
 
 
         <a class="retro-rail-link" routerLink="/rom" routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">รอมแปลไทย @if (patchesLoaded()) {<span
             class="sidebar-count">({{ patchCounts().rom }})</span>}</a>
         <a class="retro-rail-link" routerLink="/port" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">Port Master @if (patchesLoaded()) {<span
-            class="sidebar-count">({{ patchCounts().port }})</span>}</a>
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">Port Master @if (patchesLoaded())
+          {<span class="sidebar-count">({{ patchCounts().port }})</span>}</a>
         <a class="retro-rail-link" routerLink="/walkthrough" routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">บทสรุป @if (patchesLoaded()) {<span
             class="sidebar-count">({{ patchCounts().walkthrough }})</span>}</a>
         <a class="retro-rail-link" routerLink="/library" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters(); closeSidebar()">คลังเกมของฉัน @if (libraryService.libraryCount() > 0) {<span
-            class="sidebar-count">({{ libraryService.libraryCount() }})</span>}</a>
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters(); closeSidebar()">คลังเกมของฉัน @if
+          (libraryService.libraryCount() > 0) {<span class="sidebar-count">({{ libraryService.libraryCount()
+            }})</span>}</a>
 
         @if (authService.user()) {
         <a class="retro-rail-link" href="#" (click)="$event.preventDefault(); signOut(); closeSidebar()">ออกจากระบบ</a>
@@ -77,24 +78,16 @@
       </nav>
     </div>
 
-    @if (authService.isAdmin() || authService.isVip()) {
-    <div class="retro-sidebar-section">
-      <p class="retro-rail-heading">สมาชิก VIP</p>
-      <nav aria-label="VIP tools">
-        <a class="retro-rail-link" href="#" [class.pointer-events-none]="refreshingPatches()"
-          [class.opacity-50]="refreshingPatches()" (click)="$event.preventDefault(); forceRefreshPatches()">
-          {{ refreshingPatches() ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลล่าสุด' }}
-        </a>
-      </nav>
-    </div>
-    }
-
     @if (authService.isAdmin()) {
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">Admin</p>
       <nav aria-label="Main navigation">
         <a class="retro-rail-link" routerLink="/add" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">เพิ่มเกม</a>
+        <a class="retro-rail-link" href="#" [class.pointer-events-none]="refreshingPatches()"
+          [class.opacity-50]="refreshingPatches()" (click)="$event.preventDefault(); forceRefreshPatches()">
+          {{ refreshingPatches() ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลล่าสุด' }}
+        </a>
         <a class="retro-rail-link" routerLink="/" [queryParams]="{ playTimeStatus: 'missing' }"
           routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ matrixParams: 'ignored', queryParams: 'exact', paths: 'exact', fragment: 'ignored' }"
@@ -145,8 +138,7 @@
         @for (platform of sidebarPlatforms(); track platform.id) {
         <a class="retro-system-button" routerLink="/system" [queryParams]="{ system: platform.shortName }"
           routerLinkActive="retro-system-button--active" [routerLinkActiveOptions]="{ exact: true }"
-          [attr.title]="platform.name"
-          (click)="selectPlatform(platform.shortName)">
+          [attr.title]="platform.name" (click)="selectPlatform(platform.shortName)">
           <span class="sidebar-link-text">{{ platform.name }}</span> @if (patchesLoaded()) {<span
             class="sidebar-count">({{ systemCount(platform.shortName) }})</span>}
         </a>
@@ -174,7 +166,8 @@
         @for (translator of translators(); track translator.id) {
         <div class="sidebar-translator-row">
           <a class="retro-system-button" routerLink="/translator" [queryParams]="{ translator: translator.shortName }"
-            routerLinkActive="retro-system-button--active" [attr.title]="translator.name" (click)="selectTranslator(translator.id)">
+            routerLinkActive="retro-system-button--active" [attr.title]="translator.name"
+            (click)="selectTranslator(translator.id)">
             <span class="sidebar-link-text">{{ translator.name }}</span>@if (patchesLoaded()) {<span
               class="sidebar-count"> ({{ translatorCount(translator.id) }})</span>}
           </a>
@@ -339,11 +332,13 @@
     </div>
     }
     @if (statusMessage(); as message) {
-    <div class="status-message flex items-start sm:items-center justify-between gap-3 border-b border-black px-4 py-2 font-bold sm:px-6"
+    <div
+      class="status-message flex items-start sm:items-center justify-between gap-3 border-b border-black px-4 py-2 font-bold sm:px-6"
       [class.status-message--info]="message.tone === 'info'" [class.status-message--error]="message.tone === 'error'"
       [class.status-message--success]="message.tone === 'success'" role="status" aria-live="polite">
       <div class="status-message-content flex items-start sm:items-center gap-2 min-w-0">
-        <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current text-xs mt-0.5 sm:mt-0" aria-hidden="true">{{
+        <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current text-xs mt-0.5 sm:mt-0"
+          aria-hidden="true">{{
           message.tone === 'error' ? '!' : message.tone === 'success' ? '✓' : 'i' }}</span>
         <div class="status-message-body flex flex-wrap items-center gap-2 min-w-0">
           <span class="status-message-text">{{ message.text }}</span>
@@ -359,8 +354,8 @@
           }
         </div>
       </div>
-      <button class="status-message-close shrink-0 self-start sm:self-center" type="button" (click)="dismissStatusMessage()"
-        aria-label="Dismiss message">✕</button>
+      <button class="status-message-close shrink-0 self-start sm:self-center" type="button"
+        (click)="dismissStatusMessage()" aria-label="Dismiss message">✕</button>
     </div>
     }
 

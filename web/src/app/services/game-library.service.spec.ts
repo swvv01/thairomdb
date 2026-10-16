@@ -9,11 +9,13 @@ describe('GameLibraryService', () => {
   let service: GameLibraryService;
   const mockUserSignal = signal<any>(null);
   const mockVipSignal = signal<boolean>(false);
+  const mockAdminSignal = signal<boolean>(false);
 
   const mockDatabase = {};
   const mockAuthService = {
     user: mockUserSignal,
-    isVip: mockVipSignal
+    isVip: mockVipSignal,
+    isAdmin: mockAdminSignal
   };
   const mockStatusMessageService = {
     show: jasmine.createSpy('show')
@@ -23,6 +25,7 @@ describe('GameLibraryService', () => {
     window.localStorage.clear();
     mockUserSignal.set(null);
     mockVipSignal.set(false);
+    mockAdminSignal.set(false);
 
     TestBed.configureTestingModule({
       providers: [
@@ -76,5 +79,15 @@ describe('GameLibraryService', () => {
     const removed = await service.toggleLibrary('patch-1', 'Chrono Trigger');
     expect(removed).toBeFalse();
     expect(service.isInLibrary('patch-1')).toBeFalse();
+  });
+
+  it('should not refresh from remote if user is not admin', async () => {
+    mockUserSignal.set({ uid: 'user-1', email: 'user@test.com' });
+    mockVipSignal.set(true);
+    mockAdminSignal.set(false);
+
+    // Call refreshFromRemote - should do nothing because user is not admin
+    await service.refreshFromRemote();
+    expect(service.isSyncing()).toBeFalse();
   });
 });

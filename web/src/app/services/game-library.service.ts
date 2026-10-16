@@ -142,13 +142,19 @@ export class GameLibraryService {
   }
 
   /**
-   * บังคับดึงข้อมูลคลังจาก RTDB (สำหรับ VIP กด "ดึงข้อมูลล่าสุด" หรือเรียกเมื่อจำเป็น)
+   * บังคับดึงข้อมูลคลังจาก RTDB (สำหรับ Admin กด "ดึงข้อมูลล่าสุด" หรือเรียกเมื่อจำเป็น)
    */
   async refreshFromRemote(): Promise<void> {
     const user = typeof this.auth?.user === 'function' ? this.auth.user() : null;
-    const isVip = typeof this.auth?.isVip === 'function' ? this.auth.isVip() : false;
+    const isAdmin = typeof this.auth?.isAdmin === 'function' ? this.auth.isAdmin() : false;
     const userKey = this.getUserKey(user);
-    if (!user || !isVip || !userKey || !this.database) return;
+    if (!user || !isAdmin || !userKey || !this.database) return;
+
+    await this.fetchFromRemote(userKey);
+  }
+
+  private async fetchFromRemote(userKey: string): Promise<void> {
+    if (!this.database) return;
 
     try {
       this.isSyncing.set(true);
@@ -195,7 +201,7 @@ export class GameLibraryService {
       }
     } else {
       // ไม่มีแคช หรือแคชหมดอายุ -> ดึงจาก RTDB ครั้งเดียว
-      await this.refreshFromRemote();
+      await this.fetchFromRemote(userKey);
 
       // ถ้ามี guestIds ค้างอยู่ ให้ทำการ Merge
       if (guestIds.size > 0) {

@@ -3,11 +3,13 @@ import { Database, get, ref, remove, set, query, orderByChild, equalTo } from '@
 import { from, map, Observable, startWith, Subject, switchMap } from 'rxjs';
 import { Article, ArticleDraft } from '../models/article.models';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
+import { EdgeDataService } from '../services/edge-data.service';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleRepository {
   private readonly db = inject(Database);
   private readonly cache = inject(FirestoreCacheService);
+  private readonly edgeData = inject(EdgeDataService);
   private readonly path = 'articles';
   private readonly refresh = new Subject<void>();
 
@@ -17,7 +19,23 @@ export class ArticleRepository {
     }
     return this.refresh.pipe(
       startWith(undefined),
-      switchMap(() => this.cache.get('articles', () => from(this.fetchFromDb(false))))
+      switchMap(() => this.cache.get('articles', (isForced, localSavedAt) =>
+        from(this.edgeData.fetchRows('articles', isForced, localSavedAt, async () => {
+          const s = await get(query(ref(this.db, this.path), orderByChild('status'), equalTo('published')));
+          return s.val();
+        })).pipe(
+          map((result) => {
+            if (result.isSameAsLocal) {
+              return { data: [] as Article[], isSameAsLocal: true };
+            }
+            const articles: Article[] = result.data
+              .map((row) => ({ ...row } as unknown as Article))
+              .filter((article) => String(article.status).toLowerCase() === 'published')
+              .sort((a, b) => (b.publishedAt ?? b.updatedAt ?? '').localeCompare(a.publishedAt ?? a.updatedAt ?? ''));
+            return { data: articles, isSameAsLocal: false };
+          })
+        )
+      ))
     );
   }
 

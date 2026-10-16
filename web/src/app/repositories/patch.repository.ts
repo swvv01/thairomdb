@@ -5,7 +5,7 @@ import { Patch, PatchDraft, Translator, Tag } from '../models/patch.models';
 import { RepositoryError } from './repository-error';
 import { PatchCacheService } from '../services/patch-cache.service';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
-import { environment } from '../../environments/environment';
+import { EdgeDataService } from '../services/edge-data.service';
 
 type PatchDocument = Omit<Patch, 'id'>;
 
@@ -16,63 +16,19 @@ export class PatchRepository {
   private readonly database = inject(Database);
   private readonly patchCache = inject(PatchCacheService);
   private readonly cache = inject(FirestoreCacheService);
+  private readonly edgeData = inject(EdgeDataService);
   private readonly patches = 'patches';
 
   private async fetchPatches(isForced?: boolean, localSavedAt?: number | null): Promise<{ data: Record<string, unknown>; isSameAsLocal?: boolean }> {
-    const workerUrl = environment.r2?.workerUrl;
-    if (workerUrl) {
-      try {
-        // 1. ถ้าไม่ใช่ Force Reload และมี timestamp แคชในเครื่อง ให้ส่ง HEAD ไปเช็คเวลาก่อน
-        if (!isForced && localSavedAt) {
-          try {
-            const headRes = await fetch(`${workerUrl}/api/data/patches`, { method: 'HEAD', cache: 'no-cache' });
-            if (headRes.ok) {
-              const edgeCachedAt = headRes.headers.get('X-Edge-Cached-At');
-              if (edgeCachedAt) {
-                const edgeTimestamp = Date.parse(edgeCachedAt);
-                if (!Number.isNaN(edgeTimestamp) && edgeTimestamp === localSavedAt) {
-                  // เวลาตรงกัน! ข้อมูลในเครื่องยังตรงกับ Edge Cache ไม่ต้องดาวน์โหลด JSON ก้อนใหญ่
-                  return { data: {}, isSameAsLocal: true };
-                }
-              }
-            }
-          } catch (headErr) {
-            console.warn('HEAD check failed, continuing to GET:', headErr);
-          }
-        }
-
-        const query = isForced ? `?fresh=true&t=${Date.now()}` : '';
-        const headers: Record<string, string> = {};
-        if (isForced && environment.r2?.purgeKey) {
-          headers['X-Purge-Key'] = environment.r2.purgeKey;
-        }
-
-        const res = await fetch(`${workerUrl}/api/data/patches${query}`, {
-          headers,
-          cache: isForced ? 'no-store' : 'no-cache'
-        });
-        if (!res.ok) {
-          throw new Error(`Worker HTTP ${res.status}`);
-        }
-
-        const edgeCachedAt = res.headers.get('X-Edge-Cached-At');
-        if (edgeCachedAt) {
-          const timestamp = Date.parse(edgeCachedAt);
-          if (!Number.isNaN(timestamp)) {
-            this.patchCache.setSavedAt(timestamp);
-          }
-        }
-
-        const data = (await res.json()) as Record<string, unknown>;
-        return { data, isSameAsLocal: false };
-      } catch (err) {
-        console.warn('Edge Worker fetch failed, falling back to Firebase RTDB:', err);
+    return this.edgeData.fetchRaw<Record<string, unknown>>(
+      'patches',
+      isForced,
+      localSavedAt,
+      async () => {
+        const snapshot = await get(ref(this.database, this.patches));
+        return (snapshot.val() ?? {}) as Record<string, unknown>;
       }
-    }
-
-    // Fallback: ดึงตรงจาก Firebase RTDB SDK
-    const snapshot = await get(ref(this.database, this.patches));
-    return { data: (snapshot.val() ?? {}) as Record<string, unknown>, isSameAsLocal: false };
+    );
   }
 
   watchAll(): Observable<Patch[]> {
