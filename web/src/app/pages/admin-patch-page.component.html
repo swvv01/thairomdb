@@ -90,9 +90,14 @@
           <label><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาที่ใช้ในการเล่นจนจบ (ชั่วโมง)<input
               #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.1" min="0"
               placeholder="เช่น 15 หรือ 0.5" (focus)="playTimeInput.select()" /></label>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
-            [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1"
-              aria-hidden="true"></i>HowLongToBeat</button>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
+              [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1"
+                aria-hidden="true"></i>HowLongToBeat</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setNoPlayTime()"
+              [disabled]="loadingData"><i class="fa-solid fa-ban mr-1"
+                aria-hidden="true"></i>No data</button>
+          </div>
         </div>
 
         <div>

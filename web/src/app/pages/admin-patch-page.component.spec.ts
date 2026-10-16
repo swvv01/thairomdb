@@ -368,9 +368,9 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
 
     for (const patchId of patchIds) {
       closeSpy.calls.reset();
-      routerNavigateByUrlSpy.calls.reset();
       TestBed.resetTestingModule();
       const comp = await buildComponent();
+      routerNavigateByUrlSpy.calls.reset();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const c = comp as any;
 
@@ -672,6 +672,31 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     c.form.controls.playTime.setValue(null);
     c.syncPlayTimeFullFromPlayTime();
     expect(c.form.controls.playTimeFull.value).toBeNull();
+  });
+
+  it('sets playTime and playTimeFull to 0 when setNoPlayTime is called', () => {
+    fixture.detectChanges();
+    const c = component as any;
+    c.form.controls.playTime.setValue(20);
+    c.form.controls.playTimeFull.setValue(40);
+    c.setNoPlayTime();
+    expect(c.form.controls.playTime.value).toBe(0);
+    expect(c.form.controls.playTimeFull.value).toBe(0);
+    expect(c.form.controls.playTime.dirty).toBeTrue();
+    expect(c.form.controls.playTimeFull.dirty).toBeTrue();
+  });
+
+  it('sets playTime and playTimeFull to 0 when clicking No data button in template', () => {
+    fixture.detectChanges();
+    const c = component as any;
+    c.form.controls.playTime.setValue(15);
+    c.form.controls.playTimeFull.setValue(25);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const noDataButton = buttons.find((btn) => btn.textContent?.includes('No data'));
+    expect(noDataButton).toBeTruthy();
+    noDataButton?.click();
+    expect(c.form.controls.playTime.value).toBe(0);
+    expect(c.form.controls.playTimeFull.value).toBe(0);
   });
 
   it('loads playTimeFull when present in edit mode', async () => {

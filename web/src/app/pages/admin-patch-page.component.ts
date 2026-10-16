@@ -346,6 +346,13 @@ export class AdminPatchPageComponent implements OnInit {
     this.form.controls.playTimeFull.setValue(playTimeValue ?? null);
   }
 
+  protected setNoPlayTime(): void {
+    this.form.controls.playTime.setValue(0);
+    this.form.controls.playTimeFull.setValue(0);
+    this.form.controls.playTime.markAsDirty();
+    this.form.controls.playTimeFull.markAsDirty();
+  }
+
   protected openHowLongToBeat(): void {
     const rawTitle = this.form.controls.gameTitle.value;
     const title = rawTitle.replace(/[:-]/g, ' ').replace(/\s+/g, ' ').trim();
