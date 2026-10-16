@@ -137,16 +137,45 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     const authService = TestBed.inject(AuthService);
     spyOn(authService, 'isAdmin').and.returnValue(false);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.floating-action')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a.floating-action[routerLink="/add"]')).toBeNull();
   });
 
   it('renders floating add game button when user is admin regardless of scroll position', () => {
     const authService = TestBed.inject(AuthService);
     spyOn(authService, 'isAdmin').and.returnValue(true);
     fixture.detectChanges();
-    const floatingBtn = fixture.nativeElement.querySelector('.floating-action');
+    const floatingBtn = fixture.nativeElement.querySelector('a.floating-action[routerLink="/add"]');
     expect(floatingBtn).toBeTruthy();
-    expect(floatingBtn.getAttribute('routerLink')).toBe('/add');
+    expect(floatingBtn?.getAttribute('routerLink')).toBe('/add');
+  });
+
+  it('renders floating search button inside browse-floating-actions regardless of admin or scroll position', () => {
+    const authService = TestBed.inject(AuthService);
+    spyOn(authService, 'isAdmin').and.returnValue(false);
+    fixture.detectChanges();
+
+    const searchBtn: HTMLButtonElement | null = fixture.nativeElement.querySelector('button.floating-action[aria-label="ค้นหาเกม"]');
+    expect(searchBtn).toBeTruthy();
+    expect(searchBtn?.querySelector('i.fa-magnifying-glass')).toBeTruthy();
+  });
+
+  it('scrolls into view, focuses, and selects all text of #game-search when floating search button is clicked', () => {
+    fixture.detectChanges();
+    const searchInput = fixture.nativeElement.querySelector('#game-search') as HTMLInputElement;
+    expect(searchInput).toBeTruthy();
+    searchInput.value = 'Chrono Trigger';
+
+    const scrollIntoViewSpy = spyOn(searchInput, 'scrollIntoView');
+    const focusSpy = spyOn(searchInput, 'focus');
+    const selectSpy = spyOn(searchInput, 'select');
+
+    const searchBtn: HTMLButtonElement | null = fixture.nativeElement.querySelector('button.floating-action[aria-label="ค้นหาเกม"]');
+    expect(searchBtn).toBeTruthy();
+    searchBtn?.click();
+
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+    expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+    expect(selectSpy).toHaveBeenCalled();
   });
 
   it('renders back to top button below floating add game inside browse-floating-actions when showBackToTop is true', () => {
@@ -158,9 +187,12 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     const actionsContainer = fixture.nativeElement.querySelector('.browse-floating-actions');
     expect(actionsContainer).toBeTruthy();
     const children = actionsContainer.children;
-    expect(children.length).toBe(2);
+    expect(children.length).toBe(3);
     expect(children[0].classList.contains('floating-action')).toBeTrue();
-    expect(children[1].classList.contains('back-to-top')).toBeTrue();
+    expect(children[0].getAttribute('routerLink')).toBe('/add');
+    expect(children[1].classList.contains('floating-action')).toBeTrue();
+    expect(children[1].getAttribute('aria-label')).toBe('ค้นหาเกม');
+    expect(children[2].classList.contains('back-to-top')).toBeTrue();
     expect(fixture.nativeElement.querySelector('.to-bottom')).toBeNull();
   });
 

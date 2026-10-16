@@ -415,6 +415,16 @@ export class BrowsePageComponent implements OnInit {
     this.updateScrollVisibility();
   }
 
+  protected focusSearch(): void {
+    if (typeof document === 'undefined') return;
+    const searchInput = document.getElementById('game-search') as HTMLInputElement | null;
+    if (searchInput) {
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      searchInput.focus({ preventScroll: true });
+      searchInput.select();
+    }
+  }
+
   protected backToTop(): void { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   protected scrollToBottom(): void {
     if (typeof document === 'undefined') return;
