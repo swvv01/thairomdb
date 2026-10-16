@@ -162,7 +162,7 @@ describe('AdminPatchPageComponent - Bug Condition Exploration', () => {
  * Covered preservation requirements:
  *  2.3 - save() in add-new mode (editId = null) does NOT navigate — URL stays at /add
  *  3.1 - save() in add-new mode resets form, clears cover, scrolls to top, shows success toast
- *  3.2 - confirmDelete() navigates to '/' via router.navigateByUrl('/', { replaceUrl: true })
+ *  3.2 - confirmDelete() closes window or navigates to '/add' via router.navigateByUrl('/add', { replaceUrl: true })
  *  3.3 - loadEditRecord(id) with preserveFormOnNextLoad=false populates the form from Firestore
  */
 describe('AdminPatchPageComponent - Preservation Properties', () => {
@@ -352,19 +352,23 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Requirement 3.2 — confirmDelete() navigates to '/'
+  // Requirement 3.2 — confirmDelete() tries window.close() and navigates to '/add'
   // -------------------------------------------------------------------------
 
   /**
    * Property 2c (Preservation 3.2): For all valid patch IDs,
-   * confirmDelete() always navigates to '/' via router.navigateByUrl('/', { replaceUrl: true }).
+   * confirmDelete() sets skipDeactivateConfirm to true, clears editId, tries window.close(),
+   * and navigates to '/add' via router.navigateByUrl('/add', { replaceUrl: true }).
    *
    * Validates: Requirement 3.2
    */
-  it('Property 2c: confirmDelete() always navigates to "/" for any non-null editId', async () => {
+  it('Property 2c: confirmDelete() closes window and navigates to "/add" for any non-null editId', async () => {
     const patchIds = generatePatchIds(20);
+    const closeSpy = spyOn(window, 'close');
 
     for (const patchId of patchIds) {
+      closeSpy.calls.reset();
+      routerNavigateByUrlSpy.calls.reset();
       TestBed.resetTestingModule();
       const comp = await buildComponent();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -376,7 +380,10 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
 
       await c.confirmDelete();
 
-      expect(routerNavigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+      expect(c.editId).toBeNull();
+      expect(c.skipDeactivateConfirm).toBeTrue();
+      expect(closeSpy).toHaveBeenCalled();
+      expect(routerNavigateByUrlSpy).toHaveBeenCalledWith('/add', { replaceUrl: true });
     }
   });
 

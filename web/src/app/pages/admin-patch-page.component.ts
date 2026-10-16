@@ -373,7 +373,10 @@ export class AdminPatchPageComponent implements OnInit {
     try {
       await this.patchRepository.delete(this.editId);
       this.status.show('ลบแพตช์สำเร็จ', 'success');
-      await this.router.navigateByUrl('/', { replaceUrl: true });
+      this.editId = null;
+      this.skipDeactivateConfirm = true;
+      window.close();
+      if (!window.closed) void this.router.navigateByUrl('/add', { replaceUrl: true });
     } catch (error) {
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถลบแพตช์ได้', 'error');
     } finally {
