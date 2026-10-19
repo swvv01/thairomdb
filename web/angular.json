@@ -27,7 +27,6 @@
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
-            "serviceWorker": "ngsw-config.json",
             "assets": [
               "src/favicon.ico",
               "src/assets",

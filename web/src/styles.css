@@ -1182,3 +1182,7 @@ a,
 *:not(i) {
   font-weight: normal !important;
 }
+
+.force-hidden {
+  display: none !important;
+}

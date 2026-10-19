@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, computed, effect, HostListener, inject, OnDestroy, signal } from '@angular/core';
 import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SwUpdate } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 
 import { StatusMessageService } from './shared/status-message.service';
@@ -57,7 +56,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly sidebarLinkRepository = inject(SidebarLinkRepository);
   private readonly articleRepository = inject(ArticleRepository);
   private readonly router = inject(Router);
-  private readonly swUpdate = inject(SwUpdate, { optional: true });
   protected readonly libraryService = inject(GameLibraryService);
   protected readonly filterState = inject(BrowseFilterStateService);
   protected readonly statusMessage = this.statusMessageService.message;
@@ -161,9 +159,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   protected readonly sidebarOpen = signal(false);
   protected readonly browseRoute = browseRoute;
   protected readonly isOffline = signal(false);
-  protected readonly appUpdateReady = signal(false);
-  protected readonly updatingApp = signal(false);
   protected readonly refreshingPatches = signal(false);
+  protected readonly refreshingUserCache = signal(false);
   protected sidebarLinksFor(section: SidebarLinkSection): SidebarLink[] { return this.sidebarLinks().filter((link) => link.section === section); }
   protected readonly browserInfo = this.getBrowserInfo();
   protected readonly userAgent = typeof navigator === 'undefined' ? 'ไม่ทราบ' : navigator.userAgent;
@@ -230,14 +227,43 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.filterState.selectedTranslatorId.set(null);
     this.closeSidebar();
   }
-  protected async forceRefreshPatches(): Promise<void> {
-    if (this.refreshingPatches() || !this.authService.isAdmin()) return;
+  protected async refreshUserCache(): Promise<void> {
+    if (this.refreshingUserCache()) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       this.statusMessageService.show('ไม่สามารถดึงข้อมูลล่าสุดได้ขณะออฟไลน์', 'error');
       return;
     }
-    this.refreshingPatches.set(true);
+    this.refreshingUserCache.set(true);
     this.statusMessageService.show('กำลังดึงข้อมูลล่าสุด...', 'info', false);
+    try {
+      this.patchCache.clearAll();
+      this.patchCache.requestForceRefresh();
+      this.tagRepository.refreshAll();
+      this.translatorRepository.refreshAll();
+      this.systemRepository.refreshAll();
+      this.articleRepository.refreshAll();
+      await this.libraryService.refreshFromRemote();
+      const patches = await firstValueFrom(this.patchRepository.watchAll());
+      this.patches.set(patches);
+      this.patchesLoaded.set(true);
+      this.loadServerCost();
+      this.statusMessageService.show('ดึงข้อมูลล่าสุดเรียบร้อยแล้ว', 'success');
+    } catch {
+      this.statusMessageService.show('ไม่สามารถดึงข้อมูลล่าสุดได้ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
+    } finally {
+      this.refreshingUserCache.set(false);
+      this.closeSidebar();
+    }
+  }
+
+  protected async syncEdgeData(): Promise<void> {
+    if (this.refreshingPatches() || !this.authService.isAdmin()) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.statusMessageService.show('ไม่สามารถซิงค์ข้อมูลได้ขณะออฟไลน์', 'error');
+      return;
+    }
+    this.refreshingPatches.set(true);
+    this.statusMessageService.show('กำลังซิงค์ข้อมูล...', 'info', false);
     try {
       this.patchCache.requestForceRefresh();
       this.tagRepository.refreshAll();
@@ -249,13 +275,17 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.patches.set(patches);
       this.patchesLoaded.set(true);
       this.loadServerCost();
-      this.statusMessageService.show('รีเฟรชข้อมูลล่าสุดเรียบร้อยแล้ว', 'success');
+      this.statusMessageService.show('ซิงค์ข้อมูล Edge เรียบร้อยแล้ว', 'success');
     } catch {
-      this.statusMessageService.show('ไม่สามารถดึงข้อมูลล่าสุดได้ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
+      this.statusMessageService.show('ไม่สามารถซิงค์ข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
     } finally {
       this.refreshingPatches.set(false);
       this.closeSidebar();
     }
+  }
+
+  protected async forceRefreshPatches(): Promise<void> {
+    return this.syncEdgeData();
   }
 
   private loadPatches(): void {
@@ -284,10 +314,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.isOffline.set(typeof navigator !== 'undefined' && !navigator.onLine);
     window.addEventListener('online', this.onlineHandler);
     window.addEventListener('offline', this.offlineHandler);
-    this.watchForAppUpdates();
     let lastPath = '';
     this.router.events.subscribe((event) => {
-      if (event instanceof NavigationStart && !this.appUpdateReady()) {
+      if (event instanceof NavigationStart) {
         this.statusMessageService.clear();
       }
       if (event instanceof NavigationEnd) {
@@ -312,16 +341,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('offline', this.offlineHandler);
     this.document.body.classList.remove('sidebar-open');
     this.sidebarScrollLock.destroy();
-  }
-
-  private watchForAppUpdates(): void {
-    if (!this.swUpdate?.isEnabled) return;
-    this.swUpdate.versionUpdates.subscribe((event) => {
-      if (event.type === 'VERSION_READY') {
-        this.appUpdateReady.set(true);
-        this.statusMessageService.show('มีเวอร์ชันใหม่พร้อมใช้งาน กดอัปเดตเมื่อสะดวก', 'info', false);
-      }
-    });
   }
 
   protected toggleTheme(): void {
@@ -353,21 +372,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   protected dismissStatusMessage(): void {
-    this.appUpdateReady.set(false);
     this.statusMessageService.clear();
-  }
-
-  protected async updateApp(): Promise<void> {
-    if (!this.swUpdate?.isEnabled || this.updatingApp()) return;
-    this.updatingApp.set(true);
-    this.statusMessageService.show('กำลังอัปเดต...', 'info', false);
-    try {
-      await this.swUpdate.activateUpdate();
-      window.location.reload();
-    } catch {
-      this.updatingApp.set(false);
-      this.statusMessageService.show('ไม่สามารถอัปเดตได้ กรุณาลองใหม่อีกครั้ง', 'error');
-    }
   }
 
   protected async signIn(): Promise<void> {

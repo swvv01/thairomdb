@@ -13,6 +13,7 @@ import { PatchCacheService } from './services/patch-cache.service';
 import { PatchRepository } from './repositories/patch.repository';
 import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { ArticleRepository } from './repositories/article.repository';
+import { GameLibraryService } from './services/game-library.service';
 import { Patch } from './models/patch.models';
 
 describe('AppComponent', () => {
@@ -165,7 +166,15 @@ describe('AppComponent', () => {
           useValue: {
             lastUpdated: () => null,
             refreshRequested: signal(0),
-            requestForceRefresh: jasmine.createSpy('requestForceRefresh')
+            requestForceRefresh: jasmine.createSpy('requestForceRefresh'),
+            clearAll: jasmine.createSpy('clearAll')
+          }
+        },
+        {
+          provide: GameLibraryService,
+          useValue: {
+            libraryCount: signal(0),
+            refreshFromRemote: jasmine.createSpy('refreshFromRemote').and.returnValue(Promise.resolve())
           }
         },
         {
@@ -304,26 +313,67 @@ describe('AppComponent', () => {
     expect(text).toContain('(0)');
   });
 
-  it('should toggle update button visibility based on updatingApp state when update is ready', () => {
+  it('should render action button when status message has an action', () => {
     const statusService = TestBed.inject(StatusMessageService);
-    (statusService.message as any).set({ text: 'มีเวอร์ชันใหม่พร้อมใช้งาน', tone: 'info' });
-    (app as any).appUpdateReady.set(true);
-    (app as any).updatingApp.set(false);
+    let clicked = false;
+    (statusService.message as any).set({
+      text: 'ทดสอบการดำเนินการ',
+      tone: 'info',
+      action: {
+        label: 'ลองใหม่',
+        onClick: () => { clicked = true; }
+      }
+    });
     fixture.detectChanges();
 
-    let actionBtn = fixture.nativeElement.querySelector('.status-message-action');
+    const actionBtn = fixture.nativeElement.querySelector('.status-message-action');
     expect(actionBtn).toBeTruthy();
-    expect(actionBtn.textContent.trim()).toBe('อัปเดต');
-
-    // While updating app
-    (app as any).updatingApp.set(true);
-    (statusService.message as any).set({ text: 'กำลังอัปเดต...', tone: 'info' });
-    fixture.detectChanges();
-
-    actionBtn = fixture.nativeElement.querySelector('.status-message-action');
-    expect(actionBtn).toBeNull();
+    expect(actionBtn.textContent.trim()).toBe('ลองใหม่');
+    actionBtn.click();
+    expect(clicked).toBe(true);
 
     const closeBtn = fixture.nativeElement.querySelector('.status-message-close');
     expect(closeBtn).toBeTruthy();
+  });
+
+  it('should render user pull latest data button in sidebar for all users', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const links = Array.from(compiled.querySelectorAll('.first-section .retro-rail-link'));
+    const refreshLink = links.find((link) => link.textContent?.includes('ดึงข้อมูลล่าสุด'));
+    expect(refreshLink).toBeTruthy();
+  });
+
+  it('should clear local cache, refresh repositories, and show success toast when refreshUserCache is called', async () => {
+    const patchCache = TestBed.inject(PatchCacheService);
+    const tagRepo = TestBed.inject(TagRepository);
+    const transRepo = TestBed.inject(TranslatorRepository);
+    const sysRepo = TestBed.inject(SystemRepository);
+    const statusService = TestBed.inject(StatusMessageService);
+
+    await (app as any).refreshUserCache();
+
+    expect(patchCache.clearAll).toHaveBeenCalled();
+    expect(patchCache.requestForceRefresh).toHaveBeenCalled();
+    expect(tagRepo.refreshAll).toHaveBeenCalled();
+    expect(transRepo.refreshAll).toHaveBeenCalled();
+    expect(sysRepo.refreshAll).toHaveBeenCalled();
+    expect(statusService.show).toHaveBeenCalledWith('ดึงข้อมูลล่าสุดเรียบร้อยแล้ว', 'success');
+  });
+
+  it('should render syncEdgeData button for admin and trigger sync successfully', async () => {
+    const authService = TestBed.inject(AuthService);
+    (authService.isAdmin as any).set(true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('ซิงค์ข้อมูล Edge');
+
+    const statusService = TestBed.inject(StatusMessageService);
+    const patchCache = TestBed.inject(PatchCacheService);
+
+    await (app as any).syncEdgeData();
+
+    expect(patchCache.requestForceRefresh).toHaveBeenCalled();
+    expect(statusService.show).toHaveBeenCalledWith('ซิงค์ข้อมูล Edge เรียบร้อยแล้ว', 'success');
   });
 });

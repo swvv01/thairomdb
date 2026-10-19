@@ -25,8 +25,7 @@ export class PatchRepository {
       isForced,
       localSavedAt,
       async () => {
-        const snapshot = await get(ref(this.database, this.patches));
-        return (snapshot.val() ?? {}) as Record<string, unknown>;
+        throw new RepositoryError('ไม่สามารถโหลดข้อมูลแพตช์จาก Edge Worker ได้ กรุณาตรวจสอบการเชื่อมต่อ', 'read');
       }
     );
   }
