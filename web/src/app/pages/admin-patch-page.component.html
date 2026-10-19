@@ -87,27 +87,27 @@
         </div>
 
         <div>
-          <label><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาที่ใช้ในการเล่นจนจบ (ชั่วโมง)<input
-              #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.1" min="0"
-              placeholder="เช่น 15 หรือ 0.5" (focus)="playTimeInput.select()" /></label>
+          <label id="playtime-group-label"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาในการเล่น
+            (ชั่วโมง)</label>
+          <div class="grid grid-cols-2 gap-2 sm:gap-4">
+            <div>
+              <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.1" min="0"
+                aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง (ชั่วโมง)"
+                placeholder="เช่น 15 (จบเนื้อเรื่อง)" (focus)="playTimeInput.select()" />
+            </div>
+            <div>
+              <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.1"
+                min="0" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)"
+                placeholder="เช่น 25 (จบพิเศษ)" (focus)="playTimeFullInput.select()" />
+            </div>
+          </div>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
-              [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1"
-                aria-hidden="true"></i>HowLongToBeat</button>
+              [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1" aria-hidden="true"></i>HLTB</button>
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setNoPlayTime()"
-              [disabled]="loadingData"><i class="fa-solid fa-ban mr-1"
-                aria-hidden="true"></i>No data</button>
-          </div>
-        </div>
-
-        <div>
-          <label><i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)<input
-              #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.1" min="0"
-              placeholder="เช่น 25 หรือ 15.5" (focus)="playTimeFullInput.select()" /></label>
-          <div class="mt-2 flex flex-wrap gap-2">
+              [disabled]="loadingData"><i class="fa-solid fa-ban mr-1" aria-hidden="true"></i>No data</button>
             <button class="border px-3 py-2 font-bold button" type="button" (click)="syncPlayTimeFullFromPlayTime()"
-              [disabled]="loadingData"><i class="fa-solid fa-copy mr-1"
-                aria-hidden="true"></i>Same as playtime</button>
+              [disabled]="loadingData"><i class="fa-solid fa-copy mr-1" aria-hidden="true"></i>Same</button>
           </div>
         </div>
 
@@ -211,7 +211,8 @@
         <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between gap-4">
           <div class="flex flex-wrap items-center gap-2">
             <button class="w-fit  px-5 py-3 font-bold text-ink disabled:opacity-50 button btn-primary" type="submit"
-              [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ? 'กำลังบันทึกแพตช์…'
+              [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ?
+              'กำลังบันทึกแพตช์…'
               :
               'บันทึกแพตช์' }}<i class="fa-solid ml-1" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving"
                 [class.fa-spin]="saving" aria-hidden="true"></i></button>
@@ -287,13 +288,13 @@
 
   @if (showFloatingSave()) {
   @if (saving) {
-  <button class="floating-action button btn-danger" [class.floating-action--elevated]="hasBottomBanner()" type="button" (click)="cancelSave()" aria-label="ยกเลิกการบันทึก"
-    title="ยกเลิกการบันทึก">
+  <button class="floating-action button btn-danger" [class.floating-action--elevated]="hasBottomBanner()" type="button"
+    (click)="cancelSave()" aria-label="ยกเลิกการบันทึก" title="ยกเลิกการบันทึก">
     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
   </button>
   } @else {
-  <button class="floating-action button btn-primary" [class.floating-action--elevated]="hasBottomBanner()" type="button" (click)="save()"
-    [disabled]="form.invalid || loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
+  <button class="floating-action button btn-primary" [class.floating-action--elevated]="hasBottomBanner()" type="button"
+    (click)="save()" [disabled]="form.invalid || loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
   </button>
   }
