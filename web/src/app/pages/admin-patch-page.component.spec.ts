@@ -767,6 +767,36 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     expect(c.saving).toBeFalse();
   });
 
+  it('passes abortSignal to coverStorage.upload and aborts on cancelSave', async () => {
+    fixture.detectChanges();
+    const c = component as any;
+
+    let capturedSignal: AbortSignal | undefined;
+    coverStorageStub.upload.and.callFake((_id: string, _blob: any, _name: string, signal?: AbortSignal) => {
+      capturedSignal = signal;
+      return new Promise<string>((_resolve, reject) => {
+        signal?.addEventListener('abort', () => reject(new DOMException('Upload aborted', 'AbortError')));
+      });
+    });
+
+    c.form.controls.updateDate.setValue('2026-01-01T00:00');
+    c.form.controls.gameTitle.setValue('Test Game');
+    c.form.controls.system.setValue('SFC');
+    c.form.controls.translatorId.setValue('trans-1');
+    c.cover = new Blob(['test'], { type: 'image/png' });
+
+    const savePromise = c.save();
+    await Promise.resolve();
+    expect(c.saving).toBeTrue();
+    expect(capturedSignal).toBeDefined();
+    expect(capturedSignal?.aborted).toBeFalse();
+
+    c.cancelSave();
+    expect(c.saving).toBeFalse();
+    expect(capturedSignal?.aborted).toBeTrue();
+    await savePromise;
+  });
+
   it('applies floating-action--elevated when hasBottomBanner is true', () => {
     fixture.detectChanges();
     const floatingBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.floating-action');

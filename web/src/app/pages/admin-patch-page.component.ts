@@ -81,6 +81,7 @@ export class AdminPatchPageComponent implements OnInit {
   protected loadingData = false;
   private editLoadRequest = 0;
   private saveRequestId = 0;
+  private saveAbortController: AbortController | null = null;
   private skipDeactivateConfirm = false;
   protected exitConfirmOpen = false;
   private hasExitGuardState = false;
@@ -142,6 +143,9 @@ export class AdminPatchPageComponent implements OnInit {
   }
   constructor() {
     this.initializeFilenameGeneration();
+    this.destroyRef.onDestroy(() => {
+      this.saveAbortController?.abort();
+    });
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('id');
       if (!id) this.skipDeactivateConfirm = false;
@@ -236,6 +240,8 @@ export class AdminPatchPageComponent implements OnInit {
   }
 
   protected cancelSave(): void {
+    this.saveAbortController?.abort();
+    this.saveAbortController = null;
     this.saveRequestId++;
     this.saving = false;
     this.status.clear();
@@ -245,9 +251,12 @@ export class AdminPatchPageComponent implements OnInit {
     if (this.saving) return;
     if (this.form.invalid) { this.form.markAllAsTouched(); this.status.show('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
     const requestId = ++this.saveRequestId;
+    this.saveAbortController = new AbortController();
+    const abortSignal = this.saveAbortController.signal;
     this.saving = true;
     if (await this.isNotAdmin()) {
       if (requestId === this.saveRequestId) {
+        this.saveAbortController = null;
         this.saving = false;
         this.status.show('เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถบันทึกแพตช์ได้', 'error');
       }
@@ -273,7 +282,7 @@ export class AdminPatchPageComponent implements OnInit {
       let coverUrl = '';
       const patchId = this.editId ?? crypto.randomUUID();
       if (this.cover) {
-        coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`);
+        coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`, abortSignal);
         if (requestId !== this.saveRequestId) return;
         coverUrl = `${coverUrl.split('?')[0]}?t=${Date.now()}`;
       }
@@ -319,10 +328,11 @@ export class AdminPatchPageComponent implements OnInit {
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      if (requestId !== this.saveRequestId) return;
+      if (requestId !== this.saveRequestId || abortSignal.aborted) return;
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถบันทึกแพตช์ได้', 'error');
     } finally {
       if (requestId === this.saveRequestId) {
+        this.saveAbortController = null;
         this.saving = false;
       }
     }

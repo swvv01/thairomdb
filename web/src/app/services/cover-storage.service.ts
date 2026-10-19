@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Auth } from '@angular/fire/auth';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, fromEvent, takeUntil } from 'rxjs';
 import { RepositoryError } from '../repositories/repository-error';
 import { environment } from '../../environments/environment';
 
@@ -11,7 +11,7 @@ export class CoverStorageService {
   private readonly auth = inject(Auth);
   private readonly workerUrl = environment.r2?.workerUrl;
 
-  async upload(patchId: string, blob: Blob, filename: string): Promise<string> {
+  async upload(patchId: string, blob: Blob, filename: string, signal?: AbortSignal): Promise<string> {
     if (!patchId || blob.type !== 'image/png' || !filename.match(/^cover_max250px_[0-9]+\.png$/)) throw new RepositoryError('ไฟล์ปกไม่ถูกต้อง', 'create');
     
     if (!this.workerUrl) {
@@ -29,13 +29,22 @@ export class CoverStorageService {
 
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-      const res = await firstValueFrom(
-        this.http.post<{ url: string }>(`${this.workerUrl}/upload`, formData, { headers })
-      );
+      let req$ = this.http.post<{ url: string }>(`${this.workerUrl}/upload`, formData, { headers });
+      if (signal) {
+        if (signal.aborted) {
+          throw new DOMException('Upload aborted', 'AbortError');
+        }
+        req$ = req$.pipe(takeUntil(fromEvent(signal, 'abort')));
+      }
+
+      const res = await firstValueFrom(req$);
       
       if (!res?.url) throw new Error('No URL returned from worker');
       return res.url;
     } catch (e) {
+      if (signal?.aborted) {
+        throw new DOMException('Upload aborted', 'AbortError');
+      }
       console.error('Upload failed:', e);
       throw new RepositoryError('ไม่สามารถอัปโหลดรูปปกได้', 'create');
     }
