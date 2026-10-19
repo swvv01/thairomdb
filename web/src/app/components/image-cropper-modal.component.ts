@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, ViewChild, inject, signal } from '@angular/core';
 
 export interface CropRect {
   x: number;
@@ -31,6 +31,8 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   @Output() readonly cropped = new EventEmitter<CropResult>();
   @Output() readonly cancelled = new EventEmitter<void>();
 
+  private readonly ngZone = inject(NgZone);
+
   @ViewChild('stageRef') private stageRef?: ElementRef<HTMLElement>;
   @ViewChild('stageImg') private stageImgRef?: ElementRef<HTMLImageElement>;
 
@@ -38,6 +40,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   protected readonly box = signal<CropBox>({ x: 0, y: 0, w: 0, h: 0 });
   protected readonly cropWidthPx = signal<number>(0);
   protected readonly cropHeightPx = signal<number>(0);
+  protected readonly confirming = signal(false);
 
   private dragMode: string | null = null;
   private startPointer = { x: 0, y: 0 };
@@ -215,6 +218,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   }
 
   protected confirmCrop(): void {
+    if (this.confirming()) return;
     const img = this.stageImgRef?.nativeElement;
     if (!img || img.clientWidth <= 0 || img.clientHeight <= 0) return;
 
@@ -239,9 +243,16 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
+    this.confirming.set(true);
     canvas.toBlob((blob) => {
       if (blob) {
-        this.cropped.emit({ blob, cropRect });
+        this.ngZone.run(() => {
+          this.cropped.emit({ blob, cropRect });
+        });
+      } else {
+        this.ngZone.run(() => {
+          this.confirming.set(false);
+        });
       }
     }, 'image/png');
   }

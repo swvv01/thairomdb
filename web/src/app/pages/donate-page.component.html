@@ -7,7 +7,7 @@
         <p class="donate-description">
           การสนับสนุนของคุณช่วยเป็นค่าเซิร์ฟเวอร์และดูแลให้ฐานข้อมูลเกมแปลไทยยังเปิดให้ทุกคนเข้าถึงได้
         </p>
-        @if (serverCost() !== null) {
+        @if ((serverCost() ?? 0) > 0) {
         <p class="server-cost">ค่าเซิร์ฟเวอร์เดือนนี้ <strong>{{ serverCost() | number:'1.0-2' }}฿</strong></p>
         }
       </header>

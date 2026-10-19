@@ -347,6 +347,11 @@ describe('AppComponent', () => {
     expect(text).toContain('ยังไม่ระบุเวลาเล่นสูงสุด');
     expect(text).toContain('(2)');
     expect(text).toContain('(0)');
+    expect(text).toContain('ตัวอย่างหน้าปิดปรับปรุง');
+
+    const maintenanceLink = compiled.querySelector('a[routerLink="/maintenance"]');
+    expect(maintenanceLink).toBeTruthy();
+    expect(maintenanceLink?.textContent?.trim()).toContain('ตัวอย่างหน้าปิดปรับปรุง');
   });
 
   it('should render action button when status message has an action', () => {
@@ -411,5 +416,35 @@ describe('AppComponent', () => {
 
     expect(patchCache.requestForceRefresh).toHaveBeenCalled();
     expect(statusService.show).toHaveBeenCalledWith('ซิงค์ข้อมูล Edge เรียบร้อยแล้ว', 'success');
+  });
+
+  it('should not display server cost in marquee when serverCost is 0, but still display donate link', () => {
+    (app as any).serverCost.set(0);
+    fixture.detectChanges();
+
+    const marquee = fixture.nativeElement.querySelector('.marquee');
+    expect(marquee).toBeTruthy();
+    expect(marquee.textContent).not.toContain('ค่าเซิร์ฟเวอร์เดือนนี้');
+    expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
+  });
+
+  it('should not display server cost in marquee when serverCost is null, but still display donate link', () => {
+    (app as any).serverCost.set(null);
+    fixture.detectChanges();
+
+    const marquee = fixture.nativeElement.querySelector('.marquee');
+    expect(marquee).toBeTruthy();
+    expect(marquee.textContent).not.toContain('ค่าเซิร์ฟเวอร์เดือนนี้');
+    expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
+  });
+
+  it('should display server cost in marquee when serverCost is greater than 0 along with donate link', () => {
+    (app as any).serverCost.set(1500);
+    fixture.detectChanges();
+
+    const marquee = fixture.nativeElement.querySelector('.marquee');
+    expect(marquee).toBeTruthy();
+    expect(marquee.textContent).toContain('ค่าเซิร์ฟเวอร์เดือนนี้: 1,500 บาท');
+    expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
   });
 });

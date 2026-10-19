@@ -23,12 +23,14 @@
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
         <span>เว็บไซต์นี้ใช้ระบบแคชเพื่อช่วยลดค่าใช้จ่ายเซิร์ฟเวอร์ ข้อมูลอาจจะแสดงผลล่าช้าเล็กน้อย</span>
         @if (serverCost(); as cost) {
+        @if (cost > 0) {
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
         <span>ค่าเซิร์ฟเวอร์เดือนนี้: {{ cost.toLocaleString('th-TH') }} บาท</span>
+        }
+        }
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
         <img src="https://theoldnet.com/images/pointer.gif" />
         <a routerLink="/donate">ช่วยเหลือค่าเซิร์ฟเวอร์</a>
-        }
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
       </span>
     </marquee>
@@ -119,6 +121,8 @@
           (click)="closeSidebar()">จัดการลิงก์ sidebar</a>
         <a class="retro-rail-link" routerLink="/admin/sample" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">ทดสอบ Style</a>
+        <a class="retro-rail-link" routerLink="/maintenance" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">ตัวอย่างหน้าปิดปรับปรุง</a>
         <a class="retro-rail-link" routerLink="/admin/server-cost" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">ค่าเซิร์ฟเวอร์เดือนนี้</a>
         <a class="retro-rail-link" routerLink="/admin/firestore-data" routerLinkActive="retro-rail-link--active"

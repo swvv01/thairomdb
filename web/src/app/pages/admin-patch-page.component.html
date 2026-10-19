@@ -91,12 +91,12 @@
             (ชั่วโมง)</label>
           <div class="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.1" min="0"
+              <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.5" min="0"
                 aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง (ชั่วโมง)"
                 placeholder="เช่น 15 (จบเนื้อเรื่อง)" (focus)="playTimeInput.select()" />
             </div>
             <div>
-              <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.1"
+              <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.5"
                 min="0" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)"
                 placeholder="เช่น 25 (จบพิเศษ)" (focus)="playTimeFullInput.select()" />
             </div>

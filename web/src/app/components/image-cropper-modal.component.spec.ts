@@ -119,4 +119,28 @@ describe('ImageCropperModalComponent', () => {
     expect(component['box']().x).toBe(30);
     expect(component['box']().y).toBe(20);
   });
+
+  it('emits cropped and guards against double confirmation in confirmCrop', (done) => {
+    const imgElement = new Image(600, 400);
+    Object.defineProperty(imgElement, 'clientWidth', { value: 300 });
+    Object.defineProperty(imgElement, 'clientHeight', { value: 200 });
+    Object.defineProperty(imgElement, 'naturalWidth', { value: 600 });
+    Object.defineProperty(imgElement, 'naturalHeight', { value: 400 });
+
+    component['stageImgRef'] = { nativeElement: imgElement };
+    component['updateBox']({ x: 20, y: 30, w: 100, h: 150 });
+
+    component.cropped.subscribe((result) => {
+      expect(result.cropRect).toEqual({ x: 40, y: 60, w: 200, h: 300 });
+      expect(result.blob).toBeInstanceOf(Blob);
+      done();
+    });
+
+    component['confirmCrop']();
+    expect(component['confirming']()).toBeTrue();
+
+    // Calling confirmCrop again while confirming should be ignored
+    component['confirmCrop']();
+    expect(component['confirming']()).toBeTrue();
+  });
 });

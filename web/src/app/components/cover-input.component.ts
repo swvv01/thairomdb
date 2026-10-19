@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
 import { ImageProcessorService } from '../services/image-processor.service';
 import { CropRect, CropResult, ImageCropperModalComponent } from './image-cropper-modal.component';
 
@@ -26,6 +26,7 @@ export class CoverInputComponent {
   @Output() selected = new EventEmitter<Blob | undefined>();
   private readonly processor = inject(ImageProcessorService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
   protected readonly preview = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly rawBlob = signal<Blob | null>(null);
@@ -131,10 +132,14 @@ export class CoverInputComponent {
   }
 
   protected async onCropped(result: CropResult): Promise<void> {
-    this.closeCropper();
     this.lastCrop.set(result.cropRect);
     this.isCropped.set(true);
-    await this.process(result.blob, false);
+    try {
+      await this.process(result.blob, false);
+    } finally {
+      this.closeCropper();
+      this.cdr.markForCheck();
+    }
   }
 
   protected async resetToOriginal(): Promise<void> {
@@ -157,9 +162,11 @@ export class CoverInputComponent {
       this.revokePreviewBlob();
       this.preview.set(URL.createObjectURL(result.blob));
       this.selected.emit(result.blob);
+      this.cdr.markForCheck();
     } catch (error) {
       this.preview.set(null);
       this.error.set(error instanceof Error ? error.message : 'ไม่สามารถประมวลผลรูปภาพได้');
+      this.cdr.markForCheck();
     }
   }
 }

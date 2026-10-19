@@ -51,11 +51,15 @@
         <i class="fa-solid fa-expand mr-1" aria-hidden="true"></i>เลือกทั้งหมด
       </button>
       <div class="cropper-footer-actions">
-        <button class="button px-3 py-2 font-bold" type="button" (click)="cancelled.emit()">
+        <button class="button px-3 py-2 font-bold" type="button" [disabled]="confirming()" (click)="cancelled.emit()">
           <i class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก
         </button>
-        <button class="button button--accent px-3 py-2 font-bold" type="button" (click)="confirmCrop()">
-          <i class="fa-solid fa-check mr-1" aria-hidden="true"></i>ครอบตัด
+        <button class="button button--accent px-3 py-2 font-bold" type="button" [disabled]="confirming()" (click)="confirmCrop()">
+          @if (confirming()) {
+            <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>กำลังครอบตัด…
+          } @else {
+            <i class="fa-solid fa-check mr-1" aria-hidden="true"></i>ครอบตัด
+          }
         </button>
       </div>
     </footer>
