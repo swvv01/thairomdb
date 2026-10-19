@@ -71,9 +71,35 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private static readonly todayWindowMs = 24 * 60 * 60 * 1000;
   private static readonly weekWindowMs = 7 * 24 * 60 * 60 * 1000;
 
-  protected readonly sidebarPlatforms = computed(() =>
-    this.platforms().filter((p) => !isPortMasterSystem(p.shortName) && !isPortMasterSystem(p.name))
-  );
+  protected readonly sidebarPlatforms = computed(() => {
+    const list = this.platforms().filter((p) => !isPortMasterSystem(p.shortName) && !isPortMasterSystem(p.name));
+    if (!this.patchesLoaded()) {
+      return list;
+    }
+    const counts = this.patchCounts().bySystem;
+    return list.filter((p) => {
+      const key = normalizeBrowseName(p.shortName).toLocaleLowerCase('th');
+      return (counts[key] ?? 0) > 0;
+    });
+  });
+
+  protected readonly sidebarTranslators = computed(() => {
+    const list = this.translators();
+    if (!this.patchesLoaded()) {
+      return list;
+    }
+    const counts = this.patchCounts().byTranslator;
+    return list.filter((t) => (counts[t.id] ?? 0) > 0);
+  });
+
+  protected readonly sidebarTags = computed(() => {
+    const list = this.tags();
+    if (!this.patchesLoaded()) {
+      return list;
+    }
+    const counts = this.patchCounts().byTag;
+    return list.filter((t) => (counts[t.id] ?? 0) > 0);
+  });
 
   protected readonly patchCounts = computed(() => {
     const list = this.patches();

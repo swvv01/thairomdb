@@ -119,14 +119,20 @@ describe('AppComponent', () => {
         {
           provide: TagRepository,
           useValue: {
-            watchAll: () => of([{ id: 'tag1', name: 'RPG', slug: 'rpg' }]),
+            watchAll: () => of([
+              { id: 'tag1', name: 'RPG', slug: 'rpg' },
+              { id: 'tag2', name: 'Action', slug: 'action' }
+            ]),
             refreshAll: jasmine.createSpy('refreshAll')
           }
         },
         {
           provide: TranslatorRepository,
           useValue: {
-            watchAll: () => of([{ id: 'trans1', shortName: 'G-Trans', name: 'G-Translators' }]),
+            watchAll: () => of([
+              { id: 'trans1', shortName: 'G-Trans', name: 'G-Translators' },
+              { id: 'trans2', shortName: 'Solo', name: 'Solo Translators' }
+            ]),
             refreshAll: jasmine.createSpy('refreshAll')
           }
         },
@@ -136,7 +142,8 @@ describe('AppComponent', () => {
             watchAll: () => of([
               { id: 'sys1', shortName: 'SFC', name: 'Super Famicom' },
               { id: 'sys2', shortName: 'PortMaster', name: 'PortMaster' },
-              { id: 'sys3', shortName: 'PORT', name: 'PortMaster' }
+              { id: 'sys3', shortName: 'PORT', name: 'PortMaster' },
+              { id: 'sys4', shortName: 'GBA', name: 'Game Boy Advance' }
             ]),
             refreshAll: jasmine.createSpy('refreshAll')
           }
@@ -238,6 +245,35 @@ describe('AppComponent', () => {
     const platforms = (app as unknown as { sidebarPlatforms: () => Array<{ shortName: string }> }).sidebarPlatforms();
     expect(platforms.map((p) => p.shortName)).toEqual(['SFC']);
     expect(platforms.some((p) => p.shortName === 'PortMaster' || p.shortName === 'PORT')).toBeFalse();
+  });
+
+  it('should exclude systems, translators, and tags with 0 games from sidebar when patches are loaded', () => {
+    expect((app as any).patchesLoaded()).toBeTrue();
+    const platforms = (app as any).sidebarPlatforms();
+    expect(platforms.some((p: any) => p.shortName === 'GBA')).toBeFalse();
+    expect(platforms.some((p: any) => p.shortName === 'SFC')).toBeTrue();
+
+    const translators = (app as any).sidebarTranslators();
+    expect(translators.some((t: any) => t.id === 'trans2')).toBeFalse();
+    expect(translators.some((t: any) => t.id === 'trans1')).toBeTrue();
+
+    const tags = (app as any).sidebarTags();
+    expect(tags.some((t: any) => t.id === 'tag2')).toBeFalse();
+    expect(tags.some((t: any) => t.id === 'tag1')).toBeTrue();
+  });
+
+  it('should show all systems, translators, and tags when patches are not yet loaded', () => {
+    (app as any).patchesLoaded.set(false);
+
+    const platforms = (app as any).sidebarPlatforms();
+    expect(platforms.some((p: any) => p.shortName === 'GBA')).toBeTrue();
+    expect(platforms.some((p: any) => p.shortName === 'SFC')).toBeTrue();
+
+    const translators = (app as any).sidebarTranslators();
+    expect(translators.some((t: any) => t.id === 'trans2')).toBeTrue();
+
+    const tags = (app as any).sidebarTags();
+    expect(tags.some((t: any) => t.id === 'tag2')).toBeTrue();
   });
 
   it('should render published articles in sidebar', () => {

@@ -131,7 +131,7 @@
     </div>
     }
 
-    @if (sidebarPlatforms().length > 0) {
+    @if (sidebarPlatforms().length > 0 || sidebarLinksFor('systems').length > 0) {
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">ระบบเกม</p>
       @if (authService.isAdmin()) {
@@ -158,7 +158,7 @@
     </div>
     }
 
-    @if (translators().length > 0) {
+    @if (sidebarTranslators().length > 0 || sidebarLinksFor('translators').length > 0) {
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">ทีมแปล</p>
       @if (authService.isAdmin()) {
@@ -168,7 +168,7 @@
       </a>
       }
       <div>
-        @for (translator of translators(); track translator.id) {
+        @for (translator of sidebarTranslators(); track translator.id) {
         <div class="sidebar-translator-row">
           <a class="retro-system-button" routerLink="/translator" [queryParams]="{ translator: translator.shortName }"
             routerLinkActive="retro-system-button--active" [attr.title]="translator.name"
@@ -243,7 +243,7 @@
     </div>
     }
 
-    @if (tags().length > 0) {
+    @if (sidebarTags().length > 0 || sidebarLinksFor('tags').length > 0) {
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">Tags</p>
       @if (authService.isAdmin()) {
@@ -252,7 +252,7 @@
       </a>
       }
       <div>
-        @for (tag of tags(); track tag.id) {
+        @for (tag of sidebarTags(); track tag.id) {
         <div class="sidebar-translator-row">
           <a class="retro-system-button" [routerLink]="browseRoute('tag', tag.slug)"
             routerLinkActive="retro-system-button--active" [attr.title]="tag.name" (click)="selectRouteTag(tag.id)">
