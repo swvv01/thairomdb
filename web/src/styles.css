@@ -688,6 +688,12 @@ body[data-theme='classic-blue'] .browse-stat-subtext {
 body[data-theme='classic-blue'] .browse-stat-value {
   color: #ffd92b;
   text-shadow: 1px 1px 0px #000000;
+  text-decoration: underline;
+}
+
+body[data-theme='classic-blue'] .browse-stat-value:hover {
+  color: #ffffff;
+  text-decoration: none;
 }
 
 body[data-theme='classic-blue'] .pagination__current {
@@ -893,13 +899,15 @@ body {
 }
 
 a,
-.link {
+.link,
+.link-button {
   text-decoration: underline;
   color: var(--color-link);
 }
 
 a:hover,
-.link:hover {
+.link:hover,
+.link-button:hover {
   color: var(--color-highlight);
 }
 

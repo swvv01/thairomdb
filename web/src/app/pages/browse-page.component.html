@@ -26,7 +26,8 @@
     @if (stats.hasData) {
     <div class="browse-stat-bar" aria-label="สถิติเวลาเล่นรวม">
       <span class="browse-stat-label">ต้องใช้เวลาเล่น:</span>
-      <span class="browse-stat-value">{{ stats.formattedDuration }}</span>
+      <button type="button" class="link-button browse-stat-value" (click)="togglePlayTimeUnit()"
+        title="คลิกเพื่อสลับหน่วยเวลา" aria-label="คลิกเพื่อสลับหน่วยเวลา">{{ stats.formattedDuration }}</button>
       <span class="browse-stat-subtext">(จาก {{ stats.count }} เกม)</span>
     </div>
     }
@@ -69,8 +70,9 @@
           (click)="setPage(page)">{{ page }}</button>
         }
       </div>
-      <button type="button" class="pagination__button pagination__step_button" [disabled]="currentPage() === totalPages()"
-        aria-label="ไปหน้าถัดไป" (click)="setPage(currentPage() + 1)">&gt;</button>
+      <button type="button" class="pagination__button pagination__step_button"
+        [disabled]="currentPage() === totalPages()" aria-label="ไปหน้าถัดไป"
+        (click)="setPage(currentPage() + 1)">&gt;</button>
     </nav>
     }
     @if (!isForcedPageMode()) {

@@ -62,6 +62,7 @@ export class BrowsePageComponent implements OnInit {
   protected readonly showBackToTop = signal(false);
   protected readonly showFloatingAddGame = signal(false);
   public static readonly viewModeStorageKey = 'thairomdb_browse_view_mode';
+  public static readonly playTimeUnitStorageKey = 'thairomdb_browse_playtime_unit';
 
   private static getSavedViewMode(): 'scroll' | 'page' {
     if (typeof window === 'undefined') return 'scroll';
@@ -81,6 +82,27 @@ export class BrowsePageComponent implements OnInit {
       // storage can be unavailable
     }
   }
+
+  private static getSavedPlayTimeUnit(): 'detailed' | 'hours' {
+    if (typeof window === 'undefined') return 'detailed';
+    try {
+      const saved = window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey);
+      return saved === 'hours' ? 'hours' : 'detailed';
+    } catch {
+      return 'detailed';
+    }
+  }
+
+  private static savePlayTimeUnit(unit: 'detailed' | 'hours'): void {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(BrowsePageComponent.playTimeUnitStorageKey, unit);
+    } catch {
+      // storage can be unavailable
+    }
+  }
+
+  protected readonly playTimeUnit = signal<'detailed' | 'hours'>(BrowsePageComponent.getSavedPlayTimeUnit());
 
   protected readonly isForcedPageMode = signal(!!this.route.snapshot.data['pageMode']);
   protected readonly isPageMode = signal(
@@ -214,6 +236,12 @@ export class BrowsePageComponent implements OnInit {
   protected readonly hasMore = computed(() => this.paginatedPatches().length < this.sortedPatches().length);
   protected readonly remainingCount = computed(() => Math.max(0, this.sortedPatches().length - this.paginatedPatches().length));
   protected readonly nextLoadCount = computed(() => Math.min(this.pageSize, this.remainingCount()));
+  protected togglePlayTimeUnit(): void {
+    const next = this.playTimeUnit() === 'detailed' ? 'hours' : 'detailed';
+    this.playTimeUnit.set(next);
+    BrowsePageComponent.savePlayTimeUnit(next);
+  }
+
   protected readonly playTimeStats = computed(() => {
     let total = 0;
     let count = 0;
@@ -223,12 +251,18 @@ export class BrowsePageComponent implements OnInit {
         count++;
       }
     }
+    const unit = this.playTimeUnit();
     return {
-      formattedDuration: this.formatPlayDuration(total),
+      formattedDuration: unit === 'hours' ? this.formatPlayDurationHours(total) : this.formatPlayDuration(total),
       count,
       hasData: count > 0
     };
   });
+
+  private formatPlayDurationHours(totalHours: number): string {
+    const roundedHours = Math.ceil(totalHours);
+    return `${roundedHours.toLocaleString('th-TH')} ชั่วโมง`;
+  }
 
   private formatPlayDuration(totalHours: number): string {
     if (totalHours <= 0) return '0 ชั่วโมง';
@@ -237,7 +271,7 @@ export class BrowsePageComponent implements OnInit {
     const daysInMonth = 30;
     const daysInYear = 365;
 
-    let remaining = totalHours;
+    let remaining = Math.ceil(totalHours);
 
     const years = Math.floor(remaining / (daysInYear * hoursInDay));
     remaining %= (daysInYear * hoursInDay);
@@ -248,7 +282,7 @@ export class BrowsePageComponent implements OnInit {
     const days = Math.floor(remaining / hoursInDay);
     remaining %= hoursInDay;
 
-    const hours = Number(remaining.toFixed(1));
+    const hours = remaining;
 
     const parts: string[] = [];
     if (years > 0) parts.push(`${years} ปี`);

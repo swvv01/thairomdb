@@ -91,7 +91,13 @@
 }
 
 .browse-stat-value {
-  color: var(--color-highlight);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  transition: color .15s ease;
 }
 
 .browse-route-label__clear {

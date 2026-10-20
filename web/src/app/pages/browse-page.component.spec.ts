@@ -233,13 +233,46 @@ describe('BrowsePageComponent - Load More Functionality', () => {
 
     const stats = (component as unknown as { playTimeStats: () => { formattedDuration: string; count: number; hasData: boolean } }).playTimeStats();
     expect(stats.hasData).toBeTrue();
-    expect(stats.formattedDuration).toBe('1 วัน 8.5 ชั่วโมง');
+    expect(stats.formattedDuration).toBe('1 วัน 9 ชั่วโมง');
     expect(stats.count).toBe(2);
 
     const statBar = fixture.nativeElement.querySelector('.browse-stat-bar');
     expect(statBar).toBeTruthy();
-    expect(statBar.textContent).toContain('1 วัน 8.5 ชั่วโมง');
+    expect(statBar.textContent).toContain('1 วัน 9 ชั่วโมง');
     expect(statBar.textContent).toContain('(จาก 2 เกม)');
+
+    const statButton: HTMLButtonElement = fixture.nativeElement.querySelector('.browse-stat-value');
+    expect(statButton).toBeTruthy();
+    expect(statButton.tagName.toLowerCase()).toBe('button');
+    expect(statButton.getAttribute('title')).toBe('คลิกเพื่อสลับหน่วยเวลา');
+    expect(statButton.getAttribute('aria-label')).toBe('คลิกเพื่อสลับหน่วยเวลา');
+
+    // คลิกเพื่อสลับเป็นชั่วโมง
+    statButton.click();
+    fixture.detectChanges();
+
+    expect(statButton.textContent?.trim()).toBe('33 ชั่วโมง'); // 20 + 12.5 = 32.5 -> Math.ceil = 33
+    expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('hours');
+
+    // คลิกซ้ำเพื่อสลับกลับเป็นแบบแจกแจง
+    statButton.click();
+    fixture.detectChanges();
+    expect(statButton.textContent?.trim()).toBe('1 วัน 9 ชั่วโมง');
+    expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('detailed');
+  });
+
+  it('formats hours with Math.ceil and comma separators when initialized from localStorage in hours mode', () => {
+    window.localStorage.setItem(BrowsePageComponent.playTimeUnitStorageKey, 'hours');
+    const newFixture = TestBed.createComponent(BrowsePageComponent);
+    const newComponent = newFixture.componentInstance;
+    const patchesSignal = (newComponent as unknown as { patches: { set: (v: Patch[]) => void } }).patches;
+    patchesSignal.set([
+      { ...mockPatches[0], id: 'p1', playTime: 1234.2 }
+    ]);
+    newFixture.detectChanges();
+
+    const statButton: HTMLButtonElement = newFixture.nativeElement.querySelector('.browse-stat-value');
+    expect(statButton.textContent?.trim()).toBe('1,235 ชั่วโมง');
   });
 
   it('formats large duration into years, months, days, and hours correctly', () => {
