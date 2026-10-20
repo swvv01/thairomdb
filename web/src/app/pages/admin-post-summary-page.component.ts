@@ -27,6 +27,44 @@ export interface ColumnPackItem<T> {
   height: number;
 }
 
+/**
+ * Calculates optimal grid columns and rows for N items plus 1 branding cell to approximate a 1:1 aspect ratio.
+ */
+export function calculateSquareGridDimensions(totalItems: number): { cols: number; rows: number } {
+  const totalSlots = Math.max(1, totalItems + 1); // +1 slot for Logo & URL
+  const cols = Math.ceil(Math.sqrt(totalSlots));
+  const rows = Math.ceil(totalSlots / cols);
+  return { cols, rows };
+}
+
+/**
+ * Draws a rectangular/square tile at (x, y, w, h) with clipping and image center-crop.
+ */
+export function drawTiltedTile(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  drawContent: () => void
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  drawContent();
+  ctx.restore();
+}
+
+/**
+ * Calculates optimal rotated grid dimensions (cols and rows) based on total items.
+ */
+export function calculateDiagonalGridCols(totalItems: number): number {
+  const needed = totalItems + 1;
+  // A tilted grid covers roughly cols * cols tiles
+  return Math.max(3, Math.ceil(Math.sqrt(needed * 1.25)));
+}
+
 export function distributeIntoColumns<T>(items: Array<ColumnPackItem<T>>, cols = 4): T[][] {
   if (cols <= 1 || items.length <= 1) {
     return [items.map((x) => x.item)];
@@ -141,6 +179,33 @@ export function drawSynthwaveBackground(
   ctx.beginPath();
   ctx.moveTo(0, horizonY);
   ctx.lineTo(width, horizonY);
+  ctx.stroke();
+}
+
+/**
+ * Renders a clean 2D retro grid (25x25px) on a deep purple canvas.
+ */
+export function drawGridBackground(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  // 1. Solid deep purple background
+  ctx.fillStyle = '#35006c';
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. 2D 25x25px cyan grid lines with crisp pixel alignment
+  const gridSize = 25;
+  ctx.strokeStyle = 'rgba(0, 255, 255, 0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+
+  for (let x = 0; x <= width; x += gridSize) {
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, height);
+  }
+
+  for (let y = 0; y <= height; y += gridSize) {
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(width, y + 0.5);
+  }
+
   ctx.stroke();
 }
 
@@ -404,71 +469,155 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
         throw new Error('ไม่สามารถโหลดรูปปกเกมได้ กรุณาลองใหม่อีกครั้ง');
       }
 
-      // Max 4 columns, each column fixed to 256px -> total width <= 1024px
-      const cols = Math.min(4, Math.max(1, validImages.length));
-      const colWidth = 256;
-      const canvasWidth = cols * colWidth;
-
-      const packItems: ColumnPackItem<{ patch: Patch; img: HTMLImageElement }>[] = validImages.map((entry) => {
-        const naturalW = entry.img.naturalWidth || entry.img.width || 250;
-        const naturalH = entry.img.naturalHeight || entry.img.height || 350;
-        const scaledH = Math.round(naturalH * (colWidth / naturalW));
-        return { item: entry, height: scaledH };
-      });
-
-      const columns = distributeIntoColumns(packItems, cols);
-
-      // Calculate heights of each column
-      const columnHeights = columns.map((colImgs) => {
-        return colImgs.reduce((sum, item) => {
-          const naturalW = item.img.naturalWidth || item.img.width || 250;
-          const naturalH = item.img.naturalHeight || item.img.height || 350;
-          const scaledH = Math.round(naturalH * (colWidth / naturalW));
-          return sum + scaledH;
-        }, 0);
-      });
-
-      const maxCoverHeight = Math.max(...columnHeights, 200);
-      const lastColHeight = columnHeights[cols - 1] || 0;
-
-      // Ensure at least 95px at bottom of the last column for logo and URL
-      const canvasHeight = Math.max(maxCoverHeight, lastColHeight + 95);
-
+      // Diagonal Rotated Grid Layout (เอียงระนาบทั้งผืน 45 องศา ชิดติดกัน 100% เหมือนรูปต้นแบบ)
+      const canvasSize = 1024;
       const canvas = document.createElement('canvas');
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
       const ctx = canvas.getContext('2d');
 
       if (!ctx) throw new Error('ไม่สามารถประมวลผลรูปภาพได้');
 
-      // Theme background color with 3D Perspective Synthwave Grid Floor
-      drawSynthwaveBackground(ctx, canvasWidth, canvasHeight);
+      // 1. Fill base background color #35006c
+      ctx.fillStyle = '#35006c';
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      // Draw covers vertically in each column
-      for (let c = 0; c < cols; c++) {
-        const x = c * colWidth;
-        let y = 0;
-        for (const item of columns[c]) {
-          const naturalW = item.img.naturalWidth || item.img.width || 250;
-          const naturalH = item.img.naturalHeight || item.img.height || 350;
-          const scaledH = Math.round(naturalH * (colWidth / naturalW));
-          ctx.drawImage(item.img, x, y, colWidth, scaledH);
-          y += scaledH;
+      // 2. Setup rotated grid parameters
+      const N = calculateDiagonalGridCols(validImages.length);
+      const halfSize = canvasSize / 2;
+      const diagonalBound = canvasSize * Math.SQRT2; // ~1448px
+      const borderGap = 16; // 16px wide border gap as requested
+      const step = diagonalBound / N;
+      const tileSize = step - borderGap;
+
+      // Identify slots on the rotated grid
+      interface RotatedSlot {
+        col: number;
+        row: number;
+        centerX: number;
+        centerY: number;
+      }
+
+      const allSlots: RotatedSlot[] = [];
+      const angle = Math.PI / 4; // 45 degrees
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // Enumerate slots covering the full canvas
+      const startIdx = -Math.floor(N / 2) - 1;
+      const endIdx = Math.ceil(N / 2) + 1;
+
+      for (let r = startIdx; r <= endIdx; r++) {
+        for (let c = startIdx; c <= endIdx; c++) {
+          const localX = (c + 0.5) * step;
+          const localY = (r + 0.5) * step;
+          // Rotate around center (halfSize, halfSize)
+          const rotX = halfSize + (localX * cosA - localY * sinA);
+          const rotY = halfSize + (localX * sinA + localY * cosA);
+
+          // Check if slot falls within or intersects the canvas
+          const margin = step * 0.8;
+          if (rotX >= -margin && rotX <= canvasSize + margin && rotY >= -margin && rotY <= canvasSize + margin) {
+            allSlots.push({ col: c, row: r, centerX: rotX, centerY: rotY });
+          }
         }
       }
 
-      // Draw Logo & Website URL at bottom right
+      // Sort slots so central ones get populated first
+      allSlots.sort((a, b) => {
+        const distA = Math.hypot(a.centerX - halfSize, a.centerY - halfSize);
+        const distB = Math.hypot(b.centerX - halfSize, b.centerY - halfSize);
+        return distA - distB;
+      });
+
+      // Prepare image list: Put all validImages first, then fill remaining slots by randomly picking from validImages
+      const assignedImages: HTMLImageElement[] = [];
+      for (let i = 0; i < allSlots.length; i++) {
+        if (i < validImages.length) {
+          assignedImages.push(validImages[i].img);
+        } else {
+          // Randomly pick from existing validImages to fill extra slots
+          const randIdx = Math.floor(Math.random() * validImages.length);
+          assignedImages.push(validImages[randIdx].img);
+        }
+      }
+
+      // 3. Render rotated grid onto canvas
+      ctx.save();
+      // Translate to center and rotate 45 degrees
+      ctx.translate(halfSize, halfSize);
+      ctx.rotate(angle);
+
+      // Draw each tile in the rotated coordinate space
+      for (let i = 0; i < allSlots.length; i++) {
+        const slot = allSlots[i];
+        const localX = (slot.col + 0.5) * step - (tileSize / 2);
+        const localY = (slot.row + 0.5) * step - (tileSize / 2);
+        const img = assignedImages[i];
+
+        drawTiltedTile(ctx, localX, localY, tileSize, tileSize, () => {
+          const naturalW = img.naturalWidth || img.width || 250;
+          const naturalH = img.naturalHeight || img.height || 250;
+          const cropSize = Math.min(naturalW, naturalH);
+          const sx = Math.max(0, Math.floor((naturalW - cropSize) / 2));
+          const sy = Math.max(0, Math.floor((naturalH - cropSize) / 2));
+
+          // Rotate image opposite (-45 deg) inside tile to keep covers upright
+          ctx.save();
+          ctx.translate(localX + tileSize / 2, localY + tileSize / 2);
+          ctx.rotate(-angle);
+          const uprightDim = tileSize * Math.SQRT2;
+          ctx.drawImage(
+            img,
+            sx,
+            sy,
+            cropSize,
+            cropSize,
+            -uprightDim / 2,
+            -uprightDim / 2,
+            uprightDim,
+            uprightDim
+          );
+          ctx.restore();
+        });
+      }
+
+      ctx.restore();
+
+      // 4. Draw Logo and URL Overlay at bottom-right corner with drop shadow
       const logoImg = await loadImage('assets/images/logo.png');
-      const targetLogoW = Math.min(220, colWidth - 24);
-      const targetLogoH = logoImg ? Math.round(targetLogoW * ((logoImg.naturalHeight || 114) / (logoImg.naturalWidth || 750))) : 34;
+      const targetLogoW = 210;
+      const targetLogoH = logoImg ? Math.round(targetLogoW * ((logoImg.naturalHeight || 114) / (logoImg.naturalWidth || 750))) : 32;
 
-      const padRight = 18;
-      const padBottom = 16;
-      const urlText = 'thairomdb.pages.dev';
+      const padRight = 24;
+      const padBottom = 22;
+      const logoX = canvasSize - targetLogoW - padRight;
+      const logoY = canvasSize - targetLogoH - 26 - padBottom;
+      const centerX = logoX + (targetLogoW / 2);
 
-      const logoX = canvasWidth - targetLogoW - padRight;
-      const logoY = canvasHeight - targetLogoH - 26 - padBottom;
-      const logoCenterX = logoX + (targetLogoW / 2);
+      // Semi-transparent dark vignette behind logo & URL for enhanced contrast and readability
+      ctx.save();
+      const vignetteGrad = ctx.createRadialGradient(
+        canvasSize - 80,
+        canvasSize - 50,
+        20,
+        canvasSize - 80,
+        canvasSize - 50,
+        260
+      );
+      vignetteGrad.addColorStop(0, 'rgba(20, 0, 45, 0.92)');
+      vignetteGrad.addColorStop(0.65, 'rgba(30, 0, 65, 0.75)');
+      vignetteGrad.addColorStop(1, 'rgba(53, 0, 108, 0)');
+      ctx.fillStyle = vignetteGrad;
+      ctx.fillRect(canvasSize - 340, canvasSize - 180, 340, 180);
+      ctx.restore();
+
+      // Drop shadow for logo and text
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
 
       if (logoImg) {
         ctx.drawImage(logoImg, logoX, logoY, targetLogoW, targetLogoH);
@@ -477,15 +626,15 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
         ctx.font = 'bold 22px "Segoe UI", Tahoma, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText('THAI ROM DB', logoCenterX, logoY + targetLogoH);
+        ctx.fillText('THAI ROM DB', centerX, logoY + targetLogoH);
       }
 
-      // URL text centered horizontally relative to the logo width with color #00ffff
       ctx.fillStyle = '#00ffff';
       ctx.font = 'bold 15px "Segoe UI", Tahoma, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText(urlText, logoCenterX, logoY + targetLogoH + 8);
+      ctx.fillText('thairomdb.pages.dev', centerX, logoY + targetLogoH + 8);
+      ctx.restore();
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
       this.previewImageUrl.set(dataUrl);

@@ -1,7 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { AdminPostSummaryPageComponent, distributeIntoColumns, drawSynthwaveBackground } from './admin-post-summary-page.component';
+import {
+  AdminPostSummaryPageComponent,
+  calculateSquareGridDimensions,
+  calculateDiagonalGridCols,
+  drawTiltedTile,
+  distributeIntoColumns,
+  drawGridBackground,
+  drawSynthwaveBackground
+} from './admin-post-summary-page.component';
 import { PatchRepository } from '../repositories/patch.repository';
 import { TranslatorRepository } from '../repositories/translator.repository';
 import { StatusMessageService } from '../shared/status-message.service';
@@ -218,6 +226,17 @@ describe('AdminPostSummaryPageComponent', () => {
     }
   });
 
+  it('should render 2D grid background onto canvas context without error', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 700;
+    const ctx = canvas.getContext('2d');
+    expect(ctx).toBeTruthy();
+    if (ctx) {
+      expect(() => drawGridBackground(ctx, 1024, 700)).not.toThrow();
+    }
+  });
+
   it('should copy text to clipboard and show success toast', async () => {
     spyOn(statusMessageService, 'show');
     if (!navigator.clipboard) {
@@ -244,6 +263,42 @@ describe('AdminPostSummaryPageComponent', () => {
 
     await (component as unknown as { copyCommentLink: () => Promise<void> }).copyCommentLink();
     expect(statusMessageService.show).toHaveBeenCalledWith('คัดลอกลิงก์สำหรับคอมเมนต์เรียบร้อยแล้ว', 'success');
+  });
+
+  it('should calculate square grid dimensions correctly for items plus branding slot', () => {
+    // 0 items + 1 branding = 1 slot -> 1x1
+    expect(calculateSquareGridDimensions(0)).toEqual({ cols: 1, rows: 1 });
+    // 2 items + 1 branding = 3 slots -> 2x2
+    expect(calculateSquareGridDimensions(2)).toEqual({ cols: 2, rows: 2 });
+    // 8 items + 1 branding = 9 slots -> 3x3
+    expect(calculateSquareGridDimensions(8)).toEqual({ cols: 3, rows: 3 });
+    // 15 items + 1 branding = 16 slots -> 4x4
+    expect(calculateSquareGridDimensions(15)).toEqual({ cols: 4, rows: 4 });
+    // 40 items + 1 branding = 41 slots -> 7 cols, 6 rows (almost 1:1)
+    expect(calculateSquareGridDimensions(40)).toEqual({ cols: 7, rows: 6 });
+  });
+
+  it('should calculate diagonal grid columns correctly', () => {
+    // 2 items + 1 branding = 3 -> cols >= 3
+    expect(calculateDiagonalGridCols(2)).toBeGreaterThanOrEqual(3);
+    // 15 items + 1 branding = 16 -> cols >= 5
+    expect(calculateDiagonalGridCols(15)).toBe(5);
+  });
+
+  it('should draw tilted tile onto canvas context without error', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 250;
+    canvas.height = 250;
+    const ctx = canvas.getContext('2d');
+    expect(ctx).toBeTruthy();
+
+    if (ctx) {
+      expect(() => {
+        drawTiltedTile(ctx, 10, 10, 100, 100, () => {
+          ctx.fillRect(10, 10, 100, 100);
+        });
+      }).not.toThrow();
+    }
   });
 
   it('should handle repository load errors gracefully', () => {
