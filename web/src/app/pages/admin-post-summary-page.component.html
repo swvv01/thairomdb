@@ -1,0 +1,115 @@
+<main class="post-summary-container">
+  <header class="page-header">
+    <h1 class="page-title">สรุปโพสต์เกมใหม่</h1>
+    <p class="page-description">กรองรายชื่อเกมที่อัปเดตตามช่วงเวลา และคัดลอกข้อความสำเร็จรูปนำไปโพสต์ลง Facebook Page</p>
+  </header>
+
+  <!-- Section 1: ตัวกรองช่วงเวลา -->
+  <section class="card-window filter-window" aria-labelledby="filter-heading">
+    <div class="card-titlebar">
+      <h2 id="filter-heading" class="section-title">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+        <span>เลือกช่วงเวลาที่เพิ่มเกม</span>
+      </h2>
+      <div class="preset-group" aria-label="ปุ่มเลือกช่วงเวลาสำเร็จรูป">
+        <button type="button" class="preset-btn" (click)="setPreset('24h')">24 ชม. ล่าสุด</button>
+        <button type="button" class="preset-btn" (click)="setPreset('today')">วันนี้</button>
+        <button type="button" class="preset-btn" (click)="setPreset('3d')">3 วันล่าสุด</button>
+        <button type="button" class="preset-btn" (click)="setPreset('7d')">7 วันล่าสุด</button>
+      </div>
+    </div>
+
+    <div class="filter-body">
+      <div class="filter-grid">
+        <div class="input-field">
+          <label for="from-date" class="input-label">ตั้งแต่ (From):</label>
+          <input
+            id="from-date"
+            class="admin-input"
+            type="datetime-local"
+            [ngModel]="fromDate()"
+            (ngModelChange)="onFromDateChange($event)"
+          />
+        </div>
+        <div class="input-field">
+          <label for="to-date" class="input-label">ถึง (To):</label>
+          <input
+            id="to-date"
+            class="admin-input"
+            type="datetime-local"
+            [ngModel]="toDate()"
+            (ngModelChange)="onToDateChange($event)"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: กล่องข้อความสำหรับโพสต์ Facebook -->
+  <section class="card-window summary-window" aria-labelledby="summary-heading">
+    <div class="card-titlebar">
+      <div class="summary-info">
+        <h2 id="summary-heading" class="section-title">
+          <i class="fa-brands fa-facebook" aria-hidden="true"></i>
+          <span>ข้อความสำหรับโพสต์ Facebook</span>
+        </h2>
+        @if (!loading()) {
+          <span class="count-badge">พบ {{ stats().gameCount }} เกม ({{ stats().translatorCount }} ทีมแปล)</span>
+        }
+      </div>
+
+      <div class="action-group">
+        <button
+          type="button"
+          class="button copy-btn"
+          [class.copy-btn--success]="copied()"
+          (click)="copyText()"
+          [disabled]="loading()"
+        >
+          @if (copied()) {
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span>คัดลอกเรียบร้อย!</span>
+          } @else {
+            <i class="fa-regular fa-copy" aria-hidden="true"></i>
+            <span>คัดลอกข้อความ</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <div class="summary-body">
+      @if (loading()) {
+        <div class="loading-state">
+          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+          <span>กำลังโหลดข้อมูลเกม...</span>
+        </div>
+      } @else {
+        <textarea
+          #summaryTextarea
+          class="admin-input summary-textarea"
+          readonly
+          [value]="postSummaryText()"
+          rows="16"
+          aria-label="ข้อความสรุปสำหรับโพสต์ Facebook"
+        ></textarea>
+
+        <div class="bottom-actions">
+          <button
+            type="button"
+            class="button copy-btn"
+            [class.copy-btn--success]="copied()"
+            (click)="copyText()"
+          >
+            @if (copied()) {
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              <span>คัดลอกเรียบร้อย!</span>
+            } @else {
+              <i class="fa-regular fa-copy" aria-hidden="true"></i>
+              <span>คัดลอกข้อความ</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+</main>

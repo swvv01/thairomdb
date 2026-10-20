@@ -53,6 +53,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin-manage-redeem-page.component').then(m => m.AdminManageRedeemPageComponent), 
     canActivate: [adminGuard] 
   },
+  { 
+    path: 'admin/post-summary', 
+    loadComponent: () => import('./pages/admin-post-summary-page.component').then(m => m.AdminPostSummaryPageComponent), 
+    canActivate: [adminGuard] 
+  },
   { path: 'admin/articles', component: AdminArticlesPageComponent, canActivate: [adminGuard] },
   { path: 'admin/sidebar-links', component: AdminSidebarLinksPageComponent, canActivate: [adminGuard] },
   { path: 'admin/sample', component: AdminSamplePageComponent, canActivate: [adminGuard] },

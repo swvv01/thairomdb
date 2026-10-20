@@ -91,6 +91,8 @@
       <nav aria-label="Main navigation">
         <a class="retro-rail-link" routerLink="/add" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">เพิ่มเกม</a>
+        <a class="retro-rail-link" routerLink="/admin/post-summary" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">สรุปโพสต์เกมใหม่</a>
         <a class="retro-rail-link" href="#" [class.pointer-events-none]="refreshingPatches()"
           [class.opacity-50]="refreshingPatches()" (click)="$event.preventDefault(); syncEdgeData()">
           {{ refreshingPatches() ? 'กำลังซิงค์ข้อมูล...' : 'ซิงค์ข้อมูล Edge' }}
