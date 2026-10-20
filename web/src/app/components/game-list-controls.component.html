@@ -14,20 +14,24 @@
 </div>
 
 <div id="game-sort-row" class="sort-row" [class.sort-row--open]="sortOpen" [class.sort-row--collapsed]="sortCollapsed">
-  <div class="sort-row__titlebar" (click)="toggleSort()" [style.cursor]="'pointer'">
-    <div class="sort-row__title">
-      <span class="sort-row__icon" aria-hidden="true">🔍</span>
-      <span class="sort-row__text">ตัวกรองและจัดเรียง</span>
-    </div>
-    <button type="button" class="win98-ctrl-btn sort-toggle sort-row-button"
+  <div class="browse-route-label" (click)="toggleSort()" [style.cursor]="'pointer'" role="button" tabindex="0"
+    (keydown.enter)="toggleSort()" (keydown.space)="toggleSort(); $event.preventDefault()"
+    [attr.aria-expanded]="!sortCollapsed" aria-controls="game-sort-content"
+    [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'">
+    <button type="button" class="win98-ctrl-btn sort-toggle browse-route-label__toggle no-button"
       [class.sort-row__close-btn]="!sortCollapsed" [class.sort-row__minimize-btn]="!sortCollapsed"
       [class.sort-row__restore-btn]="sortCollapsed" [class.sort-toggle--closed]="sortCollapsed"
-      (click)="toggleSort(); $event.stopPropagation()"
-      [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'"><i class="fa-solid"
-        [class.fa-angle-down]="sortCollapsed" [class.fa-angle-up]="!sortCollapsed" aria-hidden="true"></i></button>
+      (click)="toggleSort(); $event.stopPropagation()" [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'"
+      tabindex="-1">
+      <i class="fa-solid" [class.fa-angle-down]="sortCollapsed" [class.fa-angle-up]="!sortCollapsed"
+        aria-hidden="true"></i>
+    </button>
+    <span class="browse-route-label__title">{{ routeLabel || 'เกมทั้งหมด' }} ({{ totalCount }})</span>
+    <button type="button" class="no-button browse-route-label__clear" aria-label="ล้างตัวกรองทั้งหมด"
+      title="ล้างตัวกรองทั้งหมด" (click)="onClearAll($event)">x</button>
   </div>
 
-  <div class="sort-row__content">
+  <div id="game-sort-content" class="sort-row__content">
     @if (routeKind !== 'translator') {
     <div class="sort-field">
       <label for="filter-translator">ทีมแปล</label>

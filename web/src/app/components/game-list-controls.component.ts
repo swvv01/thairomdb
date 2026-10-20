@@ -21,8 +21,11 @@ export class GameListControlsComponent implements OnChanges {
   @Input() systems: string[] = [];
   @Input() systemMasters: SystemMaster[] = [];
   @Input() routeKind: BrowseRouteKind | null = null;
+  @Input() routeLabel: string | null = null;
+  @Input() totalCount = 0;
   @Input() draft: GameListFilters = { keyword: '', tag: null, translatorId: null, system: null, sortBy: 'updateDate', sortDirection: 'desc' };
   @Output() filtersChanged = new EventEmitter<GameListFilters>();
+  @Output() clearAll = new EventEmitter<void>();
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
   protected sortOpen = false;
   protected sortCollapsed = true;
@@ -236,6 +239,11 @@ export class GameListControlsComponent implements OnChanges {
 
   protected toggleSort(): void {
     this.sortCollapsed ? this.openSort() : this.closeSort();
+  }
+
+  protected onClearAll(event: Event): void {
+    event.stopPropagation();
+    this.clearAll.emit();
   }
 
   protected clearKeyword(): void {

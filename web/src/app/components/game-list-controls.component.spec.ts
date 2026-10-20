@@ -250,4 +250,38 @@ describe('GameListControlsComponent', () => {
   it('starts collapsed in every mode', () => {
     expect(fixture.nativeElement.querySelector('#game-sort-row').classList.contains('sort-row--collapsed')).toBeTrue();
   });
+
+  it('displays routeLabel and totalCount in browse-route-label__title', () => {
+    component.routeLabel = 'รอมแปลไทย';
+    component.totalCount = 42;
+    fixture.detectChanges();
+
+    const titleEl = fixture.nativeElement.querySelector('.browse-route-label__title') as HTMLElement;
+    expect(titleEl).toBeTruthy();
+    expect(titleEl.textContent).toContain('รอมแปลไทย (42)');
+  });
+
+  it('emits clearAll when browse-route-label__clear is clicked', () => {
+    spyOn(component.clearAll, 'emit');
+    fixture.detectChanges();
+
+    const clearBtn = fixture.nativeElement.querySelector('.browse-route-label__clear') as HTMLButtonElement;
+    expect(clearBtn).toBeTruthy();
+    clearBtn.click();
+
+    expect(component.clearAll.emit).toHaveBeenCalled();
+  });
+
+  it('toggles sort collapsed when clicking on browse-route-label container', () => {
+    const labelEl = fixture.nativeElement.querySelector('.browse-route-label') as HTMLElement;
+    expect(component['sortCollapsed']).toBeTrue();
+
+    labelEl.click();
+    fixture.detectChanges();
+    expect(component['sortCollapsed']).toBeFalse();
+
+    labelEl.click();
+    fixture.detectChanges();
+    expect(component['sortCollapsed']).toBeTrue();
+  });
 });

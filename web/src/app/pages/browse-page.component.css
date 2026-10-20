@@ -40,32 +40,6 @@
   padding: .2rem .6rem;
 }
 
-.browse-route-label {
-  align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-shadow);
-  box-shadow: 2px 2px var(--color-shadow);
-  box-sizing: border-box;
-  color: var(--color-highlight);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin: 0;
-  max-width: 100%;
-  padding: .35rem 2.5rem .45rem;
-  position: relative;
-  row-gap: 0.25rem;
-  text-align: center;
-  width: 100%;
-}
-
-.browse-route-label__title {
-  color: var(--color-highlight);
-  font-size: 1.5rem;
-  text-align: center;
-  width: 100%;
-}
-
 .browse-stat-bar {
   align-items: baseline;
   box-sizing: border-box;
@@ -98,22 +72,6 @@
   padding: 0;
   text-decoration: underline;
   transition: color .15s ease;
-}
-
-.browse-route-label__clear {
-  color: var(--color-text);
-  cursor: pointer;
-  font: inherit;
-  line-height: 1;
-  min-width: 1.8rem;
-  padding: .15rem .3rem;
-  position: absolute;
-  right: 0.5rem;
-}
-
-.browse-route-label__clear:focus-visible {
-  outline: 3px solid var(--color-text);
-  outline-offset: 2px;
 }
 
 .skeleton-grid {
@@ -365,18 +323,6 @@
 }
 
 @media (max-width: 900px) {
-  .browse-route-label {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-
-  .browse-route-label__title {
-    font-size: 1.25rem;
-  }
-
-  .browse-route-label__clear {
-    right: 0.35rem;
-  }
 
   .browse-floating-actions {
     right: 0.5rem;

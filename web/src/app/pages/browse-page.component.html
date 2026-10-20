@@ -2,17 +2,10 @@
 
   <div class="browse-column">
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
-      [routeKind]="routeKind()" [draft]="filters()" (filtersChanged)="setFilters($event)" />
-
-    @if (activeRouteLabel(); as routeLabel) {
-    <div class="browse-route-label">
-      <span class="browse-route-label__title">{{ routeLabel }} ({{ sortedPatches().length }})</span>
-
-      <button type="button" class="no-button browse-route-label__clear" aria-label="ล้างตัวกรองทั้งหมด"
-        (click)="clearAllFilters()">x</button>
-    </div>
-
-    @if (isPageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
+      [routeKind]="routeKind()" [draft]="filters()" [routeLabel]="activeRouteLabel()"
+      [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)"
+      (clearAll)="clearAllFilters()" />
+@if (isPageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
     <nav class="pagination pagination--top" aria-label="การแบ่งหน้ารายการแพตช์">
       <button type="button" class="pagination__button no-button" [disabled]="currentPage() === 1"
         aria-label="ไปหน้าก่อนหน้า" (click)="setPage(currentPage() - 1)">&lt;</button>
@@ -32,8 +25,7 @@
     </div>
     }
     }
-    }
-
+    
     @if (loading()) {
     <div class="skeleton-grid" aria-label="กำลังโหลดรายการแพตช์" aria-busy="true">
       @for (skeleton of [1, 2, 3, 4, 5, 6]; track skeleton) { <div class="patch-skeleton"><span></span>
