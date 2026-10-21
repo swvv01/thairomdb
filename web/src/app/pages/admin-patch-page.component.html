@@ -195,9 +195,13 @@
 
 
         </fieldset>
-        <label><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>Patch Version<textarea class="admin-input"
-            formControlName="patchVersion" rows="3"></textarea>
-        </label>
+        <div>
+          <label><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>Patch Version<textarea class="admin-input"
+              formControlName="patchVersion" rows="3"></textarea></label>
+          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchVersion')"
+            [disabled]="pastingField === 'patchVersion' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+              aria-hidden="true"></i>{{ pastingField === 'patchVersion' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+        </div>
         <label class="flex items-center gap-2">
           <input formControlName="haveUpdateFlag" type="checkbox" />
           <span>แสดงเป็นแพตช์อัปเดต</span>

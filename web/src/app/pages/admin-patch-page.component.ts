@@ -338,7 +338,7 @@ export class AdminPatchPageComponent implements OnInit {
     }
   }
 
-  protected async pasteTo(field: 'gameTitle' | 'patchTool' | 'patchFileUrl' | 'patchedRomUrl' | 'referenceUrl' | 'walkthroughUrl'): Promise<void> {
+  protected async pasteTo(field: 'gameTitle' | 'patchTool' | 'patchFileUrl' | 'patchedRomUrl' | 'referenceUrl' | 'walkthroughUrl' | 'patchVersion'): Promise<void> {
     if (this.pastingField) return;
     this.pastingField = field;
     try {

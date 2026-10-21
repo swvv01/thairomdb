@@ -494,7 +494,7 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     fixture.detectChanges();
   });
 
-  it('pastes text from clipboard into patchFileUrl, patchedRomUrl, referenceUrl, and walkthroughUrl', async () => {
+  it('pastes text from clipboard into patchFileUrl, patchedRomUrl, referenceUrl, walkthroughUrl, and patchVersion', async () => {
     const c = component as any;
     spyOn(navigator.clipboard, 'readText').and.resolveTo('  https://example.com/file.zip  ');
 
@@ -512,6 +512,10 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     (navigator.clipboard.readText as jasmine.Spy).and.resolveTo('https://example.com/guide');
     await c.pasteTo('walkthroughUrl');
     expect(c.form.controls.walkthroughUrl.value).toBe('https://example.com/guide');
+
+    (navigator.clipboard.readText as jasmine.Spy).and.resolveTo('v1.0.1');
+    await c.pasteTo('patchVersion');
+    expect(c.form.controls.patchVersion.value).toBe('v1.0.1');
   });
 
   it('opens howlongtobeat with query when gameTitle is set', () => {
