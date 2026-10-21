@@ -409,6 +409,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
   protected readonly postSummaryText = computed(() => {
     const totalGames = this.filteredPatches().length;
+    const allGamesCount = this.patches().length;
     const groups = this.translatorGroups();
 
     if (groups.length === 0) {
@@ -416,11 +417,14 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
     }
 
     const body = groups.map((g) => {
-      const games = g.games.map((game) => `- ${game.gameTitle} [${game.system}]`).join('\n');
-      return `🕹️ ${g.translatorName} (${g.games.length} เกม)\n${games}`;
+      const games = g.games.map((game) => {
+        const statusEmoji = game.haveUpdateFlag ? '🔄' : '✨';
+        return `- ${game.gameTitle} [${game.system}] ${statusEmoji}`;
+      }).join('\n');
+      return `${g.translatorName} (${g.games.length} เกม)\n${games}`;
     }).join('\n\n');
 
-    return `📢 อัปเดตเกมแปลไทยวันนี้ 🎮✨\n(รวมทั้งหมด ${totalGames} เกม)\n\n${body}\n\n#THAIRomDB #เกมแปลไทย #ไทยรอม #RetroGaming`;
+    return `📢 อัปเดตเกมแปลไทยวันนี้ 🎮✨\n(รวมทั้งหมด ${totalGames} เกม)\n\n${body}\n\n🌐 รวมเกมแปลไทยทั้งหมดในระบบ ${allGamesCount} เกม\n\n#THAIRomDB #เกมแปลไทย #ไทยรอม #RetroGaming`;
   });
 
   protected async copyText(): Promise<void> {
@@ -618,27 +622,33 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
       const targetLogoW = 210;
       const targetLogoH = logoImg ? Math.round(targetLogoW * ((logoImg.naturalHeight || 114) / (logoImg.naturalWidth || 750))) : 32;
 
-      const padRight = 24;
-      const padBottom = 22;
+      // Balanced padding top & bottom
+      const padRight = 8;
+      const padBottom = 8;
+      const padTop = padBottom;
+      const textGap = 8;
+      const textH = 18; // approx line height for 15px font
+      const totalBlockH = targetLogoH + textGap + textH; // total content height ~58px
+
       const logoX = canvasSize - targetLogoW - padRight;
-      const logoY = canvasSize - targetLogoH - 26 - padBottom;
+      const logoY = canvasSize - totalBlockH - padBottom;
       const centerX = logoX + (targetLogoW / 2);
 
-      // Semi-transparent dark vignette behind logo & URL for enhanced contrast and readability
+      // Long horizontal fade background with balanced top/bottom coverage
       ctx.save();
-      const vignetteGrad = ctx.createRadialGradient(
-        canvasSize - 80,
-        canvasSize - 50,
-        20,
-        canvasSize - 80,
-        canvasSize - 50,
-        260
-      );
-      vignetteGrad.addColorStop(0, 'rgba(20, 0, 45, 0.92)');
-      vignetteGrad.addColorStop(0.65, 'rgba(30, 0, 65, 0.75)');
-      vignetteGrad.addColorStop(1, 'rgba(53, 0, 108, 0)');
-      ctx.fillStyle = vignetteGrad;
-      ctx.fillRect(canvasSize - 340, canvasSize - 180, 340, 180);
+      const fadeWidth = 520; // extended horizontal fade length
+      const fadeStartX = canvasSize - fadeWidth;
+      const fadeTopY = logoY - padTop; // balanced top padding equals padBottom
+      const fadeHeight = canvasSize - fadeTopY; // extends seamlessly to bottom
+
+      const hGrad = ctx.createLinearGradient(fadeStartX, 0, canvasSize, 0);
+      hGrad.addColorStop(0, 'rgba(20, 0, 45, 0)');
+      hGrad.addColorStop(0.25, 'rgba(20, 0, 45, 0.45)');
+      hGrad.addColorStop(0.55, 'rgba(24, 0, 52, 0.78)');
+      hGrad.addColorStop(1, 'rgba(26, 0, 56, 0.94)');
+
+      ctx.fillStyle = hGrad;
+      ctx.fillRect(fadeStartX, fadeTopY, fadeWidth, fadeHeight);
       ctx.restore();
 
       // Drop shadow for logo and text
@@ -662,7 +672,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
       ctx.font = 'bold 15px "Segoe UI", Tahoma, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText('thairomdb.pages.dev', centerX, logoY + targetLogoH + 8);
+      ctx.fillText('thairomdb.pages.dev', centerX, logoY + targetLogoH + textGap);
       ctx.restore();
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);

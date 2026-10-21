@@ -16,7 +16,6 @@
     </div>
   </div>
 
-  @if (!authService.isVip()) {
   <div class="marquee border-b-2 border-slate-300 py-1 flex items-center">
     <marquee scrollamount="5">
       <span class="inline-flex items-center align-middle">
@@ -35,7 +34,6 @@
       </span>
     </marquee>
   </div>
-  }
 
 </header>
 
@@ -87,16 +85,16 @@
 
     @if (authService.isAdmin()) {
     <div class="retro-sidebar-section">
-      <p class="retro-rail-heading">Admin</p>
-      <nav aria-label="Main navigation">
+      <p class="retro-rail-heading">ข้อมูลเกม</p>
+      <nav aria-label="เมนูข้อมูลเกม">
         <a class="retro-rail-link" routerLink="/add" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">เพิ่มเกม</a>
-        <a class="retro-rail-link" routerLink="/admin/post-summary" routerLinkActive="retro-rail-link--active"
-          (click)="closeSidebar()">สรุปโพสต์เกมใหม่</a>
         <a class="retro-rail-link" href="#" [class.pointer-events-none]="refreshingPatches()"
           [class.opacity-50]="refreshingPatches()" (click)="$event.preventDefault(); syncEdgeData()">
           {{ refreshingPatches() ? 'กำลังซิงค์ข้อมูล...' : 'ซิงค์ข้อมูล Edge' }}
         </a>
+        <a class="retro-rail-link" routerLink="/admin/post-summary" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">สรุปโพสต์เกมใหม่</a>
         <a class="retro-rail-link" routerLink="/" [queryParams]="{ playTimeStatus: 'missing' }"
           routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ matrixParams: 'ignored', queryParams: 'exact', paths: 'exact', fragment: 'ignored' }"
@@ -111,6 +109,12 @@
           <span class="sidebar-link-text">ยังไม่ระบุเวลาเล่นสูงสุด</span> @if (patchesLoaded()) {<span
             class="sidebar-count">({{ patchCounts().missingPlayTimeMax }})</span>}
         </a>
+      </nav>
+    </div>
+
+    <div class="retro-sidebar-section">
+      <p class="retro-rail-heading">ข้อมูล Master</p>
+      <nav aria-label="เมนูข้อมูล Master">
         <a class="retro-rail-link" routerLink="/admin/systems" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">จัดการเครื่องเกม</a>
         <a class="retro-rail-link" routerLink="/admin/translators" routerLinkActive="retro-rail-link--active"
@@ -121,18 +125,36 @@
           (click)="closeSidebar()">จัดการบทความ</a>
         <a class="retro-rail-link" routerLink="/admin/sidebar-links" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">จัดการลิงก์ sidebar</a>
+      </nav>
+    </div>
+
+    <div class="retro-sidebar-section">
+      <p class="retro-rail-heading">การเงินและ VIP</p>
+      <nav aria-label="เมนูการเงินและ VIP">
+        <a class="retro-rail-link" routerLink="/admin/server-cost" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">ค่าเซิร์ฟเวอร์เดือนนี้</a>
+        <a class="retro-rail-link" routerLink="/admin/manage-redeem" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">จัดการโค้ด VIP</a>
+      </nav>
+    </div>
+
+    <div class="retro-sidebar-section">
+      <p class="retro-rail-heading">ตั้งค่าระบบ</p>
+      <nav aria-label="เมนูตั้งค่าระบบ">
+        <a class="retro-rail-link" routerLink="/admin/maintenance" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">ตั้งค่าระบบ</a>
+        <a class="retro-rail-link" routerLink="/admin/firestore-data" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">Import/Export</a>
+      </nav>
+    </div>
+
+    <div class="retro-sidebar-section">
+      <p class="retro-rail-heading">ตัวอย่างหน้า</p>
+      <nav aria-label="เมนูตัวอย่างหน้า">
         <a class="retro-rail-link" routerLink="/admin/sample" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">ทดสอบ Style</a>
         <a class="retro-rail-link" routerLink="/maintenance" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">ตัวอย่างหน้าปิดปรับปรุง</a>
-        <a class="retro-rail-link" routerLink="/admin/server-cost" routerLinkActive="retro-rail-link--active"
-          (click)="closeSidebar()">ค่าเซิร์ฟเวอร์เดือนนี้</a>
-        <a class="retro-rail-link" routerLink="/admin/firestore-data" routerLinkActive="retro-rail-link--active"
-          (click)="closeSidebar()">Import/Export</a>
-        <a class="retro-rail-link" routerLink="/admin/maintenance" routerLinkActive="retro-rail-link--active"
-          (click)="closeSidebar()">ตั้งค่าระบบ</a>
-        <a class="retro-rail-link" routerLink="/admin/manage-redeem" routerLinkActive="retro-rail-link--active"
-          (click)="closeSidebar()">จัดการโค้ด VIP</a>
       </nav>
     </div>
     }

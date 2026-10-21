@@ -49,8 +49,8 @@ describe('AdminPostSummaryPageComponent', () => {
     {
       id: 'p2',
       updateDate: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-      haveUpdateFlag: false,
-      patchVersion: '1.0',
+      haveUpdateFlag: true,
+      patchVersion: '1.1',
       gameTitle: 'Chrono Trigger',
       system: 'SNES',
       translatorId: 't2',
@@ -162,12 +162,13 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(totalCount).toBe(13);
   });
 
-  it('should filter patches to default 24 hour range', () => {
+  it('should filter patches to default 24 hour range and format summary with emojis and total count', () => {
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
     expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 🎮✨');
     expect(text).toContain('(รวมทั้งหมด 2 เกม)');
-    expect(text).toContain('Final Fantasy VII [PS1]');
-    expect(text).toContain('Chrono Trigger [SNES]');
+    expect(text).toContain('- Final Fantasy VII [PS1] ✨');
+    expect(text).toContain('- Chrono Trigger [SNES] 🔄');
+    expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
     expect(text).not.toContain('Dragon Quest [NES]');
     expect(text).not.toContain('เข้าชมและดาวน์โหลด');
   });
@@ -181,8 +182,9 @@ describe('AdminPostSummaryPageComponent', () => {
 
   it('should group games under the translator full name with game count', () => {
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('🕹️ ทีมแปลที่หนึ่ง (1 เกม)');
-    expect(text).toContain('🕹️ ทีมแปลที่สอง (1 เกม)');
+    expect(text).toContain('ทีมแปลที่หนึ่ง (1 เกม)');
+    expect(text).toContain('ทีมแปลที่สอง (1 เกม)');
+    expect(text).not.toContain('🕹️ ทีมแปลที่หนึ่ง');
     expect(text).toContain('#THAIRomDB #เกมแปลไทย #ไทยรอม #RetroGaming');
   });
 
@@ -192,8 +194,8 @@ describe('AdminPostSummaryPageComponent', () => {
 
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
     expect(text).toContain('(รวมทั้งหมด 3 เกม)');
-    expect(text).toContain('🕹️ ทีมแปลที่หนึ่ง (2 เกม)');
-    expect(text).toContain('🕹️ ทีมแปลที่สอง (1 เกม)');
+    expect(text).toContain('ทีมแปลที่หนึ่ง (2 เกม)');
+    expect(text).toContain('ทีมแปลที่สอง (1 เกม)');
     expect(text).toContain('Final Fantasy VII [PS1]');
     expect(text).toContain('Chrono Trigger [SNES]');
     expect(text).toContain('Dragon Quest [NES]');
