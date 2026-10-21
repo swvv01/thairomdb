@@ -209,20 +209,49 @@ export function drawGridBackground(ctx: CanvasRenderingContext2D, width: number,
   ctx.stroke();
 }
 
-export function loadImage(url: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => {
-      // Retry without crossOrigin attribute in case of origin mismatch
-      const fallbackImg = new Image();
-      fallbackImg.onload = () => resolve(fallbackImg);
-      fallbackImg.onerror = () => resolve(null);
-      fallbackImg.src = url;
-    };
-    img.src = url;
-  });
+export async function loadImage(url: string): Promise<HTMLImageElement | null> {
+  // If it's a relative URL (like local assets), standard image loading without CORS is safe
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  }
+
+  // For external URLs (such as Cloudflare R2), fetch as blob to completely bypass
+  // browser image-cache CORS tainting and convert to a clean local blob object URL
+  try {
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+
+    return await new Promise<HTMLImageElement | null>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      img.src = objectUrl;
+    });
+  } catch {
+    // If fetch fails (e.g. network issue), attempt clean image loading with anonymous crossOrigin
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      // Append cache-busting timestamp parameter to avoid reading non-CORS cached response
+      const sep = url.includes('?') ? '&' : '?';
+      img.src = `${url}${sep}_c=1`;
+    });
+  }
 }
 
 @Component({
