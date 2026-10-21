@@ -4,7 +4,7 @@ const FIREBASE_PROJECT_ID = 'thairomdb';
 const FIREBASE_DATABASE_URL = 'https://thairomdb-default-rtdb.asia-southeast1.firebasedatabase.app';
 const JWKS_URI = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
-const ALLOWED_COLLECTIONS = new Set(['patches', 'tags', 'systems', 'translators', 'sidebarLinks', 'articles']);
+const ALLOWED_COLLECTIONS = new Set(['patches', 'tags', 'systems', 'translators', 'sidebarLinks', 'articles', 'marquees']);
 
 export interface Env {
   COVERS_BUCKET: R2Bucket;

@@ -19,17 +19,23 @@
   <div class="marquee border-b-2 border-slate-300 py-1 flex items-center">
     <marquee scrollamount="5">
       <span class="inline-flex items-center align-middle">
+        @for (item of marqueeDisplayItems(); track $index) {
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
+        @if (item.type === 'text') {
+        <span>{{ item.text }}</span>
+        } @else if (item.type === 'donation') {
         <span>เว็บไซต์นี้ใช้ระบบแคชเพื่อช่วยลดค่าใช้จ่ายเซิร์ฟเวอร์ ข้อมูลอาจจะแสดงผลล่าช้าเล็กน้อย</span>
+        <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
         @if (serverCost(); as cost) {
         @if (cost > 0) {
-        <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
         <span>ค่าเซิร์ฟเวอร์เดือนนี้: {{ cost.toLocaleString('th-TH') }} บาท</span>
-        }
-        }
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
-        <img src="https://theoldnet.com/images/pointer.gif" />
+        }
+        }
+        <img src="https://theoldnet.com/images/pointer.gif" alt="" class="shrink-0" />
         <a routerLink="/donate">ช่วยเหลือค่าเซิร์ฟเวอร์</a>
+        }
+        }
         <img src="https://theoldnet.com/images/bullet3.gif" alt="" class="mx-2 shrink-0" />
       </span>
     </marquee>
@@ -125,6 +131,8 @@
           (click)="closeSidebar()">จัดการบทความ</a>
         <a class="retro-rail-link" routerLink="/admin/sidebar-links" routerLinkActive="retro-rail-link--active"
           (click)="closeSidebar()">จัดการลิงก์ sidebar</a>
+        <a class="retro-rail-link" routerLink="/admin/marquees" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">จัดการ Marquee</a>
       </nav>
     </div>
 

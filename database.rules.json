@@ -35,6 +35,14 @@
         ".validate": "newData.hasChildren(['label','section']) && newData.child('label').isString() && newData.child('label').val().length > 0 && (newData.child('section').val() == 'systems' || newData.child('section').val() == 'translators' || newData.child('section').val() == 'tags' || newData.child('section').val() == 'other') && ((!newData.hasChild('type') || newData.child('type').val() == 'article') ? newData.child('articleSlug').isString() && newData.child('articleSlug').val().length > 0 : newData.child('type').val() == 'external' && newData.child('url').isString() && newData.child('url').val().matches(/^https?:\\/\\/[^\\s]+$/))"
       }
     },
+    "marquees": {
+      ".read": true,
+      "$id": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['text','isActive']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('isActive').isBoolean()"
+      }
+    },
     "redeemCodes": {
       ".indexOn": ["redeemedBy", "createdAt"],
       ".read": "auth != null && (root.child('admins').child(auth.uid).exists() || (query.orderByChild == 'redeemedBy' && query.equalTo == auth.uid))",

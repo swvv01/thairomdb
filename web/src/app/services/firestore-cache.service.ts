@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Observable, catchError, defer, map, of, shareReplay, tap } from 'rxjs';
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-type CacheKey = 'patches' | 'translators' | 'tags' | 'systems' | 'sidebarLinks' | 'articles';
+type CacheKey = 'patches' | 'translators' | 'tags' | 'systems' | 'sidebarLinks' | 'articles' | 'marquees';
 
 interface CacheEntry<T> { savedAt: number; value: T; }
 type CacheTimestamps = Record<CacheKey, number | null>;
@@ -11,7 +11,7 @@ type CacheTimestamps = Record<CacheKey, number | null>;
 export class FirestoreCacheService {
   private readonly memory = new Map<CacheKey, Observable<unknown>>();
   private readonly forceFreshKeys = new Set<CacheKey>();
-  private readonly timestamps = signal<CacheTimestamps>({ patches: null, translators: null, tags: null, systems: null, sidebarLinks: null, articles: null });
+  private readonly timestamps = signal<CacheTimestamps>({ patches: null, translators: null, tags: null, systems: null, sidebarLinks: null, articles: null, marquees: null });
 
   timestamp(key: CacheKey): number | null {
     const current = this.timestamps()[key];
@@ -34,7 +34,7 @@ export class FirestoreCacheService {
   }
 
   invalidateAll(): void {
-    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles'] as const).forEach((key) => this.invalidate(key));
+    (['patches', 'translators', 'tags', 'systems', 'sidebarLinks', 'articles', 'marquees'] as const).forEach((key) => this.invalidate(key));
   }
 
   get<T>(key: CacheKey, loadFresh: (isForced?: boolean, localSavedAt?: number | null) => Observable<{ data: T; isSameAsLocal?: boolean } | T>): Observable<T> {

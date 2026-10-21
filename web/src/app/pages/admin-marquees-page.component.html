@@ -1,0 +1,44 @@
+<app-admin-master-page
+  [items]="(items | async) ?? []"
+  title="จัดการข้อความ Marquee"
+  description="ข้อความวิ่งบนแถบ Header สำหรับแสดงข่าวสารและประกาศ"
+  addLabel="เพิ่มข้อความ"
+  emptyText="ยังไม่มีข้อความ Marquee"
+  [dialogOpen]="open"
+  [dialogTitle]="id ? 'แก้ไขข้อความ Marquee' : 'เพิ่มข้อความ Marquee'"
+  [saving]="saving"
+  (create)="add()"
+  (edit)="edit($event)"
+  (remove)="remove($event)"
+  (save)="save()"
+  (close)="close()"
+  (signOut)="signOut()">
+  <ng-template #card let-item>
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-lg font-bold break-words">{{ item.text }}</h2>
+        <p class="mt-1 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-full"
+            [style.background-color]="item.isActive ? 'var(--color-accent)' : 'var(--color-border)'"></span>
+          <span>{{ item.isActive ? 'เปิดใช้งาน' : 'ปิดการแสดงผล' }}</span>
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #editor>
+    <label class="mt-4 block font-bold">
+      ข้อความวิ่ง
+      <textarea
+        class="admin-input"
+        rows="3"
+        [(ngModel)]="text"
+        placeholder="กรอกข้อความที่ต้องการให้แสดงใน Marquee..."></textarea>
+    </label>
+    <label class="mt-4 flex items-center gap-2 cursor-pointer font-bold">
+      <input type="checkbox" [(ngModel)]="isActive" />
+      <span>เปิดใช้งานข้อความนี้</span>
+    </label>
+  </ng-template>
+</app-admin-master-page>

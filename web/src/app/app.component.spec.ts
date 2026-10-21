@@ -13,6 +13,7 @@ import { PatchCacheService } from './services/patch-cache.service';
 import { PatchRepository } from './repositories/patch.repository';
 import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { ArticleRepository } from './repositories/article.repository';
+import { MarqueeRepository } from './repositories/marquee.repository';
 import { GameLibraryService } from './services/game-library.service';
 import { Patch } from './models/patch.models';
 
@@ -158,6 +159,14 @@ describe('AppComponent', () => {
           provide: ArticleRepository,
           useValue: {
             watchAll: () => of([{ id: 'art1', title: 'คู่มือการเล่น', slug: 'guide-1', status: 'published' }]),
+            refreshAll: jasmine.createSpy('refreshAll')
+          }
+        },
+        {
+          provide: MarqueeRepository,
+          useValue: {
+            watchActive: () => of([]),
+            watchAll: () => of([]),
             refreshAll: jasmine.createSpy('refreshAll')
           }
         },
@@ -389,6 +398,7 @@ describe('AppComponent', () => {
     const tagRepo = TestBed.inject(TagRepository);
     const transRepo = TestBed.inject(TranslatorRepository);
     const sysRepo = TestBed.inject(SystemRepository);
+    const marqueeRepo = TestBed.inject(MarqueeRepository);
     const statusService = TestBed.inject(StatusMessageService);
 
     await (app as any).refreshUserCache();
@@ -398,6 +408,7 @@ describe('AppComponent', () => {
     expect(tagRepo.refreshAll).toHaveBeenCalled();
     expect(transRepo.refreshAll).toHaveBeenCalled();
     expect(sysRepo.refreshAll).toHaveBeenCalled();
+    expect(marqueeRepo.refreshAll).toHaveBeenCalled();
     expect(statusService.show).toHaveBeenCalledWith('ดึงข้อมูลล่าสุดเรียบร้อยแล้ว', 'success');
   });
 
@@ -411,10 +422,12 @@ describe('AppComponent', () => {
 
     const statusService = TestBed.inject(StatusMessageService);
     const patchCache = TestBed.inject(PatchCacheService);
+    const marqueeRepo = TestBed.inject(MarqueeRepository);
 
     await (app as any).syncEdgeData();
 
     expect(patchCache.requestForceRefresh).toHaveBeenCalled();
+    expect(marqueeRepo.refreshAll).toHaveBeenCalled();
     expect(statusService.show).toHaveBeenCalledWith('ซิงค์ข้อมูล Edge เรียบร้อยแล้ว', 'success');
   });
 
@@ -445,6 +458,19 @@ describe('AppComponent', () => {
     const marquee = fixture.nativeElement.querySelector('.marquee');
     expect(marquee).toBeTruthy();
     expect(marquee.textContent).toContain('ค่าเซิร์ฟเวอร์เดือนนี้: 1,500 บาท');
+    expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
+  });
+
+  it('should display active marquee items from repository and donation unit', () => {
+    (app as any).updateMarqueeDisplay([
+      { id: 'm1', text: 'ประกาศข่าวสารทดสอบ', isActive: true, createdAt: '2026-01-01' }
+    ]);
+    fixture.detectChanges();
+
+    const marquee = fixture.nativeElement.querySelector('.marquee');
+    expect(marquee).toBeTruthy();
+    expect(marquee.textContent).toContain('ประกาศข่าวสารทดสอบ');
+    expect(marquee.textContent).toContain('เว็บไซต์นี้ใช้ระบบแคชเพื่อช่วยลดค่าใช้จ่ายเซิร์ฟเวอร์');
     expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
   });
 });

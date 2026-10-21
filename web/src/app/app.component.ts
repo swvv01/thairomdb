@@ -19,8 +19,11 @@ import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { Article } from './models/article.models';
 import { ArticleRepository } from './repositories/article.repository';
 import { GameLibraryService } from './services/game-library.service';
+import { MarqueeItem } from './models/marquee.models';
+import { MarqueeRepository } from './repositories/marquee.repository';
 
 export type AppTheme = 'default' | 'pocket-pet' | 'classic-blue';
+export type MarqueeDisplayItem = { type: 'text'; text: string } | { type: 'donation' };
 
 @Component({
   selector: 'app-root',
@@ -55,6 +58,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly patchRepository = inject(PatchRepository);
   private readonly sidebarLinkRepository = inject(SidebarLinkRepository);
   private readonly articleRepository = inject(ArticleRepository);
+  private readonly marqueeRepository = inject(MarqueeRepository);
   private readonly router = inject(Router);
   protected readonly libraryService = inject(GameLibraryService);
   protected readonly filterState = inject(BrowseFilterStateService);
@@ -65,6 +69,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   protected readonly translators = signal<Translator[]>([]);
   protected readonly articles = signal<Article[]>([]);
   protected readonly serverCost = signal<number | null>(this.serverCostRepository.getCached());
+  protected readonly marqueeDisplayItems = signal<MarqueeDisplayItem[]>([
+    { type: 'donation' }
+  ]);
   protected readonly patches = signal<Patch[]>([]);
   protected readonly patchesLoaded = signal(false);
 
@@ -268,6 +275,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.translatorRepository.refreshAll();
       this.systemRepository.refreshAll();
       this.articleRepository.refreshAll();
+      this.marqueeRepository.refreshAll();
       await this.libraryService.refreshFromRemote();
       const patches = await firstValueFrom(this.patchRepository.watchAll());
       this.patches.set(patches);
@@ -296,6 +304,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.translatorRepository.refreshAll();
       this.systemRepository.refreshAll();
       this.articleRepository.refreshAll();
+      this.marqueeRepository.refreshAll();
       await this.libraryService.refreshFromRemote();
       const patches = await firstValueFrom(this.patchRepository.watchAll());
       this.patches.set(patches);
@@ -359,6 +368,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.translatorRepository.watchAll().subscribe({ next: (translators) => this.translators.set(translators) });
     this.systemRepository.watchAll().subscribe({ next: (systems) => this.platforms.set(systems) });
     this.articleRepository.watchAll().subscribe({ next: (articles) => this.articles.set(articles) });
+    this.marqueeRepository.watchActive().subscribe({ next: (items) => this.updateMarqueeDisplay(items) });
     this.loadServerCost();
   }
 
@@ -413,5 +423,20 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   protected async signOut(): Promise<void> {
     await this.authService.signOut();
     this.statusMessageService.show('ออกจากระบบแล้ว');
+  }
+
+  private updateMarqueeDisplay(activeItems: MarqueeItem[]): void {
+    const textItems: MarqueeDisplayItem[] = activeItems.map((item) => ({ type: 'text' as const, text: item.text }));
+    const allItems: MarqueeDisplayItem[] = [...textItems, { type: 'donation' as const }];
+    this.marqueeDisplayItems.set(this.shuffleArray(allItems));
+  }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   }
 }

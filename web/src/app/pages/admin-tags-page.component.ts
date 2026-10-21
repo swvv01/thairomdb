@@ -13,7 +13,7 @@ import { AdminMasterPageComponent } from './admin-master-page.component';
 @Component({ selector: 'app-admin-tags-page', standalone: true, imports: [AsyncPipe, FormsModule, AdminMasterPageComponent], templateUrl: './admin-tags-page.component.html' })
 export class AdminTagsPageComponent {
   private readonly repo = inject(TagRepository); private readonly status = inject(StatusMessageService); private readonly auth = inject(AuthService); private readonly router = inject(Router); private readonly route = inject(ActivatedRoute); private readonly destroyRef = inject(DestroyRef); private appliedQueryId: string | null = null;
-  protected readonly items = this.repo.watchAll(); protected open = false; protected id: string | null = null; protected name = ''; protected slug = ''; protected saving = false;
+  protected readonly items = this.repo.watchDirectAll(); protected open = false; protected id: string | null = null; protected name = ''; protected slug = ''; protected saving = false;
   constructor() { this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => { const queryId = params.get('edit'); if (!queryId || queryId === this.appliedQueryId) return; this.items.pipe(take(1)).subscribe((items) => { const tag = items.find((item) => item.id === queryId); if (tag) { this.appliedQueryId = queryId; this.edit(tag); } }); }); }
   private clearEditQuery(): void { if (this.route.snapshot.queryParamMap.has('edit')) void this.router.navigate([], { relativeTo: this.route, queryParams: { edit: null }, queryParamsHandling: 'merge', replaceUrl: true }); }
   protected add(): void { this.clearEditQuery(); this.id = null; this.name = ''; this.slug = ''; this.open = true; }
