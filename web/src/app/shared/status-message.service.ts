@@ -34,9 +34,10 @@ export class StatusMessageService {
     autoDismissOrOptions?: boolean | StatusMessageOptions
   ): void {
     const isProgress = text.trim().startsWith('กำลัง');
+    const defaultAutoDismiss = !isProgress && tone !== 'error';
     const autoDismiss = typeof autoDismissOrOptions === 'boolean'
       ? autoDismissOrOptions
-      : (autoDismissOrOptions?.autoDismiss ?? !isProgress);
+      : (autoDismissOrOptions?.autoDismiss ?? defaultAutoDismiss);
     const action = typeof autoDismissOrOptions === 'object'
       ? autoDismissOrOptions.action
       : undefined;

@@ -91,4 +91,29 @@ describe('StatusMessageService', () => {
     tick(5000);
     expect(service.message()).toBeNull();
   }));
+
+  it('should not auto-dismiss error messages by default', fakeAsync(() => {
+    service.show('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+    expect(service.message()).toEqual({ text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', tone: 'error' });
+
+    tick(10000);
+    expect(service.message()).toEqual({ text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', tone: 'error' });
+
+    service.clear();
+    expect(service.message()).toBeNull();
+  }));
+
+  it('should allow overriding autoDismiss for error messages when explicitly specified', fakeAsync(() => {
+    service.show('ข้อผิดพลาดชั่วคราว (boolean)', 'error', true);
+    expect(service.message()).toEqual({ text: 'ข้อผิดพลาดชั่วคราว (boolean)', tone: 'error' });
+
+    tick(5000);
+    expect(service.message()).toBeNull();
+
+    service.show('ข้อผิดพลาดชั่วคราว (options)', 'error', { autoDismiss: true });
+    expect(service.message()).toEqual({ text: 'ข้อผิดพลาดชั่วคราว (options)', tone: 'error' });
+
+    tick(5000);
+    expect(service.message()).toBeNull();
+  }));
 });
