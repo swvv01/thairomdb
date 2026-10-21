@@ -83,17 +83,18 @@ export class BrowsePageComponent implements OnInit {
     }
   }
 
-  private static getSavedPlayTimeUnit(): 'detailed' | 'hours' {
-    if (typeof window === 'undefined') return 'detailed';
+  private static getSavedPlayTimeUnit(): 'hours' | 'detailed' | 'daily' {
+    if (typeof window === 'undefined') return 'hours';
     try {
       const saved = window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey);
-      return saved === 'hours' ? 'hours' : 'detailed';
+      if (saved === 'detailed' || saved === 'daily') return saved;
+      return 'hours';
     } catch {
-      return 'detailed';
+      return 'hours';
     }
   }
 
-  private static savePlayTimeUnit(unit: 'detailed' | 'hours'): void {
+  private static savePlayTimeUnit(unit: 'hours' | 'detailed' | 'daily'): void {
     if (typeof window === 'undefined') return;
     try {
       window.localStorage.setItem(BrowsePageComponent.playTimeUnitStorageKey, unit);
@@ -102,7 +103,7 @@ export class BrowsePageComponent implements OnInit {
     }
   }
 
-  protected readonly playTimeUnit = signal<'detailed' | 'hours'>(BrowsePageComponent.getSavedPlayTimeUnit());
+  protected readonly playTimeUnit = signal<'hours' | 'detailed' | 'daily'>(BrowsePageComponent.getSavedPlayTimeUnit());
 
   protected readonly isForcedPageMode = signal(!!this.route.snapshot.data['pageMode']);
   protected readonly isPageMode = signal(
@@ -237,7 +238,9 @@ export class BrowsePageComponent implements OnInit {
   protected readonly remainingCount = computed(() => Math.max(0, this.sortedPatches().length - this.paginatedPatches().length));
   protected readonly nextLoadCount = computed(() => Math.min(this.pageSize, this.remainingCount()));
   protected togglePlayTimeUnit(): void {
-    const next = this.playTimeUnit() === 'detailed' ? 'hours' : 'detailed';
+    const current = this.playTimeUnit();
+    const next: 'hours' | 'detailed' | 'daily' =
+      current === 'hours' ? 'detailed' : current === 'detailed' ? 'daily' : 'hours';
     this.playTimeUnit.set(next);
     BrowsePageComponent.savePlayTimeUnit(next);
   }
@@ -252,12 +255,51 @@ export class BrowsePageComponent implements OnInit {
       }
     }
     const unit = this.playTimeUnit();
+    let label = 'ต้องใช้เวลาเล่น:';
+    let formattedDuration = '';
+
+    if (unit === 'hours') {
+      formattedDuration = this.formatPlayDurationHours(total);
+    } else if (unit === 'detailed') {
+      formattedDuration = this.formatPlayDuration(total);
+    } else {
+      label = 'ถ้าเล่นวันละ 1 ชม. ใช้เวลา:';
+      formattedDuration = this.formatPlayDurationDaily(total);
+    }
+
     return {
-      formattedDuration: unit === 'hours' ? this.formatPlayDurationHours(total) : this.formatPlayDuration(total),
+      label,
+      formattedDuration,
       count,
       hasData: count > 0
     };
   });
+
+  private formatPlayDurationDaily(totalHours: number): string {
+    if (totalHours <= 0) return '0 วัน';
+
+    const daysInMonth = 30;
+    const daysInYear = 365;
+
+    let remainingDays = Math.ceil(totalHours);
+
+    const years = Math.floor(remainingDays / daysInYear);
+    remainingDays %= daysInYear;
+
+    const months = Math.floor(remainingDays / daysInMonth);
+    remainingDays %= daysInMonth;
+
+    const days = remainingDays;
+
+    const parts: string[] = [];
+    if (years > 0) parts.push(`${years} ปี`);
+    if (months > 0) parts.push(`${months} เดือน`);
+    if (days > 0 || parts.length === 0) {
+      parts.push(`${days} วัน`);
+    }
+
+    return parts.join(' ');
+  }
 
   private formatPlayDurationHours(totalHours: number): string {
     const roundedHours = Math.ceil(totalHours);

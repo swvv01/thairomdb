@@ -18,7 +18,7 @@
     @if (playTimeStats(); as stats) {
     @if (stats.hasData) {
     <div class="browse-stat-bar" aria-label="สถิติเวลาเล่นรวม">
-      <span class="browse-stat-label">ต้องใช้เวลาเล่น:</span>
+      <span class="browse-stat-label">{{ stats.label }}</span>
       <button type="button" class="link-button browse-stat-value" (click)="togglePlayTimeUnit()"
         title="คลิกเพื่อสลับหน่วยเวลา" aria-label="คลิกเพื่อสลับหน่วยเวลา">{{ stats.formattedDuration }}</button>
       <span class="browse-stat-subtext">(จาก {{ stats.count }} เกม)</span>

@@ -231,14 +231,16 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     ]);
     fixture.detectChanges();
 
-    const stats = (component as unknown as { playTimeStats: () => { formattedDuration: string; count: number; hasData: boolean } }).playTimeStats();
+    const stats = (component as unknown as { playTimeStats: () => { label: string; formattedDuration: string; count: number; hasData: boolean } }).playTimeStats();
     expect(stats.hasData).toBeTrue();
-    expect(stats.formattedDuration).toBe('1 วัน 9 ชั่วโมง');
+    expect(stats.label).toBe('ต้องใช้เวลาเล่น:');
+    expect(stats.formattedDuration).toBe('33 ชั่วโมง');
     expect(stats.count).toBe(2);
 
     const statBar = fixture.nativeElement.querySelector('.browse-stat-bar');
     expect(statBar).toBeTruthy();
-    expect(statBar.textContent).toContain('1 วัน 9 ชั่วโมง');
+    expect(statBar.textContent).toContain('ต้องใช้เวลาเล่น:');
+    expect(statBar.textContent).toContain('33 ชั่วโมง');
     expect(statBar.textContent).toContain('(จาก 2 เกม)');
 
     const statButton: HTMLButtonElement = fixture.nativeElement.querySelector('.browse-stat-value');
@@ -247,18 +249,29 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(statButton.getAttribute('title')).toBe('คลิกเพื่อสลับหน่วยเวลา');
     expect(statButton.getAttribute('aria-label')).toBe('คลิกเพื่อสลับหน่วยเวลา');
 
-    // คลิกเพื่อสลับเป็นชั่วโมง
+    // คลิกครั้งที่ 1: สลับจาก 1 (ชั่วโมง) ไป 3 (แจกแจง)
     statButton.click();
     fixture.detectChanges();
 
-    expect(statButton.textContent?.trim()).toBe('33 ชั่วโมง'); // 20 + 12.5 = 32.5 -> Math.ceil = 33
-    expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('hours');
-
-    // คลิกซ้ำเพื่อสลับกลับเป็นแบบแจกแจง
-    statButton.click();
-    fixture.detectChanges();
     expect(statButton.textContent?.trim()).toBe('1 วัน 9 ชั่วโมง');
+    expect(statBar.textContent).toContain('ต้องใช้เวลาเล่น:');
     expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('detailed');
+
+    // คลิกครั้งที่ 2: สลับจาก 3 (แจกแจง) ไป 2 (เล่นวันละ 1 ชม.)
+    statButton.click();
+    fixture.detectChanges();
+
+    expect(statButton.textContent?.trim()).toBe('1 เดือน 3 วัน');
+    expect(statBar.textContent).toContain('ถ้าเล่นวันละ 1 ชม. ใช้เวลา:');
+    expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('daily');
+
+    // คลิกครั้งที่ 3: สลับจาก 2 (เล่นวันละ 1 ชม.) วนกลับมา 1 (ชั่วโมง)
+    statButton.click();
+    fixture.detectChanges();
+
+    expect(statButton.textContent?.trim()).toBe('33 ชั่วโมง');
+    expect(statBar.textContent).toContain('ต้องใช้เวลาเล่น:');
+    expect(window.localStorage.getItem(BrowsePageComponent.playTimeUnitStorageKey)).toBe('hours');
   });
 
   it('formats hours with Math.ceil and comma separators when initialized from localStorage in hours mode', () => {
@@ -275,7 +288,8 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(statButton.textContent?.trim()).toBe('1,235 ชั่วโมง');
   });
 
-  it('formats large duration into years, months, days, and hours correctly', () => {
+  it('formats large duration into years, months, days, and hours correctly in detailed mode', () => {
+    (component as unknown as { playTimeUnit: { set: (v: string) => void } }).playTimeUnit.set('detailed');
     const patchesSignal = (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches;
     // 8760 (1 year) + 720 (1 month) + 48 (2 days) + 3 hours = 9531 hours
     patchesSignal.set([
@@ -285,6 +299,20 @@ describe('BrowsePageComponent - Load More Functionality', () => {
 
     const stats = (component as unknown as { playTimeStats: () => { formattedDuration: string } }).playTimeStats();
     expect(stats.formattedDuration).toBe('1 ปี 1 เดือน 2 วัน 3 ชั่วโมง');
+  });
+
+  it('formats daily play duration (1 hour/day) correctly in years, months, and days', () => {
+    (component as unknown as { playTimeUnit: { set: (v: string) => void } }).playTimeUnit.set('daily');
+    const patchesSignal = (component as unknown as { patches: { set: (v: Patch[]) => void } }).patches;
+    // 500 hours = 500 days = 1 year (365) + 4 months (120) + 15 days
+    patchesSignal.set([
+      { ...mockPatches[0], id: 'p1', playTime: 500 }
+    ]);
+    fixture.detectChanges();
+
+    const stats = (component as unknown as { playTimeStats: () => { formattedDuration: string; label: string } }).playTimeStats();
+    expect(stats.label).toBe('ถ้าเล่นวันละ 1 ชม. ใช้เวลา:');
+    expect(stats.formattedDuration).toBe('1 ปี 4 เดือน 15 วัน');
   });
 
   it('does not render HUD stat bar when no games have play time', () => {
