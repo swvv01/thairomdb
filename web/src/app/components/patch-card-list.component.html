@@ -91,8 +91,16 @@
 
 
         @if (patch.patchVersion.trim()) {
-        <div class="patch-card__version"><span class="patch-card__label">เวอร์ชันแพตช์: </span><span
-            class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span></div>
+        <div class="patch-card__version">
+          <span class="patch-card__label">เวอร์ชันแพตช์: </span>
+          @if (hasMultipleVersionLines(patch.patchVersion)) {
+          <button type="button" class="patch-card__version-link" (click)="openVersionModal(patch)">{{ getFirstVersionLine(patch.patchVersion) }}</button>
+          } @else {
+          <span class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span>
+          }
+        </div>
+
+
         }
 
 
@@ -147,3 +155,25 @@
   </article>
   }
 </section>
+
+@if (activeVersionPatch(); as activePatch) {
+<div class="admin-dialog-backdrop patch-version-backdrop" role="presentation" (click)="closeVersionModal()">
+  <section class="admin-dialog patch-version-dialog" role="dialog" aria-modal="true"
+    aria-labelledby="patch-version-dialog-title" (click)="$event.stopPropagation()">
+    <header class="patch-version-dialog__header">
+      <h2 id="patch-version-dialog-title" class="patch-version-dialog__title">
+        รายละเอียดเวอร์ชัน - {{ activePatch.gameTitle }}
+      </h2>
+      <button class="button px-2 py-1" type="button" (click)="closeVersionModal()" aria-label="ปิด">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </header>
+    <div class="patch-version-dialog__body">
+      <pre class="patch-version-dialog__text">{{ activePatch.patchVersion.trim() }}</pre>
+    </div>
+    <footer class="patch-version-dialog__footer">
+      <button class="button px-3 py-1 font-bold" type="button" (click)="closeVersionModal()">ปิด</button>
+    </footer>
+  </section>
+</div>
+}

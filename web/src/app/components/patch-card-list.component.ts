@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal } from '@angular/core';
+import { Component, HostListener, Input, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Patch, Tag, Translator } from '../models/patch.models';
 import { browseRoute } from '../shared/browse-route.util';
@@ -25,6 +25,32 @@ export class PatchCardListComponent {
   protected readonly loadedImages = signal(new Set<string>());
   protected readonly downloadingPatchId = signal<string | null>(null);
   protected readonly togglingLibraryId = signal<string | null>(null);
+  protected readonly activeVersionPatch = signal<Patch | null>(null);
+
+  @HostListener('document:keydown.escape')
+  protected onEscapeKey(): void {
+    if (this.activeVersionPatch()) {
+      this.closeVersionModal();
+    }
+  }
+
+  protected openVersionModal(patch: Patch): void {
+    this.activeVersionPatch.set(patch);
+  }
+
+  protected closeVersionModal(): void {
+    this.activeVersionPatch.set(null);
+  }
+
+  protected getFirstVersionLine(patchVersion: string): string {
+    const firstLine = patchVersion.trim().split(/\r?\n/)[0];
+    return firstLine ? firstLine.trim() : '';
+  }
+
+  protected hasMultipleVersionLines(patchVersion: string): boolean {
+    const lines = patchVersion.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    return lines.length > 1;
+  }
 
   protected async toggleLibrary(patch: Patch): Promise<void> {
     if (this.togglingLibraryId() === patch.id) return;

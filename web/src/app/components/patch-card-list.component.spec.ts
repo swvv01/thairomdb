@@ -52,26 +52,82 @@ describe('PatchCardListComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('renders single line patch version', () => {
+  it('renders single line patch version as plain text without link', () => {
     component.patches = [{ ...basePatch, patchVersion: 'v1.0' }];
     fixture.detectChanges();
 
     const versionEl = fixture.nativeElement.querySelector('.patch-card__version');
+    const linkEl = fixture.nativeElement.querySelector('.patch-card__version-link');
+    const textEl = fixture.nativeElement.querySelector('.patch-card__version-text');
+
     expect(versionEl).not.toBeNull();
+    expect(linkEl).toBeNull();
+    expect(textEl?.textContent?.trim()).toBe('v1.0');
     expect(versionEl?.textContent?.trim()).toBe('เวอร์ชันแพตช์: v1.0');
   });
 
-  it('renders multiline patch version containing newlines', () => {
+  it('renders only the first row as a link when patch version is multiline, and opens modal on click', () => {
     const multilineVersion = 'v1.05\n- แก้แปลผิดบริบทใน true pacifist route\n- แก้ softlock\n- แก้การตั้งค่าจอย';
     component.patches = [{ ...basePatch, patchVersion: multilineVersion }];
     fixture.detectChanges();
 
     const versionEl = fixture.nativeElement.querySelector('.patch-card__version');
+    const linkEl = fixture.nativeElement.querySelector('.patch-card__version-link') as HTMLButtonElement | null;
     expect(versionEl).not.toBeNull();
-    expect(versionEl.textContent).toContain('เวอร์ชันแพตช์: v1.05');
-    expect(versionEl.textContent).toContain('- แก้แปลผิดบริบทใน true pacifist route');
-    expect(versionEl.textContent).toContain('- แก้ softlock');
-    expect(versionEl.textContent).toContain('- แก้การตั้งค่าจอย');
+    expect(linkEl).not.toBeNull();
+    expect(linkEl?.textContent?.trim()).toBe('v1.05');
+
+    // Subsequent lines should NOT be rendered in the card
+    expect(versionEl.textContent).not.toContain('- แก้แปลผิดบริบท');
+
+    // Modal is initially not rendered
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
+
+    // Click link to open modal
+    linkEl?.click();
+    fixture.detectChanges();
+
+    const modal = fixture.nativeElement.querySelector('.patch-version-dialog');
+    expect(modal).not.toBeNull();
+    const titleEl = modal.querySelector('.patch-version-dialog__title');
+    expect(titleEl?.textContent?.trim()).toBe('รายละเอียดเวอร์ชัน - Dragon Quest V');
+
+    const contentEl = modal.querySelector('.patch-version-dialog__text');
+    expect(contentEl?.textContent).toContain('v1.05');
+    expect(contentEl?.textContent).toContain('- แก้แปลผิดบริบทใน true pacifist route');
+
+    // Close modal via close button
+    const closeBtn = modal.querySelector('.patch-version-dialog__footer button') as HTMLButtonElement | null;
+    closeBtn?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
+  });
+
+  it('closes version modal on backdrop click and on escape key', () => {
+    const multilineVersion = 'v1.05\n- update note';
+    component.patches = [{ ...basePatch, patchVersion: multilineVersion }];
+    fixture.detectChanges();
+
+    const linkEl = fixture.nativeElement.querySelector('.patch-card__version-link') as HTMLButtonElement | null;
+    linkEl?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).not.toBeNull();
+
+    // Close on backdrop click
+    const backdrop = fixture.nativeElement.querySelector('.patch-version-backdrop') as HTMLElement | null;
+    backdrop?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
+
+    // Reopen and close via escape key
+    linkEl?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
   });
 
   it('does not render patch-card__version when patchVersion is empty', () => {
