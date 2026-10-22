@@ -8,6 +8,7 @@ import { TagRepository } from '../repositories/tag.repository';
 import { SystemRepository } from '../repositories/system.repository';
 import { PatchCacheService } from '../services/patch-cache.service';
 import { AuthService } from '../services/auth.service';
+import { BrowseGridModeService } from '../services/browse-grid-mode.service';
 import { BrowseFilterStateService } from '../shared/browse-filter-state.service';
 import { Patch } from '../models/patch.models';
 
@@ -213,6 +214,22 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     expect(children[1].getAttribute('aria-label')).toBe('ค้นหาเกม');
     expect(children[2].classList.contains('back-to-top')).toBeTrue();
     expect(fixture.nativeElement.querySelector('.to-bottom')).toBeNull();
+  });
+
+  it('applies browse-catalogue--grid and browse-column--grid classes when activeGridMode is true', () => {
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.isDesktopOrTablet.set(true);
+    gridModeService.isGameListRoute.set(true);
+    gridModeService.setGridMode(true);
+    fixture.detectChanges();
+
+    const mainEl = fixture.nativeElement.querySelector('.browse-catalogue');
+    expect(mainEl.classList.contains('browse-catalogue--grid')).toBeTrue();
+
+    const columnEl = fixture.nativeElement.querySelector('.browse-column');
+    expect(columnEl.classList.contains('browse-column--grid')).toBeTrue();
+
+    gridModeService.setGridMode(false);
   });
 
   it('renders to bottom button when showBackToTop is false', () => {

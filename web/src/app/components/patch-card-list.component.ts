@@ -1,23 +1,35 @@
-import { Component, HostListener, Input, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
 import { Patch, Tag, Translator } from '../models/patch.models';
 import { browseRoute } from '../shared/browse-route.util';
 import { SystemMaster } from '../repositories/system.repository';
 import { StatusMessageService } from '../shared/status-message.service';
 import { GameLibraryService } from '../services/game-library.service';
+import { BrowseGridModeService } from '../services/browse-grid-mode.service';
 
 @Component({
   selector: 'app-patch-card-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NgTemplateOutlet],
   templateUrl: './patch-card-list.component.html',
   styleUrl: './patch-card-list.component.css'
 })
-export class PatchCardListComponent {
+export class PatchCardListComponent implements AfterViewInit, OnDestroy {
   private static readonly newGameWindowMs = 7 * 24 * 60 * 60 * 1000;
   private readonly status = inject(StatusMessageService);
+  private readonly hostEl = inject(ElementRef<HTMLElement>);
   protected readonly libraryService = inject(GameLibraryService);
-  @Input() patches: Patch[] = [];
+  protected readonly gridModeService = inject(BrowseGridModeService);
+
+  protected readonly patchesSignal = signal<Patch[]>([]);
+  @Input() set patches(value: Patch[]) {
+    this.patchesSignal.set(value || []);
+  }
+  get patches(): Patch[] {
+    return this.patchesSignal();
+  }
+
   @Input() translators: Translator[] = [];
   @Input() systems: SystemMaster[] = [];
   @Input() tags: Tag[] = [];
@@ -27,6 +39,38 @@ export class PatchCardListComponent {
   protected readonly togglingLibraryId = signal<string | null>(null);
   protected readonly activeVersionPatch = signal<Patch | null>(null);
   protected readonly activeDetailPatch = signal<Patch | null>(null);
+
+  protected readonly columnCount = signal(4);
+  private resizeObserver: ResizeObserver | null = null;
+
+  protected readonly masonryColumns = computed(() => {
+    const cols = this.columnCount();
+    const result: Patch[][] = Array.from({ length: cols }, () => []);
+    const list = this.patchesSignal();
+    for (let i = 0; i < list.length; i++) {
+      result[i % cols].push(list[i]);
+    }
+    return result;
+  });
+
+  ngAfterViewInit(): void {
+    if (typeof window !== 'undefined' && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.contentRect.width;
+          if (width > 0) {
+            const count = Math.max(1, Math.floor((width + 12) / (250 + 12)));
+            this.columnCount.set(count);
+          }
+        }
+      });
+      this.resizeObserver.observe(this.hostEl.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
 
   @HostListener('document:keydown.escape')
   protected onEscapeKey(): void {

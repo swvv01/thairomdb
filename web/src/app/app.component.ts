@@ -19,6 +19,7 @@ import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { Article } from './models/article.models';
 import { ArticleRepository } from './repositories/article.repository';
 import { GameLibraryService } from './services/game-library.service';
+import { BrowseGridModeService } from './services/browse-grid-mode.service';
 import { MarqueeItem } from './models/marquee.models';
 import { MarqueeRepository } from './repositories/marquee.repository';
 
@@ -61,6 +62,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly marqueeRepository = inject(MarqueeRepository);
   private readonly router = inject(Router);
   protected readonly libraryService = inject(GameLibraryService);
+  protected readonly gridModeService = inject(BrowseGridModeService);
   protected readonly filterState = inject(BrowseFilterStateService);
   protected readonly statusMessage = this.statusMessageService.message;
   protected readonly platforms = signal<SystemMaster[]>([]);

@@ -1,6 +1,48 @@
+@if (gridModeService.activeGridMode()) {
+<section class="pinterest-masonry-container w-full" aria-label="Game patch cards grid">
+  <div class="pinterest-masonry-grid">
+    @for (col of masonryColumns(); track $index) {
+    <div class="pinterest-masonry-col">
+      @for (patch of col; track patch.id; let index = $index) {
+      <article class="pinterest-card" tabindex="0" role="button"
+        [attr.aria-label]="'ดูรายละเอียดเกม ' + patch.gameTitle" (click)="openDetailModal(patch)"
+        (keydown.enter)="openDetailModal(patch)">
+        <div class="pinterest-card__cover-wrap">
+          <img class="pinterest-card__cover-image"
+            [class.pinterest-card__cover-image--loaded]="loadedImages().has(patch.id)"
+            [attr.loading]="index < 4 ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
+            [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
+          <div class="pinterest-card__overlay" aria-hidden="true">
+            <div class="pinterest-card__title-line truncate">
+              @if (patch.system.trim()) {
+              <span class="pinterest-card__system">[{{ patch.system }}] </span>
+              }
+              <span class="pinterest-card__title">{{ patch.gameTitle }}</span>
+            </div>
+            @if (translatorName(patch).trim()) {
+            <div class="pinterest-card__by truncate">
+              by {{ translatorName(patch) }}
+            </div>
+            }
+          </div>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </div>
+</section>
+} @else {
 <section class="patch-card-container w-full" aria-label="Game patch cards">
   @for (patch of patches; track patch.id; let index = $index) {
-  <article class="patch-card">
+  <ng-container
+    *ngTemplateOutlet="patchCard; context: { patch: patch, priorityImage: index === 0, inDialog: false }"></ng-container>
+  }
+</section>
+}
+
+<ng-template #patchCard let-patch="patch" let-inDialog="inDialog" let-priorityImage="priorityImage">
+  <article class="patch-card" [class.patch-card--dialog]="inDialog">
     <div class="win98-card-titlebar" aria-hidden="true">
       <div class="win98-card-title truncate">
         <span class="win98-title-icon">🎮</span>
@@ -9,14 +51,22 @@
     </div>
 
     <div class="patch-cover-wrap" (click)="onCoverClick(patch)" (keydown.enter)="onCoverClick(patch)"
-      [attr.tabindex]="isMobile() ? 0 : null" [attr.role]="isMobile() ? 'button' : null"
-      [attr.aria-label]="isMobile() ? ('ดูรายละเอียดเกม ' + patch.gameTitle) : null">
+      [attr.tabindex]="(!inDialog && isMobile()) ? 0 : null" [attr.role]="(!inDialog && isMobile()) ? 'button' : null"
+      [attr.aria-label]="(!inDialog && isMobile()) ? ('ดูรายละเอียดเกม ' + patch.gameTitle) : null">
       <div class="patch-cover-placeholder" aria-hidden="true"></div>
       <img class="mock-cover patch-cover-image" [class.patch-cover-image--loaded]="loadedImages().has(patch.id)"
-        [attr.loading]="index === 0 ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
+        [attr.loading]="priorityImage ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
         [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
 
       <div class="patch-card__actions-row" (click)="$event.stopPropagation()">
+
+        @if (canEdit) {
+        <a class="button btn-primary patch-card__action-btn" [routerLink]="['/add', patch.id]" target="_blank"
+          rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
+          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+        </a>
+        }
+
         <button type="button" class="button patch-card__action-btn"
           [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
           [disabled]="togglingLibraryId() === patch.id"
@@ -27,12 +77,6 @@
             aria-hidden="true"></i>
         </button>
 
-        @if (canEdit) {
-        <a class="button btn-primary patch-card__action-btn" [routerLink]="['/add', patch.id]" target="_blank"
-          rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
-          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-        </a>
-        }
       </div>
     </div>
     <div class="patch-card__body">
@@ -48,12 +92,14 @@
         <span class="game-badge new-game-badge" aria-label="เกมมาใหม่"><img src="assets/images/new.gif"
             alt="new" /></span>
         }
+        @if (!inDialog) {
         <span class="patch-card__mobile-by">
           <span class="patch-card__by-label">by </span>
           <a routerLink="/translator"
             [queryParams]="{ translator: translatorShortName(patch) ?? translatorName(patch) }"
             class="patch-card__by-link">{{ translatorName(patch) }}</a>
         </span>
+        }
       </div>
 
       <div class="patch-card__description">
@@ -62,7 +108,8 @@
           <span class="patch-card__label">โดย: </span>
           <span class="translator-links">
             <a routerLink="/translator"
-              [queryParams]="{ translator: translatorShortName(patch) ?? translatorName(patch) }">{{
+              [queryParams]="{ translator: translatorShortName(patch) ?? translatorName(patch) }"
+              (click)="inDialog ? closeDetailModal() : null">{{
               translatorName(patch) }}</a>
 
             @if (translatorLink(patch); as link) {
@@ -81,7 +128,8 @@
         </div>
 
         <div><span class="patch-card__label">ระบบ: </span><a routerLink="/system"
-            [queryParams]="{ system: patch.system }">{{ systemName(patch.system) }}</a>
+            [queryParams]="{ system: patch.system }" (click)="inDialog ? closeDetailModal() : null">{{
+            systemName(patch.system) }}</a>
         </div>
 
         @if (formatUpdateDate(patch.updateDate); as updateDate) {
@@ -117,9 +165,10 @@
           <span class="patch-card__label patch-card__tags-label">แท็ก:</span>
           <ul class="patch-card__tags">@for (tag of cardTags(patch); track tag.id) { @if (tag.name.trim() &&
             (!patch.walkthroughUrl.trim() || tag.name.trim() !== 'บทสรุป')) { <li>
-              <a [routerLink]="browseRoute('tag', tag.slug)">{{ tag.name }}</a>
+              <a [routerLink]="browseRoute('tag', tag.slug)" (click)="inDialog ? closeDetailModal() : null">{{ tag.name
+                }}</a>
             </li> } }@if (patch.walkthroughUrl.trim()) { <li>
-              <a [routerLink]="browseRoute('walkthrough')">บทสรุป</a>
+              <a [routerLink]="browseRoute('walkthrough')" (click)="inDialog ? closeDetailModal() : null">บทสรุป</a>
             </li> }</ul>
         </div>
         }
@@ -160,121 +209,18 @@
     </div>
 
   </article>
-  }
-</section>
-
-
+</ng-template>
 
 @if (activeDetailPatch(); as detailPatch) {
 <div class="admin-dialog-backdrop patch-detail-backdrop" role="presentation" (click)="closeDetailModal()">
   <section class="admin-dialog patch-detail-dialog" role="dialog" aria-modal="true"
-    aria-labelledby="patch-detail-dialog-title" (click)="$event.stopPropagation()">
-    <header class="patch-detail-dialog__header">
-      <div class="heading">
-        <h2 id="patch-detail-dialog-title" class="game-title patch-detail-dialog__title">
-          {{ detailPatch.gameTitle }}
-        </h2>
-      </div>
-    </header>
-    <div class="patch-detail-dialog__body">
-      <div class="patch-card__description patch-detail-dialog__description">
-        <div>
-          <span class="patch-card__label">โดย: </span>
-          <span class="translator-links">
-            <a routerLink="/translator"
-              [queryParams]="{ translator: translatorShortName(detailPatch) ?? translatorName(detailPatch) }"
-              (click)="closeDetailModal()">{{
-              translatorName(detailPatch) }}</a>
-
-            @if (translatorLink(detailPatch); as link) {
-            <a [href]="link" target="_blank" rel="noopener noreferrer" aria-label="เปิดลิงก์ทีมแปล" class="my-fa-link">
-              <i class="fa-brands fa-square-facebook translator-link-icon" aria-hidden="true"></i>
-            </a>
-            }
-
-            @if (translatorTool(detailPatch); as tool) {
-            <a class="translator-tool-link" [href]="tool" target="_blank" rel="noopener noreferrer"
-              aria-label="เปิดเครื่องมือของทีมแปล" class="my-fa-link">
-              <i class="fa-solid fa-globe" aria-hidden="true"></i>
-            </a>
-            }
-          </span>
-        </div>
-
-        <div><span class="patch-card__label">ระบบ: </span><a routerLink="/system"
-            [queryParams]="{ system: detailPatch.system }" (click)="closeDetailModal()">{{
-            systemName(detailPatch.system) }}</a>
-        </div>
-
-        @if (formatUpdateDate(detailPatch.updateDate); as updateDate) {
-        <div><span class="patch-card__label">{{ detailPatch.haveUpdateFlag ? 'อัพเดท' : 'เพิ่มเมื่อ' }}: </span><span>{{
-            updateDate }}</span></div>
-        }
-
-        @if (detailPatch.playTime === 0 || (detailPatch.playTime != null && detailPatch.playTime > 0) ||
-        (detailPatch.playTimeFull != null &&
-        detailPatch.playTimeFull > 0)) {
-        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(detailPatch) }}</span></div>
-        }
-
-        @if (detailPatch.patchVersion.trim()) {
-        <div class="patch-card__version">
-          <span class="patch-card__label">เวอร์ชัน: </span>
-          @if (hasMultipleVersionLines(detailPatch.patchVersion)) {
-          <button type="button" class="patch-card__version-link no-button" (click)="openVersionModal(detailPatch)">{{
-            getFirstVersionLine(detailPatch.patchVersion) }}</button>
-          } @else {
-          <span class="patch-card__version-text">{{ detailPatch.patchVersion.trim() }}</span>
-          }
-        </div>
-        }
-
-        @if (cardTags(detailPatch).length > 0 || detailPatch.walkthroughUrl.trim()) {
-        <div class="patch-card__tags-row">
-          <span class="patch-card__label patch-card__tags-label">แท็ก:</span>
-          <ul class="patch-card__tags">@for (tag of cardTags(detailPatch); track tag.id) { @if (tag.name.trim() &&
-            (!detailPatch.walkthroughUrl.trim() || tag.name.trim() !== 'บทสรุป')) { <li>
-              <a [routerLink]="browseRoute('tag', tag.slug)" (click)="closeDetailModal()">{{ tag.name }}</a>
-            </li> } }@if (detailPatch.walkthroughUrl.trim()) { <li>
-              <a [routerLink]="browseRoute('walkthrough')" (click)="closeDetailModal()">บทสรุป</a>
-            </li> }</ul>
-        </div>
-        }
-
-        @if (hasDownloadLinks(detailPatch)) {
-        <div class="patch-detail-dialog__links-row">
-          <span class="patch-card__label patch-card__links-label">ลิ้ง:</span>
-          <div class="patch-card__download-list">
-            @if (detailPatch.coverUrl) {
-            <a [href]="detailPatch.coverUrl" [download]="coverFilename(detailPatch)" target="_blank"
-              rel="noopener noreferrer" [class.pointer-events-none]="downloadingPatchId() === detailPatch.id"
-              (click)="downloadCover($event, detailPatch)">ภาพปก</a>
-            }
-            @if (detailPatch.patchTool) {
-            <a [href]="detailPatch.patchTool" target="_blank">Patch Tool</a>
-            }
-            @if (detailPatch.patchFileUrl) {
-            <a [href]="detailPatch.patchFileUrl" target="_blank">Patch</a>
-            }
-            @if (detailPatch.referenceUrl) {
-            <a [href]="detailPatch.referenceUrl" target="_blank" rel="noopener noreferrer">{{ detailPatch.referenceText ||
-              'ที่มา'
-              }}</a>
-            }
-            @if (detailPatch.patchedRomUrl) {
-            <a [href]="detailPatch.patchedRomUrl" target="_blank" rel="noopener noreferrer">รอมแปลไทย</a>
-            }
-            @if (detailPatch.walkthroughUrl) {
-            <a [href]="detailPatch.walkthroughUrl" target="_blank" rel="noopener noreferrer">บทสรุป</a>
-            }
-          </div>
-        </div>
-        }
-      </div>
+    [attr.aria-label]="'รายละเอียดเกม ' + detailPatch.gameTitle" (click)="$event.stopPropagation()">
+    <button type="button" class="patch-detail-dialog__close-btn" aria-label="ปิด" (click)="closeDetailModal()">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <div class="patch-detail-dialog__content">
+      <ng-container *ngTemplateOutlet="patchCard; context: { patch: detailPatch, inDialog: true }"></ng-container>
     </div>
-    <footer class="patch-detail-dialog__footer">
-      <button class="button px-3 py-1 font-bold" type="button" (click)="closeDetailModal()">ปิด</button>
-    </footer>
   </section>
 </div>
 }

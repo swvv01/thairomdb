@@ -9,10 +9,23 @@
       }
     </div>
 
-    <div id="last-update" [attr.aria-label]="'อัปเดต cache ล่าสุด:' + patchCacheLastUpdatedLabel()">
-      อัปเดต
-      <br />
-      {{ patchCacheLastUpdatedLabel() }}
+    <div class="flex items-center gap-2">
+      @if (gridModeService.isGameListRoute()) {
+      <button type="button" class="button grid-mode-toggle"
+        [class.grid-mode-toggle--active]="gridModeService.isGridMode()"
+        [attr.aria-pressed]="gridModeService.isGridMode()"
+        [attr.title]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
+        [attr.aria-label]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
+        (click)="gridModeService.toggle()">
+        <i [class]="gridModeService.isGridMode() ? 'fa-solid fa-list' : 'fa-solid fa-table-cells'" aria-hidden="true"></i>
+      </button>
+      }
+
+      <div id="last-update" [attr.aria-label]="'อัปเดต cache ล่าสุด:' + patchCacheLastUpdatedLabel()">
+        อัปเดต
+        <br />
+        {{ patchCacheLastUpdatedLabel() }}
+      </div>
     </div>
   </div>
 
@@ -43,7 +56,7 @@
 
 </header>
 
-<div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()">
+<div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()" [class.is-grid-mode]="gridModeService.activeGridMode()">
   <aside id="system-sidebar" class="retro-rail" [class.mobile-sidebar-open]="sidebarOpen()"
     [class.is-vip]="authService.isVip()" (click)="$event.stopPropagation()" aria-label="Main navigation">
 

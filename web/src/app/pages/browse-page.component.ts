@@ -13,6 +13,7 @@ import { PatchCacheService } from '../services/patch-cache.service';
 import { TagRepository } from '../repositories/tag.repository';
 import { StatusMessageService } from '../shared/status-message.service';
 import { GameLibraryService } from '../services/game-library.service';
+import { BrowseGridModeService } from '../services/browse-grid-mode.service';
 
 @Component({
   selector: 'app-browse-page',
@@ -35,6 +36,7 @@ export class BrowsePageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
+  protected readonly gridModeService = inject(BrowseGridModeService);
   protected readonly isOffline = signal(typeof navigator !== 'undefined' && !navigator.onLine);
   protected readonly hasBottomBanner = computed(() => this.isOffline() || !!this.statusMessageService.message());
   private lastClearAllRequest = this.filterState.clearAllRequested();
@@ -110,7 +112,13 @@ export class BrowsePageComponent implements OnInit {
     !!this.route.snapshot.data['pageMode'] || BrowsePageComponent.getSavedViewMode() === 'page'
   );
   protected readonly currentPage = signal(1);
-  protected readonly pageSize = 10;
+  protected readonly pageSize = computed(() => this.gridModeService.activeGridMode() ? 50 : 10);
+  private readonly gridModeEffect = effect(() => {
+    this.gridModeService.activeGridMode();
+    untracked(() => {
+      this.currentPage.set(1);
+    });
+  });
   protected readonly sortBy = signal<GameListSortField>('updateDate');
   protected readonly direction = signal<'asc' | 'desc'>('desc');
   protected readonly playTimeStatus = signal<'missing' | 'no-max' | null>(null);
@@ -247,20 +255,20 @@ export class BrowsePageComponent implements OnInit {
     if (primary !== 0) return primary * (this.direction() === 'asc' ? 1 : -1);
     return a.id.localeCompare(b.id);
   }));
-  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.sortedPatches().length / this.pageSize)));
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.sortedPatches().length / this.pageSize())));
   protected readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, index) => index + 1));
   protected readonly paginatedPatches = computed(() => {
     if (this.isPageMode()) {
       const page = Math.min(this.currentPage(), this.totalPages());
-      const start = (page - 1) * this.pageSize;
-      return this.sortedPatches().slice(start, start + this.pageSize);
+      const start = (page - 1) * this.pageSize();
+      return this.sortedPatches().slice(start, start + this.pageSize());
     }
-    const count = Math.min(this.currentPage() * this.pageSize, this.sortedPatches().length);
+    const count = Math.min(this.currentPage() * this.pageSize(), this.sortedPatches().length);
     return this.sortedPatches().slice(0, count);
   });
   protected readonly hasMore = computed(() => this.paginatedPatches().length < this.sortedPatches().length);
   protected readonly remainingCount = computed(() => Math.max(0, this.sortedPatches().length - this.paginatedPatches().length));
-  protected readonly nextLoadCount = computed(() => Math.min(this.pageSize, this.remainingCount()));
+  protected readonly nextLoadCount = computed(() => Math.min(this.pageSize(), this.remainingCount()));
   protected togglePlayTimeUnit(): void {
     const current = this.playTimeUnit();
     const next: 'hours' | 'detailed' | 'daily' =

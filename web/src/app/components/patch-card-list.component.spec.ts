@@ -3,11 +3,13 @@ import { provideRouter } from '@angular/router';
 import { PatchCardListComponent } from './patch-card-list.component';
 import { StatusMessageService } from '../shared/status-message.service';
 import { GameLibraryService } from '../services/game-library.service';
+import { BrowseGridModeService } from '../services/browse-grid-mode.service';
 import { Patch } from '../models/patch.models';
 
 describe('PatchCardListComponent', () => {
   let component: PatchCardListComponent;
   let fixture: ComponentFixture<PatchCardListComponent>;
+  let gridModeService: BrowseGridModeService;
 
   const basePatch: Patch = {
     id: 'patch-1',
@@ -29,6 +31,7 @@ describe('PatchCardListComponent', () => {
   };
 
   beforeEach(async () => {
+    window.localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [PatchCardListComponent],
       providers: [
@@ -50,6 +53,13 @@ describe('PatchCardListComponent', () => {
 
     fixture = TestBed.createComponent(PatchCardListComponent);
     component = fixture.componentInstance;
+    gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.setGridMode(false);
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+    gridModeService.setGridMode(false);
   });
 
   it('renders single line patch version as plain text without link', () => {
@@ -316,9 +326,8 @@ describe('PatchCardListComponent', () => {
 
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
-    expect(dialog.querySelector('.patch-detail-dialog__title')?.textContent).toContain(basePatch.gameTitle);
-    expect(dialog.querySelector('.patch-detail-dialog__header button')).toBeNull();
-    expect(dialog.querySelector('.patch-detail-dialog__footer button')).not.toBeNull();
+    expect(dialog.querySelector('.game-title')?.textContent).toContain(basePatch.gameTitle);
+    expect(dialog.querySelector('.patch-detail-dialog__close-btn')).not.toBeNull();
 
     // Escape closes detail modal
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -337,13 +346,26 @@ describe('PatchCardListComponent', () => {
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
 
-    const modalDesc = dialog.querySelector('.patch-detail-dialog__description');
+    const modalDesc = dialog.querySelector('.patch-card__description');
     expect(modalDesc).not.toBeNull();
 
-    const modalLinks = modalDesc.querySelector('.patch-detail-dialog__links-row');
+    const modalLinks = dialog.querySelector('.patch-card__links');
     expect(modalLinks).not.toBeNull();
     expect(modalLinks.querySelector('.patch-card__links-label')).not.toBeNull();
     expect(modalLinks.querySelector('.patch-card__download-list')).not.toBeNull();
+  });
+
+  it('does not render mobile-by line inside detail modal', () => {
+    component.patches = [{
+      ...basePatch,
+      translatedBy: 'Happy2You'
+    }];
+    component.openDetailModal(component.patches[0]);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.querySelector('.patch-card__mobile-by')).toBeNull();
   });
 
   it('stacks version modal on top of detail modal when opened from inside detail modal', () => {
@@ -380,7 +402,7 @@ describe('PatchCardListComponent', () => {
   it('renders mobile by translator line inside heading next to game title', () => {
     component.patches = [{
       ...basePatch,
-      translator: 'Happy2You'
+      translatedBy: 'Happy2You'
     }];
     fixture.detectChanges();
 
@@ -395,5 +417,91 @@ describe('PatchCardListComponent', () => {
     const link = mobileBy.querySelector('a');
     expect(link).not.toBeNull();
     expect(link.textContent.trim()).toBe('Happy2You');
+  });
+
+  describe('Pinterest Masonry Grid Mode', () => {
+    it('renders pinterest masonry grid when activeGridMode is true', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [
+        { ...basePatch, id: 'patch-1', gameTitle: 'Game 1' },
+        { ...basePatch, id: 'patch-2', gameTitle: 'Game 2' }
+      ];
+      fixture.detectChanges();
+
+      const masonryContainer = fixture.nativeElement.querySelector('.pinterest-masonry-container');
+      const listContainer = fixture.nativeElement.querySelector('.patch-card-container');
+      expect(masonryContainer).not.toBeNull();
+      expect(listContainer).toBeNull();
+
+      const cards = fixture.nativeElement.querySelectorAll('.pinterest-card');
+      expect(cards.length).toBe(2);
+    });
+
+    it('opens detail modal when clicking a pinterest card in grid mode', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{ ...basePatch, id: 'patch-1', gameTitle: 'Game 1' }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card') as HTMLElement;
+      card.click();
+      fixture.detectChanges();
+
+      const modal = fixture.nativeElement.querySelector('.patch-detail-dialog');
+      expect(modal).not.toBeNull();
+      expect(modal.textContent).toContain('Game 1');
+    });
+
+    it('correctly partitions items left-to-right across columns', () => {
+      component['columnCount'].set(3);
+      component.patches = [
+        { ...basePatch, id: 'patch-1' },
+        { ...basePatch, id: 'patch-2' },
+        { ...basePatch, id: 'patch-3' },
+        { ...basePatch, id: 'patch-4' }
+      ];
+
+      const cols = component['masonryColumns']();
+      expect(cols.length).toBe(3);
+      expect(cols[0].map(p => p.id)).toEqual(['patch-1', 'patch-4']);
+      expect(cols[1].map(p => p.id)).toEqual(['patch-2']);
+      expect(cols[2].map(p => p.id)).toEqual(['patch-3']);
+    });
+
+    it('renders system abbreviation and translator in overlay', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{
+        ...basePatch,
+        id: 'patch-1',
+        gameTitle: 'Dragon Quest V',
+        system: 'SFC',
+        translatedBy: 'Happy2You'
+      }];
+      fixture.detectChanges();
+
+      const overlay = fixture.nativeElement.querySelector('.pinterest-card__overlay');
+      expect(overlay).not.toBeNull();
+
+      const titleLine = overlay.querySelector('.pinterest-card__title-line');
+      expect(titleLine).not.toBeNull();
+      expect(titleLine.textContent.trim()).toBe('[SFC] Dragon Quest V');
+
+      const systemEl = overlay.querySelector('.pinterest-card__system');
+      expect(systemEl).not.toBeNull();
+      expect(systemEl.textContent).toContain('[SFC]');
+
+      const titleEl = overlay.querySelector('.pinterest-card__title');
+      expect(titleEl).not.toBeNull();
+      expect(titleEl.textContent).toContain('Dragon Quest V');
+
+      const byEl = overlay.querySelector('.pinterest-card__by');
+      expect(byEl).not.toBeNull();
+      expect(byEl.textContent).toContain('by Happy2You');
+    });
   });
 });

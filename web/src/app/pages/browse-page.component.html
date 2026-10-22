@@ -1,6 +1,6 @@
-<main class="browse-catalogue min-h-full p-4 sm:p-6 lg:p-8 main-content">
+<main class="browse-catalogue min-h-full p-4 sm:p-6 lg:p-8 main-content" [class.browse-catalogue--grid]="gridModeService.activeGridMode()">
 
-  <div class="browse-column">
+  <div class="browse-column" [class.browse-column--grid]="gridModeService.activeGridMode()">
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
       [routeKind]="routeKind()" [draft]="filters()" [routeLabel]="activeRouteLabel()"
       [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)" (clearAll)="clearAllFilters()" />
