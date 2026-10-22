@@ -909,5 +909,45 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
     const label = (component as unknown as { activeRouteLabel: () => string }).activeRouteLabel();
     expect(label).toBe('ยังไม่ระบุเวลาเล่นสูงสุด');
   });
+
+  it('resets selectedTag and displays "เกมทั้งหมด" label when routeKind changes from tag to null', () => {
+    const filterState = TestBed.inject(BrowseFilterStateService);
+    filterState.selectedTag.set('tag-gta');
+    routeDataSubject.next({ browseKind: 'tag' });
+    fixture.detectChanges();
+
+    expect(filterState.selectedTag()).toBe('tag-gta');
+
+    routeDataSubject.next({});
+    fixture.detectChanges();
+
+    expect(filterState.selectedTag()).toBeNull();
+    const label = (component as unknown as { activeRouteLabel: () => string }).activeRouteLabel();
+    expect(label).toBe('เกมทั้งหมด');
+  });
+
+  it('resets currentPage to 1 when clearAllRequested() increments', () => {
+    const filterState = TestBed.inject(BrowseFilterStateService);
+    (component as unknown as { currentPage: { set: (p: number) => void } }).currentPage.set(3);
+    filterState.clearAll();
+    fixture.detectChanges();
+
+    expect((component as unknown as { currentPage: () => number }).currentPage()).toBe(1);
+  });
+
+  it('does not trigger router.navigate if query params are already equal', () => {
+    const router = TestBed.inject(Router);
+    const navSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
+    const filterState = TestBed.inject(BrowseFilterStateService);
+
+    (component as unknown as { queryStateReady: { set: (v: boolean) => void } }).queryStateReady.set(true);
+    fixture.detectChanges();
+    navSpy.calls.reset();
+
+    filterState.clearAll();
+    fixture.detectChanges();
+
+    expect(navSpy).not.toHaveBeenCalled();
+  });
 });
 

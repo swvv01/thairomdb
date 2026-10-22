@@ -126,23 +126,47 @@ export class BrowsePageComponent implements OnInit {
     this.playTimeStatus.set(null);
     this.sortBy.set('updateDate');
     this.direction.set('desc');
+    this.currentPage.set(1);
   }, { allowSignalWrites: true });
+  private isNavigating(): boolean {
+    return typeof this.router.getCurrentNavigation === 'function' && this.router.getCurrentNavigation() !== null;
+  }
+  private areQueryParamsEqual(next: Record<string, string | null>): boolean {
+    const currentMap = this.route.snapshot?.queryParamMap;
+    const currentKeys = currentMap ? currentMap.keys.filter((k) => !!currentMap.get(k)) : [];
+    const nextKeys = Object.keys(next).filter((k) => next[k] != null && next[k] !== '');
+    if (currentKeys.length !== nextKeys.length) return false;
+    for (const key of nextKeys) {
+      if (currentMap?.get(key) !== next[key]) return false;
+    }
+    return true;
+  }
   private readonly queryStateEffect = effect(() => {
     if (!this.queryStateReady()) return;
-    const filters = this.filters();
+    const keyword = this.keyword().trim();
+    const translatorId = this.selectedTranslatorId();
+    const system = this.selectedSystem();
+    const sortBy = this.sortBy();
+    const direction = this.direction();
     const page = untracked(() => this.currentPage());
     const playTimeStatus = untracked(() => this.playTimeStatus());
+    const translator = this.translators().find((item) => item.id === translatorId)?.shortName || null;
+    const nextParams: Record<string, string | null> = {
+      q: keyword || null,
+      translator: translator || null,
+      system: system || null,
+      playTimeStatus: playTimeStatus || null,
+      sort: sortBy === 'updateDate' ? null : sortBy,
+      dir: direction === 'desc' ? null : direction,
+      page: this.isPageMode() && page > 1 ? String(page) : null
+    };
+
+    if (this.isNavigating()) return;
+    if (this.areQueryParamsEqual(nextParams)) return;
+
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: {
-        q: filters.keyword.trim() || null,
-        translator: this.translators().find((item) => item.id === filters.translatorId)?.shortName || null,
-        system: filters.system || null,
-        playTimeStatus: playTimeStatus || null,
-        sort: filters.sortBy === 'updateDate' ? null : filters.sortBy,
-        dir: filters.sortDirection === 'desc' ? null : filters.sortDirection,
-        page: this.isPageMode() && page > 1 ? page : null
-      },
+      queryParams: nextParams,
       replaceUrl: true
     });
   });
@@ -350,7 +374,16 @@ export class BrowsePageComponent implements OnInit {
   private readonly routeFilterEffect = effect(() => {
     const kind = this.routeKind();
     const slug = this.routeSlug();
+    if (kind !== 'tag' && this.selectedTag() !== null) {
+      this.filterState.selectedTag.set(null);
+    }
     if (kind === null) {
+      return;
+    }
+    if (kind === 'rom' || kind === 'walkthrough' || kind === 'port') {
+      this.filterState.selectedSystem.set(null);
+      this.filterState.selectedTranslatorId.set(null);
+      this.filterState.selectedTag.set(null);
       return;
     }
     if (!slug) return;
@@ -376,10 +409,6 @@ export class BrowsePageComponent implements OnInit {
       this.filterState.selectedSystem.set(null);
       this.filterState.selectedTranslatorId.set(null);
       this.filterState.selectedTag.set(tag.id);
-    } else if (kind === 'rom' || kind === 'walkthrough' || kind === 'port') {
-      this.filterState.selectedSystem.set(null);
-      this.filterState.selectedTranslatorId.set(null);
-      this.filterState.selectedTag.set(null);
     }
   }, { allowSignalWrites: true });
   private readonly queryTranslatorEffect = effect(() => {
