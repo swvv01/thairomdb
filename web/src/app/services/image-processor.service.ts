@@ -30,6 +30,51 @@ export function calculateStepDownDimensions(
 export class ImageProcessorService {
   async process(source: Blob): Promise<ProcessedCover> {
     if (!source.type.startsWith('image/')) throw new Error('ไฟล์ที่เลือกต้องเป็นรูปภาพ');
+
+    try {
+      return await this.processWithBitmap(source);
+    } catch {
+      return await this.processWithCanvasFallback(source);
+    }
+  }
+
+  private async processWithBitmap(source: Blob): Promise<ProcessedCover> {
+    if (typeof createImageBitmap !== 'function') {
+      throw new Error('createImageBitmap is not supported');
+    }
+
+    const initialBitmap = await createImageBitmap(source);
+    const origWidth = initialBitmap.width;
+    const origHeight = initialBitmap.height;
+    initialBitmap.close();
+
+    const { width, height } = calculateCoverDimensions(origWidth, origHeight);
+
+    const resizedBitmap = await createImageBitmap(source, {
+      resizeWidth: width,
+      resizeHeight: height,
+      resizeQuality: 'high'
+    });
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
+
+      ctx.drawImage(resizedBitmap, 0, 0, width, height);
+
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
+      );
+      return { blob, width, height, filename: `cover_max250px_${Date.now()}.png` };
+    } finally {
+      resizedBitmap.close();
+    }
+  }
+
+  private async processWithCanvasFallback(source: Blob): Promise<ProcessedCover> {
     const image = await this.decode(source);
     const { width, height } = calculateCoverDimensions(image.width, image.height);
     const steps = calculateStepDownDimensions(image.width, image.height, width, height);
@@ -42,7 +87,8 @@ export class ImageProcessorService {
       stepCanvas.height = step.height;
       const stepCtx = stepCanvas.getContext('2d');
       if (stepCtx) {
-        stepCtx.imageSmoothingEnabled = false;
+        stepCtx.imageSmoothingEnabled = true;
+        stepCtx.imageSmoothingQuality = 'high';
         stepCtx.drawImage(currentSource, 0, 0, step.width, step.height);
       }
       currentSource = stepCanvas;

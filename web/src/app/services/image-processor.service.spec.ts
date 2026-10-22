@@ -1,4 +1,14 @@
-import { calculateCoverDimensions, calculateStepDownDimensions } from './image-processor.service';
+import { calculateCoverDimensions, calculateStepDownDimensions, ImageProcessorService } from './image-processor.service';
+
+function createTestImageBlob(width: number, height: number): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = 'red';
+  ctx.fillRect(0, 0, width, height);
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
+}
 
 describe('calculateCoverDimensions', () => {
   it('resizes landscape images to the maximum width', () => {
@@ -39,5 +49,42 @@ describe('calculateStepDownDimensions', () => {
       { width: 800, height: 600 },
       { width: 400, height: 300 }
     ]);
+  });
+});
+
+describe('ImageProcessorService', () => {
+  let service: ImageProcessorService;
+
+  beforeEach(() => {
+    service = new ImageProcessorService();
+  });
+
+  it('rejects non-image blobs', async () => {
+    const textBlob = new Blob(['hello world'], { type: 'text/plain' });
+    await expectAsync(service.process(textBlob)).toBeRejectedWithError('ไฟล์ที่เลือกต้องเป็นรูปภาพ');
+  });
+
+  it('processes image and returns scaled dimensions', async () => {
+    const blob = await createTestImageBlob(500, 300);
+    const result = await service.process(blob);
+    expect(result.width).toBe(250);
+    expect(result.height).toBe(150);
+    expect(result.blob).toBeDefined();
+    expect(result.blob.type).toBe('image/png');
+  });
+
+  it('falls back to canvas processing when createImageBitmap fails', async () => {
+    const originalCreateImageBitmap = window.createImageBitmap;
+    (window as unknown as { createImageBitmap?: unknown }).createImageBitmap = undefined;
+
+    try {
+      const blob = await createTestImageBlob(600, 400);
+      const result = await service.process(blob);
+      expect(result.width).toBe(250);
+      expect(result.height).toBe(167);
+      expect(result.blob).toBeDefined();
+    } finally {
+      window.createImageBitmap = originalCreateImageBitmap;
+    }
   });
 });
