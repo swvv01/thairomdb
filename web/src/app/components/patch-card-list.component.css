@@ -40,6 +40,10 @@
   font-size: 1.2rem;
 }
 
+.patch-card__mobile-by {
+  display: none;
+}
+
 .patch-card__tags {
   display: flex;
   flex-wrap: wrap;
@@ -101,7 +105,7 @@
 
 
 
-@media (max-width: 34rem) {
+@media (max-width: 640px) {
   .patch-card {
     gap: 1rem;
     grid-template-columns: 6.2rem minmax(0, 1fr);
@@ -146,7 +150,7 @@
   padding: 1px 11px;
 }
 
-@media (min-width: 34.01rem) {
+@media (min-width: 641px) {
   .patch-cover-image {
     justify-self: center;
   }
@@ -464,10 +468,27 @@
   border-top: 1px dashed var(--color-border);
 }
 
-@media (max-width: 34rem) {
+@media (max-width: 640px) {
   .patch-card {
     grid-template-columns: 1fr;
     padding-top: 18pt;
+  }
+
+  .game-badge {
+    display: none;
+  }
+
+  .patch-card__mobile-by {
+    color: var(--color-text);
+    display: inline-block;
+    font-size: 1rem;
+    margin-left: 0.35rem;
+    vertical-align: baseline;
+    white-space: nowrap;
+  }
+
+  .patch-card__by-label {
+    color: var(--color-text-muted);
   }
 
   .patch-card .patch-card__description {

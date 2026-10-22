@@ -376,7 +376,7 @@
   padding: 0.55rem 0.65rem;
 }
 
-@media (max-width: 34rem) {
+@media (max-width: 640px) {
   .sort-row {
     align-items: stretch;
     display: flex;

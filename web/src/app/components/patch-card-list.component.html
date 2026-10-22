@@ -48,10 +48,12 @@
         }
 
         <span class="game-title">{{ patch.gameTitle }}</span>
-
-
-
-
+        <span class="patch-card__mobile-by">
+          <span class="patch-card__by-label">by </span>
+          <a routerLink="/translator"
+            [queryParams]="{ translator: translatorShortName(patch) ?? translatorName(patch) }"
+            class="patch-card__by-link">{{ translatorName(patch) }}</a>
+        </span>
       </div>
 
       <div class="patch-card__description">

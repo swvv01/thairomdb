@@ -374,4 +374,24 @@ describe('PatchCardListComponent', () => {
     expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
     expect(fixture.nativeElement.querySelector('.patch-detail-dialog')).not.toBeNull();
   });
+
+  it('renders mobile by translator line inside heading next to game title', () => {
+    component.patches = [{
+      ...basePatch,
+      translator: 'Happy2You'
+    }];
+    fixture.detectChanges();
+
+    const heading = fixture.nativeElement.querySelector('.heading');
+    expect(heading).not.toBeNull();
+
+    const mobileBy = heading.querySelector('.patch-card__mobile-by');
+    expect(mobileBy).not.toBeNull();
+    expect(mobileBy.textContent).toContain('by');
+    expect(mobileBy.textContent).toContain('Happy2You');
+
+    const link = mobileBy.querySelector('a');
+    expect(link).not.toBeNull();
+    expect(link.textContent.trim()).toBe('Happy2You');
+  });
 });
