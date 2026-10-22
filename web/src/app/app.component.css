@@ -33,6 +33,20 @@
 .marquee {
   background-color: var(--color-accent);
   color: var(--color-accent-text);
+  white-space: nowrap;
+}
+
+.marquee,
+.marquee * {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: 1rem;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.marquee img {
+  display: inline-block;
 }
 
 .app-shell {
