@@ -3,8 +3,8 @@
     "public": "empty_public",
     "redirects": [
       {
-        "regex": "^/(.*)$",
-        "destination": "https://thairomdb.pages.dev/\\1",
+        "source": "/:path*",
+        "destination": "https://thairomdb.pages.dev/:path*",
         "type": 301
       }
     ]

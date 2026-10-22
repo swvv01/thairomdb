@@ -158,10 +158,7 @@
 }
 
 .patch-card__description>div {
-  align-items: baseline;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  display: contents;
 }
 
 .patch-card__download-list {
@@ -182,9 +179,14 @@
 }
 
 .patch-card__description {
+  align-items: baseline;
   color: var(--color-text);
+  column-gap: 0.5rem;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   line-height: 2;
   margin: .15rem 0;
+  row-gap: 0.15rem;
 }
 
 .patch-card__version {
@@ -367,11 +369,13 @@
   }
 
   .patch-card__description {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
     line-height: 1.5;
     margin: 0.4rem 0;
+    row-gap: 0.35rem;
   }
 
   .patch-card__version {
