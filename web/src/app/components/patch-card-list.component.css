@@ -25,16 +25,14 @@
 }
 
 .patch-card .heading {
-  align-items: center;
   color: var(--color-highlight);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: space-between;
+  display: block;
+  line-height: 1.35;
   margin-bottom: 0.35rem;
 }
 
 .game-title {
+  display: inline;
   font-size: 1.2rem;
 }
 
@@ -56,6 +54,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: space-around;
+  margin-top: 0.5rem;
+  position: relative;
+  width: 100%;
+  z-index: 1;
 }
 
 .patch-cover-image {
@@ -66,6 +69,7 @@
 
 .patch-cover-placeholder {
   inset: 0;
+  pointer-events: none;
   position: absolute;
 }
 
@@ -108,9 +112,10 @@
 }
 
 .patch-cover-wrap {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   margin-inline: auto;
   min-height: 170px;
   position: relative;
@@ -121,16 +126,18 @@
 .game-badge {
   align-items: center;
   display: inline-flex;
-  margin-right: auto;
+  margin-right: 0.5rem;
+  transform: translateY(-2px);
+  vertical-align: middle;
+}
+
+.game-badge img {
+  display: block;
 }
 
 .new-game-badge img {
   background-image: linear-gradient(to right, var(--color-badge-start), var(--color-badge-end));
   padding: 1px 11px;
-}
-
-.update-game-badge img {
-  margin-top: 4px;
 }
 
 @media (min-width: 34.01rem) {

@@ -257,8 +257,36 @@ describe('PatchCardListComponent', () => {
     expect(tagLinks[0].textContent.trim()).toBe('RPG');
   });
 
-  it('renders actions row inside heading alongside game title and badge as direct flex siblings', () => {
+  it('renders actions row inside patch-cover-wrap under cover image', () => {
     component.canEdit = true;
+    component.patches = [{
+      ...basePatch,
+      haveUpdateFlag: true
+    }];
+    fixture.detectChanges();
+
+    const coverWrap = fixture.nativeElement.querySelector('.patch-cover-wrap');
+    expect(coverWrap).not.toBeNull();
+
+    const coverImage = coverWrap.querySelector('.patch-cover-image');
+    expect(coverImage).not.toBeNull();
+
+    const actionsRow = coverWrap.querySelector('.patch-card__actions-row');
+    expect(actionsRow).not.toBeNull();
+    expect(actionsRow.parentElement).toBe(coverWrap);
+
+    const editBtn = actionsRow.querySelector('a.btn-primary');
+    expect(editBtn).not.toBeNull();
+
+    const libraryBtn = actionsRow.querySelector('button.button');
+    expect(libraryBtn).not.toBeNull();
+
+    const heading = fixture.nativeElement.querySelector('.patch-card .heading');
+    expect(heading).not.toBeNull();
+    expect(heading.querySelector('.patch-card__actions-row')).toBeNull();
+  });
+
+  it('renders badge before game title in heading as inline flow', () => {
     component.patches = [{
       ...basePatch,
       haveUpdateFlag: true
@@ -269,18 +297,9 @@ describe('PatchCardListComponent', () => {
     expect(heading).not.toBeNull();
 
     const badge = heading.querySelector('.game-badge');
+    const title = heading.querySelector('.game-title');
     expect(badge).not.toBeNull();
-
-    const actionsRow = heading.querySelector('.patch-card__actions-row');
-    expect(actionsRow).not.toBeNull();
-
-    expect(badge.parentElement).toBe(heading);
-    expect(actionsRow.parentElement).toBe(heading);
-
-    const editBtn = actionsRow.querySelector('a.btn-primary');
-    expect(editBtn).not.toBeNull();
-
-    const libraryBtn = actionsRow.querySelector('button.button');
-    expect(libraryBtn).not.toBeNull();
+    expect(title).not.toBeNull();
+    expect(badge.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
