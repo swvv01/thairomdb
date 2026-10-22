@@ -231,12 +231,7 @@
   justify-content: center;
   gap: .5rem;
   padding: .65rem 1.25rem;
-  border-top: 1px dashed var(--color-border);
   width: 100%;
-}
-
-.load-more-end-icon {
-  color: var(--color-brand);
 }
 
 .pagination {
@@ -319,6 +314,12 @@
 
   .patch-skeleton>span {
     height: 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-stat-subtext {
+    display: none;
   }
 }
 

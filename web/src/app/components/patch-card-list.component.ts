@@ -26,11 +26,34 @@ export class PatchCardListComponent {
   protected readonly downloadingPatchId = signal<string | null>(null);
   protected readonly togglingLibraryId = signal<string | null>(null);
   protected readonly activeVersionPatch = signal<Patch | null>(null);
+  protected readonly activeDetailPatch = signal<Patch | null>(null);
 
   @HostListener('document:keydown.escape')
   protected onEscapeKey(): void {
     if (this.activeVersionPatch()) {
       this.closeVersionModal();
+      return;
+    }
+    if (this.activeDetailPatch()) {
+      this.closeDetailModal();
+    }
+  }
+
+  openDetailModal(patch: Patch): void {
+    this.activeDetailPatch.set(patch);
+  }
+
+  closeDetailModal(): void {
+    this.activeDetailPatch.set(null);
+  }
+
+  protected isMobile(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 34rem)').matches;
+  }
+
+  protected onCoverClick(patch: Patch): void {
+    if (this.isMobile()) {
+      this.openDetailModal(patch);
     }
   }
 

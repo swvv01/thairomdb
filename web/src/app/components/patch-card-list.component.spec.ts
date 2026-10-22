@@ -90,7 +90,9 @@ describe('PatchCardListComponent', () => {
     const modal = fixture.nativeElement.querySelector('.patch-version-dialog');
     expect(modal).not.toBeNull();
     const titleEl = modal.querySelector('.patch-version-dialog__title');
-    expect(titleEl?.textContent?.trim()).toBe('รายละเอียดเวอร์ชัน - Dragon Quest V');
+    expect(titleEl?.textContent?.trim()).toBe('Dragon Quest V');
+    const labelEl = modal.querySelector('.patch-version-dialog__label');
+    expect(labelEl?.textContent?.trim()).toBe('รายละเอียดเวอร์ชัน:');
 
     const contentEl = modal.querySelector('.patch-version-dialog__text');
     expect(contentEl?.textContent).toContain('v1.05');
@@ -257,7 +259,7 @@ describe('PatchCardListComponent', () => {
     expect(tagLinks[0].textContent.trim()).toBe('RPG');
   });
 
-  it('renders actions row inside patch-cover-wrap under cover image', () => {
+  it('renders actions row as overlay inside patch-cover-wrap at top of cover image', () => {
     component.canEdit = true;
     component.patches = [{
       ...basePatch,
@@ -301,5 +303,75 @@ describe('PatchCardListComponent', () => {
     expect(badge).not.toBeNull();
     expect(title).not.toBeNull();
     expect(badge.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('opens and closes detail modal via openDetailModal and closeDetailModal', () => {
+    component.patches = [basePatch];
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.patch-detail-dialog')).toBeNull();
+
+    component.openDetailModal(basePatch);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.querySelector('.patch-detail-dialog__title')?.textContent).toContain(basePatch.gameTitle);
+    expect(dialog.querySelector('.patch-detail-dialog__header button')).toBeNull();
+    expect(dialog.querySelector('.patch-detail-dialog__footer button')).not.toBeNull();
+
+    // Escape closes detail modal
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.patch-detail-dialog')).toBeNull();
+  });
+
+  it('renders description and download links inside detail modal', () => {
+    component.patches = [{
+      ...basePatch,
+      coverUrl: 'http://example.com/cover.png'
+    }];
+    component.openDetailModal(component.patches[0]);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+
+    const modalDesc = dialog.querySelector('.patch-detail-dialog__description');
+    expect(modalDesc).not.toBeNull();
+
+    const modalLinks = dialog.querySelector('.patch-detail-dialog__links');
+    expect(modalLinks).not.toBeNull();
+  });
+
+  it('stacks version modal on top of detail modal when opened from inside detail modal', () => {
+    const multiPatch = {
+      ...basePatch,
+      patchVersion: 'v1.0\nv1.1'
+    };
+    component.patches = [multiPatch];
+    component.openDetailModal(multiPatch);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.patch-detail-dialog')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
+
+    // Click version link inside detail modal to open version modal
+    const versionLink = fixture.nativeElement.querySelector('.patch-detail-dialog .patch-card__version-link') as HTMLButtonElement | null;
+    versionLink?.click();
+    fixture.detectChanges();
+
+    // Both modals in DOM, version modal rendered
+    const detailDialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    const versionDialog = fixture.nativeElement.querySelector('.patch-version-dialog');
+    expect(detailDialog).not.toBeNull();
+    expect(versionDialog).not.toBeNull();
+
+    // Escape closes version modal first
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.patch-version-dialog')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.patch-detail-dialog')).not.toBeNull();
   });
 });

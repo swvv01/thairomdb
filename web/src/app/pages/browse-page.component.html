@@ -45,8 +45,7 @@
     @if (isPageMode()) {
     @if (currentPage() === totalPages()) {
     <div class="load-more-end" aria-live="polite">
-      <span class="load-more-end-icon" aria-hidden="true">★</span>
-      <span>แสดงรายการทั้งหมดครบแล้ว ({{ sortedPatches().length }} เกม)</span>
+      <span>สิ้นสุดรายการแล้ว</span>
     </div>
     }
     @if (totalPages() > 1) {
@@ -76,7 +75,6 @@
     }
     } @else {
     <div class="load-more-section">
-      @if (sortedPatches().length > pageSize) {
       @if (hasMore()) {
       <button type="button" class="load-more-button button" (click)="loadMore()" aria-label="โหลดเกมเพิ่มเติม">
         <i class="fa-solid fa-angles-down" aria-hidden="true"></i>
@@ -86,10 +84,8 @@
         sortedPatches().length }} เกม</p>
       } @else {
       <div class="load-more-end" aria-live="polite">
-        <span class="load-more-end-icon" aria-hidden="true">★</span>
-        <span>แสดงรายการทั้งหมดครบแล้ว ({{ sortedPatches().length }} เกม)</span>
+        <span>สิ้นสุดรายการแล้ว</span>
       </div>
-      }
       }
       @if (!isForcedPageMode()) {
       <button type="button" class="no-button mode-toggle-link" (click)="toggleMode($event)"

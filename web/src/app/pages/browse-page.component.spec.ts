@@ -104,12 +104,31 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     }));
   });
 
-  it('hasMore becomes false when all patches are loaded', () => {
+  it('hasMore becomes false and renders load-more-end when all patches are loaded', () => {
     expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeTrue();
     (component as unknown as { loadMore: () => void }).loadMore(); // 20
     (component as unknown as { loadMore: () => void }).loadMore(); // 25 (all)
     expect((component as unknown as { paginatedPatches: () => Patch[] }).paginatedPatches().length).toBe(25);
     expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeFalse();
+    fixture.detectChanges();
+    const endMsg = fixture.nativeElement.querySelector('.load-more-end');
+    expect(endMsg).toBeTruthy();
+    expect(endMsg.textContent).toContain('สิ้นสุดรายการแล้ว');
+    expect(fixture.nativeElement.querySelector('.load-more-end-icon')).toBeNull();
+  });
+
+  it('renders load-more-end message in scroll mode when total patches are <= pageSize', () => {
+    (component as unknown as { setKeyword: (k: string) => void }).setKeyword('Game 25');
+    fixture.detectChanges();
+
+    expect((component as unknown as { sortedPatches: () => Patch[] }).sortedPatches().length).toBe(1);
+    expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeFalse();
+
+    const endMsg = fixture.nativeElement.querySelector('.load-more-end');
+    expect(endMsg).toBeTruthy();
+    expect(endMsg.textContent).toContain('สิ้นสุดรายการแล้ว');
+    expect(fixture.nativeElement.querySelector('.load-more-button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.load-more-end-icon')).toBeNull();
   });
 
   it('resets currentPage to 1 when filters are changed', () => {
@@ -596,7 +615,8 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
 
     const endMsg = fixture.nativeElement.querySelector('.load-more-end');
     expect(endMsg).toBeTruthy();
-    expect(endMsg.textContent).toContain('แสดงรายการทั้งหมดครบแล้ว (25 เกม)');
+    expect(endMsg.textContent).toContain('สิ้นสุดรายการแล้ว');
+    expect(fixture.nativeElement.querySelector('.load-more-end-icon')).toBeNull();
   });
 });
 

@@ -8,31 +8,31 @@
       </div>
     </div>
 
-    <div class="patch-cover-wrap">
+    <div class="patch-cover-wrap" (click)="onCoverClick(patch)" (keydown.enter)="onCoverClick(patch)"
+      [attr.tabindex]="isMobile() ? 0 : null" [attr.role]="isMobile() ? 'button' : null"
+      [attr.aria-label]="isMobile() ? ('ดูรายละเอียดเกม ' + patch.gameTitle) : null">
       <div class="patch-cover-placeholder" aria-hidden="true"></div>
       <img class="mock-cover patch-cover-image" [class.patch-cover-image--loaded]="loadedImages().has(patch.id)"
         [attr.loading]="index === 0 ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
         [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
 
-      <div class="patch-card__actions-row">
-
-
-        <button type="button" class="button" [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
+      <div class="patch-card__actions-row" (click)="$event.stopPropagation()">
+        <button type="button" class="button patch-card__action-btn"
+          [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
           [disabled]="togglingLibraryId() === patch.id"
           [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
+          [attr.title]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
           (click)="toggleLibrary(patch)">
           <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
             aria-hidden="true"></i>
-          <span>{{ libraryService.isInLibrary(patch.id) ? 'อยู่ในคลัง' : 'เก็บเข้าคลัง' }}</span>
         </button>
 
         @if (canEdit) {
-        <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
+        <a class="button btn-primary patch-card__action-btn" [routerLink]="['/add', patch.id]" target="_blank"
+          rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
           <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-          <span>แก้ไข</span>
         </a>
         }
-
       </div>
     </div>
     <div class="patch-card__body">
@@ -98,7 +98,7 @@
         <div class="patch-card__version">
           <span class="patch-card__label">เวอร์ชัน: </span>
           @if (hasMultipleVersionLines(patch.patchVersion)) {
-          <button type="button" class="patch-card__version-link" (click)="openVersionModal(patch)">{{
+          <button type="button" class="patch-card__version-link no-button" (click)="openVersionModal(patch)">{{
             getFirstVersionLine(patch.patchVersion) }}</button>
           } @else {
           <span class="patch-card__version-text">{{ patch.patchVersion.trim() }}</span>
@@ -161,19 +161,133 @@
   }
 </section>
 
+
+
+@if (activeDetailPatch(); as detailPatch) {
+<div class="admin-dialog-backdrop patch-detail-backdrop" role="presentation" (click)="closeDetailModal()">
+  <section class="admin-dialog patch-detail-dialog" role="dialog" aria-modal="true"
+    aria-labelledby="patch-detail-dialog-title" (click)="$event.stopPropagation()">
+    <header class="patch-detail-dialog__header">
+      <div class="heading">
+        <h2 id="patch-detail-dialog-title" class="game-title patch-detail-dialog__title">
+          {{ detailPatch.gameTitle }}
+        </h2>
+      </div>
+    </header>
+    <div class="patch-detail-dialog__body">
+      <div class="patch-card__description patch-detail-dialog__description">
+        <div>
+          <span class="patch-card__label">โดย: </span>
+          <span class="translator-links">
+            <a routerLink="/translator"
+              [queryParams]="{ translator: translatorShortName(detailPatch) ?? translatorName(detailPatch) }"
+              (click)="closeDetailModal()">{{
+              translatorName(detailPatch) }}</a>
+
+            @if (translatorLink(detailPatch); as link) {
+            <a [href]="link" target="_blank" rel="noopener noreferrer" aria-label="เปิดลิงก์ทีมแปล" class="my-fa-link">
+              <i class="fa-brands fa-square-facebook translator-link-icon" aria-hidden="true"></i>
+            </a>
+            }
+
+            @if (translatorTool(detailPatch); as tool) {
+            <a class="translator-tool-link" [href]="tool" target="_blank" rel="noopener noreferrer"
+              aria-label="เปิดเครื่องมือของทีมแปล" class="my-fa-link">
+              <i class="fa-solid fa-globe" aria-hidden="true"></i>
+            </a>
+            }
+          </span>
+        </div>
+
+        <div><span class="patch-card__label">ระบบ: </span><a routerLink="/system"
+            [queryParams]="{ system: detailPatch.system }" (click)="closeDetailModal()">{{
+            systemName(detailPatch.system) }}</a>
+        </div>
+
+        @if (formatUpdateDate(detailPatch.updateDate); as updateDate) {
+        <div><span class="patch-card__label">{{ detailPatch.haveUpdateFlag ? 'อัพเดท' : 'เพิ่มเมื่อ' }}: </span><span>{{
+            updateDate }}</span></div>
+        }
+
+        @if (detailPatch.playTime === 0 || (detailPatch.playTime != null && detailPatch.playTime > 0) ||
+        (detailPatch.playTimeFull != null &&
+        detailPatch.playTimeFull > 0)) {
+        <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(detailPatch) }}</span></div>
+        }
+
+        @if (detailPatch.patchVersion.trim()) {
+        <div class="patch-card__version">
+          <span class="patch-card__label">เวอร์ชัน: </span>
+          @if (hasMultipleVersionLines(detailPatch.patchVersion)) {
+          <button type="button" class="patch-card__version-link no-button" (click)="openVersionModal(detailPatch)">{{
+            getFirstVersionLine(detailPatch.patchVersion) }}</button>
+          } @else {
+          <span class="patch-card__version-text">{{ detailPatch.patchVersion.trim() }}</span>
+          }
+        </div>
+        }
+
+        @if (cardTags(detailPatch).length > 0 || detailPatch.walkthroughUrl.trim()) {
+        <div class="patch-card__tags-row">
+          <span class="patch-card__label patch-card__tags-label">แท็ก:</span>
+          <ul class="patch-card__tags">@for (tag of cardTags(detailPatch); track tag.id) { @if (tag.name.trim() &&
+            (!detailPatch.walkthroughUrl.trim() || tag.name.trim() !== 'บทสรุป')) { <li>
+              <a [routerLink]="browseRoute('tag', tag.slug)" (click)="closeDetailModal()">{{ tag.name }}</a>
+            </li> } }@if (detailPatch.walkthroughUrl.trim()) { <li>
+              <a [routerLink]="browseRoute('walkthrough')" (click)="closeDetailModal()">บทสรุป</a>
+            </li> }</ul>
+        </div>
+        }
+      </div>
+
+      @if (hasDownloadLinks(detailPatch)) {
+      <div class="patch-card__links patch-detail-dialog__links">
+        <span class="patch-card__label patch-card__links-label">ลิ้ง:</span>
+        <div class="patch-card__download-list">
+          @if (detailPatch.coverUrl) {
+          <a [href]="detailPatch.coverUrl" [download]="coverFilename(detailPatch)" target="_blank"
+            rel="noopener noreferrer" [class.pointer-events-none]="downloadingPatchId() === detailPatch.id"
+            (click)="downloadCover($event, detailPatch)">ภาพปก</a>
+          }
+          @if (detailPatch.patchTool) {
+          <a [href]="detailPatch.patchTool" target="_blank">Patch Tool</a>
+          }
+          @if (detailPatch.patchFileUrl) {
+          <a [href]="detailPatch.patchFileUrl" target="_blank">Patch</a>
+          }
+          @if (detailPatch.referenceUrl) {
+          <a [href]="detailPatch.referenceUrl" target="_blank" rel="noopener noreferrer">{{ detailPatch.referenceText ||
+            'ที่มา'
+            }}</a>
+          }
+          @if (detailPatch.patchedRomUrl) {
+          <a [href]="detailPatch.patchedRomUrl" target="_blank" rel="noopener noreferrer">รอมแปลไทย</a>
+          }
+          @if (detailPatch.walkthroughUrl) {
+          <a [href]="detailPatch.walkthroughUrl" target="_blank" rel="noopener noreferrer">บทสรุป</a>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    <footer class="patch-detail-dialog__footer">
+      <button class="button px-3 py-1 font-bold" type="button" (click)="closeDetailModal()">ปิด</button>
+    </footer>
+  </section>
+</div>
+}
+
 @if (activeVersionPatch(); as activePatch) {
 <div class="admin-dialog-backdrop patch-version-backdrop" role="presentation" (click)="closeVersionModal()">
   <section class="admin-dialog patch-version-dialog" role="dialog" aria-modal="true"
     aria-labelledby="patch-version-dialog-title" (click)="$event.stopPropagation()">
     <header class="patch-version-dialog__header">
       <h2 id="patch-version-dialog-title" class="patch-version-dialog__title">
-        รายละเอียดเวอร์ชัน - {{ activePatch.gameTitle }}
+        {{ activePatch.gameTitle }}
       </h2>
-      <button class="button px-2 py-1" type="button" (click)="closeVersionModal()" aria-label="ปิด">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
     </header>
     <div class="patch-version-dialog__body">
+      <div class="patch-version-dialog__label">รายละเอียดเวอร์ชัน:</div>
       <pre class="patch-version-dialog__text">{{ activePatch.patchVersion.trim() }}</pre>
     </div>
     <footer class="patch-version-dialog__footer">
