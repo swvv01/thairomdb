@@ -99,4 +99,13 @@ When executing unit tests, prioritize testing against the active Karma runner at
 
 When modifying game categorization, system filters, or PortMaster routing, refer to `docs/portmaster-game-filtering.md`. This file documents the architecture and implementation details for separating PortMaster games (`PORT`, `PortMaster`) from the retro home feed into their own dedicated `/port` route and sidebar navigation.
 
+## Pinterest Grid Mode Architecture
+
+When modifying browse view modes, Pinterest masonry layout, infinite scrolling, or grid mode drawer navigation, refer to `docs/grid-mode-knowledge.md`. This file documents the architecture, responsive breakpoints (480px), service design, modal detail reuse, and testing guidelines for Grid Mode.
+
+## Sidebar Drawer Toggle Architecture
+
+When modifying mobile navigation, Pinterest Grid Mode drawer navigation, header offsets, z-index layering, or drawer content consolidation, refer to `docs/sidebar-toggle-knowledge.md`. This file documents the unified drawer architecture, document flow compensation, scroll locking, and unit testing guidelines across both Mobile and Grid modes.
+
+
 

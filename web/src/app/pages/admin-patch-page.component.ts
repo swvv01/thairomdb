@@ -67,6 +67,7 @@ export class AdminPatchPageComponent implements OnInit {
   protected newTranslatorLink = '';
   protected newTranslatorModTool = '';
   protected translatorDialogOpen = false;
+  protected readonly quickTags: readonly string[] = ['romhack', 'พากย์ไทย'];
   protected selectedTags: string[] = [];
   protected newTagName = '';
   protected tagSuggestions: Tag[] = [];
@@ -474,6 +475,12 @@ export class AdminPatchPageComponent implements OnInit {
     const pad = (value: number): string => String(value).padStart(2, '0');
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
+  private tomorrowInputDate(): string {
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+    const pad = (value: number): string => String(value).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T00:00`;
+  }
   private toInputDate(value: string): string {
     const timestamp = Date.parse(value);
     if (Number.isNaN(timestamp)) return this.todayInputDate();
@@ -487,6 +494,7 @@ export class AdminPatchPageComponent implements OnInit {
     return date.toISOString();
   }
   protected setUpdateDateNow(): void { this.form.controls.updateDate.setValue(this.todayInputDate()); }
+  protected setUpdateDateTomorrow(): void { this.form.controls.updateDate.setValue(this.tomorrowInputDate()); }
   protected setDefaultPatchTool(): void {
     const translator = this.translatorOptions.find((item) => item.id === this.form.controls.translatorId.value);
     this.form.controls.patchTool.setValue(translator?.modTool ?? '');
@@ -526,21 +534,34 @@ export class AdminPatchPageComponent implements OnInit {
   protected onOffline(): void {
     this.isOffline.set(true);
   }
-  protected async createTag(): Promise<void> {
-    const name = this.newTagName.trim();
-    if (!name) return;
-    const existing = this.tagSuggestions.find((tag) => tag.name.toLocaleLowerCase() === name.toLocaleLowerCase());
-    if (existing) { this.selectTag(existing); return; }
+  protected isQuickTagSelected(name: string): boolean {
+    const query = name.trim().toLocaleLowerCase();
+    const matched = this.tagSuggestions.find((tag) => tag.name.trim().toLocaleLowerCase() === query);
+    return matched ? this.selectedTags.includes(matched.id) : false;
+  }
+  protected async addQuickTag(name: string): Promise<void> {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const existing = this.tagSuggestions.find((tag) => tag.name.trim().toLocaleLowerCase() === trimmed.toLocaleLowerCase());
+    if (existing) {
+      this.selectTag(existing);
+      return;
+    }
     if (await this.isNotAdmin()) {
       this.status.show('เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเพิ่ม tag ได้', 'error');
       return;
     }
     try {
-      const tag = await this.tagRepository.create(name);
+      const tag = await this.tagRepository.create(trimmed);
       this.selectTag(tag);
     } catch (error) {
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถเพิ่ม tag ได้', 'error');
     }
+  }
+  protected async createTag(): Promise<void> {
+    const name = this.newTagName.trim();
+    if (!name) return;
+    await this.addQuickTag(name);
   }
   protected async createTranslator(): Promise<void> {
     if (this.savingTranslator) return;

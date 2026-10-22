@@ -37,6 +37,14 @@
   --color-input-text: var(--color-text);
 
   --color-overlay: rgb(0 0 0 / 55%);
+
+  /* Fixed Card Overlay Tokens (high-contrast over game covers) */
+  --color-card-overlay-bg: linear-gradient(to top, rgb(0 0 0 / 80%) 0%, rgb(0 0 0 / 45%) 60%, transparent 100%);
+  --color-card-overlay-title: #ffd92b;
+  --color-card-overlay-system: #ffffff;
+  --color-card-overlay-by: #a8abd9;
+  --color-card-overlay-shadow: #000000;
+  --color-card-loading-bg: #ffffff;
 }
 
 /****** Begin Pocket Pet Theme Style ******/
@@ -775,10 +783,8 @@ body[data-theme='classic-blue'] .pagination__current {
   }
 
 
-  @media (max-width: 1023px) {
-    body.sidebar-open {
-      overflow: hidden;
-    }
+  body.sidebar-open {
+    overflow: hidden;
   }
 
   button,

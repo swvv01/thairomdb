@@ -1,8 +1,9 @@
 <header class="app-header">
   <div class="app-topbar no-radius flex min-h-10 items-center justify-between border-b-2 border-slate-300 px-1">
     <div class="flex items-center">
-      <button class="mobile-menu-button" [class.mobile-menu-button--grid]="gridModeService.activeGridMode()" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()"
-        aria-controls="system-sidebar" aria-label="Toggle navigation menu">☰</button>
+      <button class="mobile-menu-button" [class.mobile-menu-button--grid]="gridModeService.activeGridMode()"
+        type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()" aria-controls="system-sidebar"
+        aria-label="Toggle navigation menu">☰</button>
       <a class="site-title" routerLink="/"><img src="assets/images/logo.png" alt="THAI ROM DB"></a>
       @if (authService.isAdmin() || authService.isVip()) {
       <img src="https://blob.gifcities.org/gifcities/2XDEMOQU7I6GA66JGL6GBR4PKL3BYUSY.gif" alt="VIP" />
@@ -17,7 +18,7 @@
         [attr.title]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
         [attr.aria-label]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
         (click)="gridModeService.toggle()">
-        <i [class]="gridModeService.isGridMode() ? 'fa-solid fa-list' : 'fa-solid fa-table-cells'" aria-hidden="true"></i>
+        <i class="fa-solid fa-grip" aria-hidden="true"></i>
       </button>
       }
 
@@ -56,7 +57,8 @@
 
 </header>
 
-<div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()" [class.is-grid-mode]="gridModeService.activeGridMode()">
+<div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()"
+  [class.is-grid-mode]="gridModeService.activeGridMode()">
   <aside id="system-sidebar" class="retro-rail" [class.mobile-sidebar-open]="sidebarOpen()"
     [class.is-vip]="authService.isVip()" (click)="$event.stopPropagation()" aria-label="Main navigation">
 
@@ -265,7 +267,7 @@
 
 
 
-    @if (!isDesktop()) {
+    @if (!isDesktop() || gridModeService.activeGridMode()) {
     <ng-container *ngTemplateOutlet="secondarySidebar"></ng-container>
     }
 
@@ -420,7 +422,7 @@
   <aside class="right-ad-sidebar" aria-label="แถบข้อมูลเสริมและโฆษณา">
 
 
-    @if (isDesktop()) {
+    @if (isDesktop() && !gridModeService.activeGridMode()) {
     <ng-container *ngTemplateOutlet="secondarySidebar"></ng-container>
     }
 

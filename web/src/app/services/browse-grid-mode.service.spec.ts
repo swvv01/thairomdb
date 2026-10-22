@@ -30,23 +30,23 @@ describe('BrowseGridModeService', () => {
     window.localStorage.clear();
   });
 
-  it('should initialize with grid mode false and recognize home route as game list route', () => {
-    expect(service.isGridMode()).toBeFalse();
+  it('should initialize with grid mode true and recognize home route as game list route', () => {
+    expect(service.isGridMode()).toBeTrue();
     expect(service.isGameListRoute()).toBeTrue();
   });
 
   it('should toggle grid mode', () => {
     service.toggle();
-    expect(service.isGridMode()).toBeTrue();
-    service.toggle();
     expect(service.isGridMode()).toBeFalse();
+    service.toggle();
+    expect(service.isGridMode()).toBeTrue();
   });
 
   it('should explicitly set grid mode', () => {
-    service.setGridMode(true);
-    expect(service.isGridMode()).toBeTrue();
     service.setGridMode(false);
     expect(service.isGridMode()).toBeFalse();
+    service.setGridMode(true);
+    expect(service.isGridMode()).toBeTrue();
   });
 
   it('should update isGameListRoute on navigation', () => {
@@ -79,19 +79,33 @@ describe('BrowseGridModeService', () => {
 
   it('should save grid mode to localStorage when toggling or setting', () => {
     service.toggle();
-    expect(window.localStorage.getItem(BrowseGridModeService.storageKey)).toBe('grid');
-
-    service.toggle();
     expect(window.localStorage.getItem(BrowseGridModeService.storageKey)).toBe('list');
 
-    service.setGridMode(true);
+    service.toggle();
     expect(window.localStorage.getItem(BrowseGridModeService.storageKey)).toBe('grid');
+
+    service.setGridMode(false);
+    expect(window.localStorage.getItem(BrowseGridModeService.storageKey)).toBe('list');
   });
 
-  it('should restore grid mode from localStorage on initialization', () => {
+  it('should restore grid mode from localStorage on initialization or default to true', () => {
+    window.localStorage.setItem(BrowseGridModeService.storageKey, 'list');
+    let newService = TestBed.runInInjectionContext(() => new BrowseGridModeService());
+    expect(newService.isGridMode()).toBeFalse();
+
     window.localStorage.setItem(BrowseGridModeService.storageKey, 'grid');
-    const newService = new BrowseGridModeService();
+    newService = TestBed.runInInjectionContext(() => new BrowseGridModeService());
     expect(newService.isGridMode()).toBeTrue();
+
     window.localStorage.clear();
+    newService = TestBed.runInInjectionContext(() => new BrowseGridModeService());
+    expect(newService.isGridMode()).toBeTrue();
+  });
+
+  it('should initialize matchMedia query for min-width 480px when window is defined', () => {
+    const matchMediaSpy = spyOn(window, 'matchMedia').and.callThrough();
+    const newService = TestBed.runInInjectionContext(() => new BrowseGridModeService());
+    expect(matchMediaSpy).toHaveBeenCalledWith('(min-width: 480px)');
+    expect(newService).toBeTruthy();
   });
 });

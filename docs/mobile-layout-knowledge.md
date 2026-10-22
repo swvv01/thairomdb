@@ -209,3 +209,9 @@
 2. **Component ย่อยต้องใช้ Breakpoint เดียวกัน:**
    - องค์ประกอบที่มีการปรับตำแหน่งบน Mobile เช่น ปุ่มลอย (`.floating-action`, `.browse-floating-actions`), ระยะของแถบฟอร์ม (`.form-actions`), หรือหัวข้อ Route Label ต้องใช้ `@media (max-width: 900px)` ให้สอดคล้องกันทั้งแอปพลิเคชัน
 
+---
+
+## 6. เอกสารอ้างอิงสถาปัตยกรรม Sidebar Drawer Toggle
+
+ดูรายละเอียดสถาปัตยกรรมร่วม การจัดการ Document Flow และการรวมเนื้อหา Drawer ระหว่าง Mobile Mode และ Grid Mode ได้ที่ [`docs/sidebar-toggle-knowledge.md`](file:///d:/me/rom_collector/docs/sidebar-toggle-knowledge.md)
+

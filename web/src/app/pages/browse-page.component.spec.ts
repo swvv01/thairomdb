@@ -40,6 +40,7 @@ describe('BrowsePageComponent - Load More Functionality', () => {
 
   beforeEach(async () => {
     window.localStorage.clear();
+    window.localStorage.setItem(BrowseGridModeService.storageKey, 'list');
     queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
@@ -481,6 +482,7 @@ describe('BrowsePageComponent - Page Mode Functionality', () => {
 
   beforeEach(async () => {
     window.localStorage.clear();
+    window.localStorage.setItem(BrowseGridModeService.storageKey, 'list');
     queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
@@ -665,6 +667,7 @@ describe('BrowsePageComponent - Persistent View Mode', () => {
 
   beforeEach(async () => {
     window.localStorage.clear();
+    window.localStorage.setItem(BrowseGridModeService.storageKey, 'list');
     window.localStorage.setItem(BrowsePageComponent.viewModeStorageKey, 'page');
     queryParamMapSubject = new BehaviorSubject<ParamMap>(convertToParamMap({}));
 
@@ -1133,6 +1136,12 @@ describe('BrowsePageComponent - Grid Mode Continuous Loading and Infinite Scroll
       (component as unknown as { loadMore: () => void }).loadMore();
     }
     expect(loadMoreSpy).toHaveBeenCalled();
+  });
+
+  it('defaults to grid mode when localStorage has no saved grid mode preference', () => {
+    window.localStorage.clear();
+    const service = TestBed.runInInjectionContext(() => new BrowseGridModeService());
+    expect(service.isGridMode()).toBeTrue();
   });
 });
 

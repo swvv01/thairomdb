@@ -24,9 +24,9 @@
 
 .grid-mode-toggle {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: 2px 2px 0 var(--color-shadow);
+  background: none;
+  border: none;
+  box-shadow: none;
   color: var(--color-text);
   cursor: pointer;
   display: inline-flex;
@@ -38,8 +38,6 @@
 
 .grid-mode-toggle:hover,
 .grid-mode-toggle--active {
-  background: var(--color-surface-light);
-  border-color: var(--color-highlight);
   color: var(--color-highlight);
 }
 
@@ -255,21 +253,32 @@
   z-index: 15;
 }
 
-:host-context(body.sidebar-open) .app-header {
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 30;
-}
-
 @media (max-width: 900px) {
+  :host-context(body.sidebar-open) .app-header {
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 30;
+  }
+
   .status-message {
     left: 0;
   }
 
   :host-context(body.sidebar-open) .app-shell {
     padding-top: 5rem;
+  }
+}
+
+@media (min-width: 901px) {
+  :host-context(body.sidebar-open) .app-header {
+    position: relative;
+    z-index: 30;
+  }
+
+  :host-context(body.sidebar-open) .app-shell.is-grid-mode {
+    padding-top: 0;
   }
 }
 
@@ -505,11 +514,13 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 479px) {
   .grid-mode-toggle {
     display: none !important;
   }
+}
 
+@media (max-width: 900px) {
   .mobile-menu-button {
     display: inline-block;
   }

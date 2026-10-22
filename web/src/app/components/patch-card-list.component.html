@@ -8,10 +8,21 @@
         [attr.aria-label]="'ดูรายละเอียดเกม ' + patch.gameTitle" (click)="openDetailModal(patch)"
         (keydown.enter)="openDetailModal(patch)">
         <div class="pinterest-card__cover-wrap">
+          <div class="pinterest-card__placeholder"
+            [class.pinterest-card__placeholder--hidden]="loadedImages().has(patch.id)" aria-hidden="true">
+            <img class="pinterest-card__placeholder-img" src="assets/images/loading.gif" alt="" />
+          </div>
           <img class="pinterest-card__cover-image"
             [class.pinterest-card__cover-image--loaded]="loadedImages().has(patch.id)"
             [attr.loading]="index < 4 ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
             [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
+          @if (patch.haveUpdateFlag) {
+          <span class="game-badge update-game-badge pinterest-card__badge" aria-label="แพตช์อัปเดต"><img
+              src="assets/images/update.gif" alt="update" /></span>
+          } @else if (isNewGame(patch.updateDate)) {
+          <span class="game-badge new-game-badge pinterest-card__badge" aria-label="เกมมาใหม่"><img
+              src="assets/images/new.gif" alt="new" /></span>
+          }
           <div class="pinterest-card__overlay" aria-hidden="true">
             <div class="pinterest-card__title-line truncate">
               @if (patch.system.trim()) {
@@ -85,12 +96,14 @@
 
         <span class="game-title">{{ patch.gameTitle }}</span>
 
+        @if (!inDialog) {
         @if (patch.haveUpdateFlag) {
         <span class="game-badge update-game-badge" aria-label="แพตช์อัปเดต"><img src="assets/images/update.gif"
             alt="update" /></span>
         } @else if (isNewGame(patch.updateDate)) {
         <span class="game-badge new-game-badge" aria-label="เกมมาใหม่"><img src="assets/images/new.gif"
             alt="new" /></span>
+        }
         }
         @if (!inDialog) {
         <span class="patch-card__mobile-by">
@@ -101,6 +114,27 @@
         </span>
         }
       </div>
+
+      @if (inDialog) {
+      <div class="patch-card__dialog-actions">
+        @if (canEdit) {
+        <a class="button btn-primary patch-card__action-btn" [routerLink]="['/add', patch.id]" target="_blank"
+          rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
+          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+        </a>
+        }
+
+        <button type="button" class="button patch-card__action-btn"
+          [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
+          [disabled]="togglingLibraryId() === patch.id"
+          [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
+          [attr.title]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
+          (click)="toggleLibrary(patch)">
+          <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
+            aria-hidden="true"></i>
+        </button>
+      </div>
+      }
 
       <div class="patch-card__description">
 
@@ -132,17 +166,15 @@
             systemName(patch.system) }}</a>
         </div>
 
-        @if (formatUpdateDate(patch.updateDate); as updateDate) {
-        <div><span class="patch-card__label">{{ patch.haveUpdateFlag ? 'อัพเดท' : 'เพิ่มเมื่อ' }}: </span><span>{{
-            updateDate }}</span></div>
-        }
-
-
         @if (patch.playTime === 0 || (patch.playTime != null && patch.playTime > 0) || (patch.playTimeFull != null &&
         patch.playTimeFull > 0)) {
         <div><span class="patch-card__label">เวลาเล่นจบ: </span><span>{{ formatCardPlayTime(patch) }}</span></div>
         }
 
+        @if (formatUpdateDate(patch.updateDate); as updateDate) {
+        <div><span class="patch-card__label">{{ patch.haveUpdateFlag ? 'อัพเดท' : 'เพิ่มเมื่อ' }}: </span><span>{{
+            updateDate }}</span></div>
+        }
 
         @if (patch.patchVersion.trim()) {
         <div class="patch-card__version">

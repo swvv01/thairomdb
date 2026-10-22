@@ -15,6 +15,7 @@ import { SidebarLinkRepository } from './repositories/sidebar-link.repository';
 import { ArticleRepository } from './repositories/article.repository';
 import { MarqueeRepository } from './repositories/marquee.repository';
 import { GameLibraryService } from './services/game-library.service';
+import { BrowseGridModeService } from './services/browse-grid-mode.service';
 import { Patch } from './models/patch.models';
 
 describe('AppComponent', () => {
@@ -307,6 +308,8 @@ describe('AppComponent', () => {
   it('should render secondary sections in right sidebar when desktop', () => {
     const isDesktopSignal = (app as unknown as { isDesktop: { set: (val: boolean) => void } }).isDesktop;
     isDesktopSignal.set(true);
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.setGridMode(false);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -315,6 +318,23 @@ describe('AppComponent', () => {
 
     expect(leftHitCounter).toBeNull();
     expect(rightHitCounter).toBeTruthy();
+  });
+
+  it('should render secondary sections in left sidebar on desktop when in grid mode', () => {
+    const isDesktopSignal = (app as unknown as { isDesktop: { set: (val: boolean) => void } }).isDesktop;
+    isDesktopSignal.set(true);
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.isDesktopOrTablet.set(true);
+    gridModeService.isGameListRoute.set(true);
+    gridModeService.setGridMode(true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const leftHitCounter = compiled.querySelector('#system-sidebar .hit-counter');
+    const rightHitCounter = compiled.querySelector('.right-ad-sidebar .hit-counter');
+
+    expect(leftHitCounter).toBeTruthy();
+    expect(rightHitCounter).toBeNull();
   });
 
   it('should support switching to classic-blue theme and cycling themes', () => {
@@ -482,15 +502,86 @@ describe('AppComponent', () => {
     gridModeService.setGridMode(true);
     fixture.detectChanges();
 
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+
     const menuBtn = fixture.nativeElement.querySelector('.mobile-menu-button--grid');
     expect(menuBtn).toBeTruthy();
+
+    const appShell = fixture.nativeElement.querySelector('.app-shell');
+    const appHeader = fixture.nativeElement.querySelector('.app-header');
+    const appContent = fixture.nativeElement.querySelector('.app-content');
+
+    const beforeHeaderRect = appHeader.getBoundingClientRect();
+    const beforeShellRect = appShell.getBoundingClientRect();
+    const beforeContentRect = appContent.getBoundingClientRect();
 
     menuBtn.click();
     fixture.detectChanges();
     expect((app as any).sidebarOpen()).toBe(true);
 
+    const afterHeaderRect = appHeader.getBoundingClientRect();
+    const afterShellRect = appShell.getBoundingClientRect();
+    const afterContentRect = appContent.getBoundingClientRect();
+
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
     expect((app as any).sidebarOpen()).toBe(false);
+
+    document.body.removeChild(fixture.nativeElement);
+
+    expect(afterContentRect.top - beforeContentRect.top).toBe(0);
+    expect(afterShellRect.top).toBe(beforeShellRect.top);
+  });
+
+  it('should not shift content when opening sidebar in grid mode even for VIP users', () => {
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    const authService = TestBed.inject(AuthService);
+    authService.isVip.set(true);
+    gridModeService.isGameListRoute.set(true);
+    gridModeService.isDesktopOrTablet.set(true);
+    gridModeService.setGridMode(true);
+    fixture.detectChanges();
+
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+
+    const menuBtn = fixture.nativeElement.querySelector('.mobile-menu-button--grid');
+    expect(menuBtn).toBeTruthy();
+
+    const appShell = fixture.nativeElement.querySelector('.app-shell');
+    const appContent = fixture.nativeElement.querySelector('.app-content');
+
+    const beforeShellTop = appShell.getBoundingClientRect().top;
+    const beforeContentTop = appContent.getBoundingClientRect().top;
+
+    menuBtn.click();
+    fixture.detectChanges();
+    expect((app as any).sidebarOpen()).toBe(true);
+
+    const afterShellTop = appShell.getBoundingClientRect().top;
+    const afterContentTop = appContent.getBoundingClientRect().top;
+
+    expect(afterShellTop).toBe(beforeShellTop);
+    expect(afterContentTop).toBe(beforeContentTop);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect((app as any).sidebarOpen()).toBe(false);
+
+    document.body.removeChild(fixture.nativeElement);
+  });
+
+  it('should render grid-mode-toggle when on game list route', () => {
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.isGameListRoute.set(true);
+    fixture.detectChanges();
+
+    const toggleBtn = fixture.nativeElement.querySelector('.grid-mode-toggle');
+    expect(toggleBtn).toBeTruthy();
+    expect(gridModeService.isGridMode()).toBeTrue();
+
+    toggleBtn.click();
+    expect(gridModeService.isGridMode()).toBeFalse();
   });
 });

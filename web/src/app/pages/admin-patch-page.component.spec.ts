@@ -462,6 +462,10 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
   };
 
   beforeEach(async () => {
+    coverStorageStub.upload.calls.reset();
+    coverStorageStub.remove.calls.reset();
+    patchRepositoryStub.create.calls.reset();
+    patchRepositoryStub.update.calls.reset();
     statusMessageStub.show.calls.reset();
     statusMessageStub.clear.calls.reset();
     statusMessageStub.message.set(null);
@@ -954,6 +958,128 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
 
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('AdminPatchPageComponent - Quick Tags', () => {
+  let fixture: ComponentFixture<AdminPatchPageComponent>;
+  let comp: any;
+
+  beforeEach(async () => {
+    TestBed.resetTestingModule();
+    const tagRepoSpy = jasmine.createSpyObj('TagRepository', ['watchAll', 'create']);
+    tagRepoSpy.watchAll.and.returnValue(of([
+      { id: 'tag-1', name: 'romhack', slug: 'romhack' },
+      { id: 'tag-2', name: 'พากย์ไทย', slug: 'thai-dub' },
+    ]));
+    tagRepoSpy.create.and.returnValue(Promise.resolve({ id: 'tag-3', name: 'action', slug: 'action' }));
+
+    await TestBed.configureTestingModule({
+      imports: [AdminPatchPageComponent, ReactiveFormsModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({})) },
+        },
+        {
+          provide: Router,
+          useValue: {
+            navigate: jasmine.createSpy('navigate'),
+            navigateByUrl: jasmine.createSpy('navigateByUrl'),
+          },
+        },
+        { provide: TranslatorRepository, useValue: { watchAll: () => of([]) } },
+        { provide: TagRepository, useValue: tagRepoSpy },
+        { provide: SystemRepository, useValue: { watchAll: () => of([]) } },
+        { provide: PatchRepository, useValue: { watchAll: () => of([]), getById: () => Promise.resolve(undefined) } },
+        { provide: CoverStorageService, useValue: { upload: () => Promise.resolve(''), remove: () => Promise.resolve() } },
+        { provide: StatusMessageService, useValue: { show: jasmine.createSpy('show'), clear: jasmine.createSpy('clear') } },
+        {
+          provide: AuthService,
+          useValue: {
+            isAdmin: () => true,
+            waitForAdminCheck: () => Promise.resolve(true),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AdminPatchPageComponent);
+    comp = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('renders quick tag chips for unselected tags', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.quick-tag-chip');
+    expect(buttons.length).toBe(2);
+    expect(buttons[0].textContent).toContain('romhack');
+    expect(buttons[1].textContent).toContain('พากย์ไทย');
+  });
+
+  it('hides quick tag chip when the tag is selected', () => {
+    comp.selectedTags = ['tag-1'];
+    fixture.detectChanges();
+
+    const buttons = fixture.nativeElement.querySelectorAll('.quick-tag-chip');
+    expect(buttons.length).toBe(1);
+    expect(buttons[0].textContent).toContain('พากย์ไทย');
+    expect(buttons[0].textContent).not.toContain('romhack');
+  });
+
+  it('clicking quick tag chip adds existing tag to selectedTags and hides chip', async () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.quick-tag-chip');
+    buttons[0].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(comp.selectedTags).toContain('tag-1');
+    const updatedButtons = fixture.nativeElement.querySelectorAll('.quick-tag-chip');
+    expect(updatedButtons.length).toBe(1);
+    expect(updatedButtons[0].textContent).toContain('พากย์ไทย');
+  });
+
+  it('reappears when tag is removed from selectedTags', () => {
+    comp.selectedTags = ['tag-1'];
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.quick-tag-chip').length).toBe(1);
+
+    comp.removeTag('tag-1');
+    fixture.detectChanges();
+    const updatedButtons = fixture.nativeElement.querySelectorAll('.quick-tag-chip');
+    expect(updatedButtons.length).toBe(2);
+  });
+
+  it('creates tag in repository if tag does not exist in suggestions', async () => {
+    const tagRepo = TestBed.inject(TagRepository) as any;
+    tagRepo.create.and.returnValue(Promise.resolve({ id: 'tag-new', name: 'custom', slug: 'custom' }));
+    await comp.addQuickTag('custom');
+
+    expect(tagRepo.create).toHaveBeenCalledWith('custom');
+    expect(comp.selectedTags).toContain('tag-new');
+  });
+
+  it('sets updateDate to now when setUpdateDateNow is called', () => {
+    comp.form.controls.updateDate.setValue('');
+    comp.setUpdateDateNow();
+
+    const val = comp.form.controls.updateDate.value;
+    expect(val).toBeTruthy();
+    expect(val).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+  });
+
+  it('sets updateDate to tomorrow 00:00 when setUpdateDateTomorrow is called', () => {
+    comp.form.controls.updateDate.setValue('');
+    comp.setUpdateDateTomorrow();
+
+    const val = comp.form.controls.updateDate.value;
+    expect(val).toBeTruthy();
+    expect(val.endsWith('T00:00')).toBeTrue();
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const expectedDate = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T00:00`;
+    expect(val).toBe(expectedDate);
   });
 });
 

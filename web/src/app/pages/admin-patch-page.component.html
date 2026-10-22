@@ -163,9 +163,19 @@
 
         <fieldset class="border border-slate-600 p-3 relative">
           <legend><i class="fa-solid fa-tags mr-1" aria-hidden="true"></i>หมวดหมู่</legend>
-          <button class="mb-3 border px-3 py-2 font-bold button" type="button" (click)="createTag()"
+          <div class="quick-tags-container">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="createTag()"
             [disabled]="!newTagName.trim() || loadingData"><i class="fa-solid fa-tag mr-1" aria-hidden="true"></i>เพิ่ม
             tag ใหม่</button>
+            @for (quickTag of quickTags; track quickTag) {
+              @if (!isQuickTagSelected(quickTag)) {
+              <button class="quick-tag-chip" type="button" (click)="addQuickTag(quickTag)"
+                [disabled]="loadingData" [attr.aria-label]="'เพิ่ม tag ' + quickTag">
+                <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>{{ quickTag }}
+              </button>
+              }
+            }
+          </div>
 
           @if (selectedTags.length > 0) {
           <ul class="selected-tags" aria-label="tag ที่เลือก">
@@ -209,8 +219,12 @@
         <div>
           <label><i class="fa-solid fa-calendar-days mr-1" aria-hidden="true"></i>วันที่และเวลาอัปเดต<input
               class="admin-input" formControlName="updateDate" type="datetime-local" /></label>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
             [disabled]="loadingData"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>ตอนนี้</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateTomorrow()"
+              [disabled]="loadingData"><i class="fa-solid fa-calendar-day mr-1" aria-hidden="true"></i>พรุ่งนี้</button>
+          </div>
         </div>
         <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between gap-4">
           <div class="flex flex-wrap items-center gap-2">

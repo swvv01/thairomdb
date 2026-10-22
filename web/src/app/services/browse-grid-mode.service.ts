@@ -24,11 +24,15 @@ export class BrowseGridModeService {
   public static readonly storageKey = 'thairomdb_browse_grid_mode';
 
   private static getSavedGridMode(): boolean {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined') return true;
     try {
-      return window.localStorage.getItem(BrowseGridModeService.storageKey) === 'grid';
+      const saved = window.localStorage.getItem(BrowseGridModeService.storageKey);
+      if (saved !== null) {
+        return saved === 'grid';
+      }
+      return true;
     } catch {
-      return false;
+      return true;
     }
   }
 
@@ -58,7 +62,7 @@ export class BrowseGridModeService {
       });
 
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      const mql = window.matchMedia('(min-width: 901px)');
+      const mql = window.matchMedia('(min-width: 480px)');
       this.isDesktopOrTablet.set(mql.matches);
       mql.addEventListener('change', (e) => {
         this.isDesktopOrTablet.set(e.matches);

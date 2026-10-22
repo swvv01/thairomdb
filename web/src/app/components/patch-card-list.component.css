@@ -451,6 +451,10 @@
   display: none !important;
 }
 
+.patch-card__dialog-actions {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .patch-card {
     grid-template-columns: 1fr;
@@ -536,12 +540,16 @@
     display: flex !important;
   }
 
-  .patch-detail-dialog .patch-card .game-badge {
-    display: inline-flex !important;
-  }
-
   .patch-detail-dialog .patch-card-title {
     text-align: left;
+  }
+
+  .patch-detail-dialog .patch-card__dialog-actions {
+    align-items: center;
+    display: flex;
+    gap: 0.35rem;
+    justify-content: flex-start;
+    margin: 0.2rem 0 0.4rem;
   }
 
 
@@ -602,20 +610,63 @@
   width: 100%;
 }
 
+.pinterest-card__placeholder {
+  align-items: center;
+  aspect-ratio: 3 / 4;
+  background: var(--color-card-loading-bg);
+  display: flex;
+  justify-content: center;
+  min-height: 200px;
+  width: 100%;
+}
+
+.pinterest-card__placeholder-img {
+  display: block;
+  height: 200px;
+  max-height: 90%;
+  max-width: 90%;
+  object-fit: contain;
+  width: 200px;
+}
+
+.pinterest-card__placeholder--hidden {
+  display: none !important;
+}
+
+.pinterest-card__placeholder:not(.pinterest-card__placeholder--hidden) ~ .pinterest-card__overlay {
+  opacity: 1;
+}
+
 .pinterest-card__cover-image {
   display: block;
   height: auto;
+  left: 0;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.25s ease;
   width: 100%;
 }
 
 .pinterest-card__cover-image--loaded {
   opacity: 1;
+  position: static;
+}
+
+.pinterest-card__badge {
+  display: inline-flex !important;
+  filter: drop-shadow(1px 1px 2px var(--color-shadow));
+  margin-left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  transform: none;
+  z-index: 2;
 }
 
 .pinterest-card__overlay {
-  background: linear-gradient(to top, var(--color-overlay) 40%, transparent 100%);
+  background: var(--color-card-overlay-bg);
   bottom: 0;
   box-sizing: border-box;
   display: flex;
@@ -639,22 +690,22 @@
 }
 
 .pinterest-card__title {
-  color: var(--color-highlight);
+  color: var(--color-card-overlay-title);
   font-size: 0.85rem;
   font-weight: bold;
-  text-shadow: 1px 1px 2px var(--color-shadow);
+  text-shadow: 1px 1px 2px var(--color-card-overlay-shadow);
 }
 
 .pinterest-card__system {
-  color: var(--color-text);
+  color: var(--color-card-overlay-system);
   font-size: 0.85rem;
   font-weight: bold;
   margin-inline-end: 0.35rem;
-  text-shadow: 1px 1px 2px var(--color-shadow);
+  text-shadow: 1px 1px 2px var(--color-card-overlay-shadow);
 }
 
 .pinterest-card__by {
-  color: var(--color-text-muted);
+  color: var(--color-card-overlay-by);
   line-height: 1.2;
-  text-shadow: 1px 1px 2px var(--color-shadow);
+  text-shadow: 1px 1px 2px var(--color-card-overlay-shadow);
 }

@@ -368,6 +368,58 @@ describe('PatchCardListComponent', () => {
     expect(dialog.querySelector('.patch-card__mobile-by')).toBeNull();
   });
 
+  it('does not render game-badge inside detail modal even when patch has update or is new', () => {
+    component.patches = [{
+      ...basePatch,
+      haveUpdateFlag: true,
+      updateDate: new Date().toISOString()
+    }];
+    component.openDetailModal(component.patches[0]);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.querySelector('.game-badge')).toBeNull();
+  });
+
+  it('renders dialog actions (library and edit buttons) inside detail modal', () => {
+    component.patches = [basePatch];
+    component.canEdit = true;
+    component.openDetailModal(basePatch);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+
+    const actions = dialog.querySelector('.patch-card__dialog-actions');
+    expect(actions).not.toBeNull();
+
+    const editBtn = actions.querySelector('a.button.btn-primary.patch-card__action-btn');
+    expect(editBtn).not.toBeNull();
+    expect(editBtn.getAttribute('title')).toBe('แก้ไข');
+
+    const libraryBtn = actions.querySelector('button.button.patch-card__action-btn');
+    expect(libraryBtn).not.toBeNull();
+    expect(libraryBtn.getAttribute('title')).toBe('เก็บเข้าคลัง');
+  });
+
+  it('renders only library button in dialog actions when canEdit is false', () => {
+    component.patches = [basePatch];
+    component.canEdit = false;
+    component.openDetailModal(basePatch);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    const actions = dialog.querySelector('.patch-card__dialog-actions');
+    expect(actions).not.toBeNull();
+
+    const editBtn = actions.querySelector('a.button.btn-primary.patch-card__action-btn');
+    expect(editBtn).toBeNull();
+
+    const libraryBtn = actions.querySelector('button.button.patch-card__action-btn');
+    expect(libraryBtn).not.toBeNull();
+  });
+
   it('stacks version modal on top of detail modal when opened from inside detail modal', () => {
     const multiPatch = {
       ...basePatch,
@@ -502,6 +554,126 @@ describe('PatchCardListComponent', () => {
       const byEl = overlay.querySelector('.pinterest-card__by');
       expect(byEl).not.toBeNull();
       expect(byEl.textContent).toContain('by Happy2You');
+    });
+
+    it('renders update badge on top-right of cover image in grid mode when haveUpdateFlag is true', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{
+        ...basePatch,
+        id: 'patch-update-1',
+        haveUpdateFlag: true
+      }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card');
+      expect(card).not.toBeNull();
+      const badge = card.querySelector('.pinterest-card__badge.update-game-badge');
+      expect(badge).not.toBeNull();
+      expect(badge.querySelector('img[src="assets/images/update.gif"]')).not.toBeNull();
+    });
+
+    it('renders new badge on top-right of cover image in grid mode when game is new', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{
+        ...basePatch,
+        id: 'patch-new-1',
+        updateDate: new Date().toISOString()
+      }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card');
+      expect(card).not.toBeNull();
+      const badge = card.querySelector('.pinterest-card__badge.new-game-badge');
+      expect(badge).not.toBeNull();
+      expect(badge.querySelector('img[src="assets/images/new.gif"]')).not.toBeNull();
+    });
+
+    it('does not render badge in grid mode when game is neither updated nor new', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{
+        ...basePatch,
+        id: 'patch-normal-1',
+        haveUpdateFlag: false,
+        updateDate: '2020-01-01T00:00:00.000Z'
+      }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card');
+      expect(card).not.toBeNull();
+      const badge = card.querySelector('.pinterest-card__badge');
+      expect(badge).toBeNull();
+    });
+
+    it('renders skeleton placeholder in grid mode card while image is loading, and hides it after onImageLoad', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{ ...basePatch, id: 'patch-load-1' }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card');
+      expect(card).not.toBeNull();
+
+      const placeholder = card.querySelector('.pinterest-card__placeholder');
+      expect(placeholder).not.toBeNull();
+      expect(placeholder.classList.contains('pinterest-card__placeholder--hidden')).toBeFalse();
+
+      const loadingGif = placeholder.querySelector('.pinterest-card__placeholder-img');
+      expect(loadingGif).not.toBeNull();
+      expect(loadingGif.getAttribute('src')).toBe('assets/images/loading.gif');
+
+      const img = card.querySelector('.pinterest-card__cover-image');
+      expect(img).not.toBeNull();
+      expect(img.classList.contains('pinterest-card__cover-image--loaded')).toBeFalse();
+
+      // Trigger image load
+      (component as any).onImageLoad('patch-load-1');
+      fixture.detectChanges();
+
+      expect(placeholder.classList.contains('pinterest-card__placeholder--hidden')).toBeTrue();
+      expect(img.classList.contains('pinterest-card__cover-image--loaded')).toBeTrue();
+    });
+
+    it('keeps overlay and badge present during placeholder loading state', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(true);
+      component.patches = [{
+        ...basePatch,
+        id: 'patch-overlay-loading',
+        haveUpdateFlag: true
+      }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.pinterest-card');
+      expect(card).not.toBeNull();
+
+      // Placeholder is active
+      const placeholder = card.querySelector('.pinterest-card__placeholder:not(.pinterest-card__placeholder--hidden)');
+      expect(placeholder).not.toBeNull();
+
+      // Overlay and badge are present in DOM
+      const overlay = card.querySelector('.pinterest-card__overlay');
+      expect(overlay).not.toBeNull();
+      expect(overlay.textContent).toContain('Dragon Quest V');
+
+      const badge = card.querySelector('.pinterest-card__badge.update-game-badge');
+      expect(badge).not.toBeNull();
+    });
+
+    it('calculates at least 2 columns when width is >= 440px', () => {
+      const calculateCols = (width: number) => Math.max(1, width >= 440 ? Math.max(2, Math.floor((width + 12) / (250 + 12))) : 1);
+      expect(calculateCols(440)).toBe(2);
+      expect(calculateCols(448)).toBe(2);
+      expect(calculateCols(512)).toBe(2);
+      expect(calculateCols(780)).toBe(3);
+      expect(calculateCols(400)).toBe(1);
     });
   });
 });

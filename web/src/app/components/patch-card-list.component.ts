@@ -59,7 +59,7 @@ export class PatchCardListComponent implements AfterViewInit, OnDestroy {
         for (const entry of entries) {
           const width = entry.contentRect.width;
           if (width > 0) {
-            const count = Math.max(1, Math.floor((width + 12) / (250 + 12)));
+            const count = Math.max(1, width >= 440 ? Math.max(2, Math.floor((width + 12) / (250 + 12))) : 1);
             this.columnCount.set(count);
           }
         }
