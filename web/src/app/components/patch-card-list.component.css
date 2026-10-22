@@ -620,13 +620,23 @@
   width: 100%;
 }
 
-.pinterest-card__placeholder-img {
-  display: block;
-  height: 200px;
-  max-height: 90%;
-  max-width: 90%;
-  object-fit: contain;
-  width: 200px;
+.pinterest-card__placeholder-icon {
+  animation: pinterest-placeholder-pulse 1.8s ease-in-out infinite;
+  color: var(--color-card-loading-icon, var(--color-text-muted));
+  display: inline-block;
+  font-size: 2.75rem;
+  line-height: 1;
+}
+
+@keyframes pinterest-placeholder-pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 .pinterest-card__placeholder--hidden {

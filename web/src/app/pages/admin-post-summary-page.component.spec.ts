@@ -5,6 +5,12 @@ import {
   AdminPostSummaryPageComponent,
   calculateSquareGridDimensions,
   calculateDiagonalGridCols,
+  calculateMasonryColumnCount,
+  comparePatchesByNewestAndPriority,
+  drawRoundedRect,
+  drawBrandingOverlay,
+  renderMasonryCollage,
+  renderDiagonalCollage,
   drawTiltedTile,
   distributeIntoColumns,
   drawGridBackground,
@@ -164,11 +170,10 @@ describe('AdminPostSummaryPageComponent', () => {
 
   it('should filter patches to default 24 hour range and format summary with emojis and total count', () => {
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 🎮✨');
-    expect(text).toContain('(รวมทั้งหมด 2 เกม)');
+    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 2 เกม');
+    expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
     expect(text).toContain('- Final Fantasy VII [PS1] ✨');
     expect(text).toContain('- Chrono Trigger [SNES] 🔄');
-    expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
     expect(text).not.toContain('Dragon Quest [NES]');
     expect(text).not.toContain('เข้าชมและดาวน์โหลด');
   });
@@ -193,7 +198,7 @@ describe('AdminPostSummaryPageComponent', () => {
     fixture.detectChanges();
 
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('(รวมทั้งหมด 3 เกม)');
+    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 3 เกม');
     expect(text).toContain('ทีมแปลที่หนึ่ง (2 เกม)');
     expect(text).toContain('ทีมแปลที่สอง (1 เกม)');
     expect(text).toContain('Final Fantasy VII [PS1]');
@@ -213,7 +218,8 @@ describe('AdminPostSummaryPageComponent', () => {
     fixture.detectChanges();
 
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('(รวมทั้งหมด 0 เกม)');
+    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 0 เกม');
+    expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
     expect(text).toContain('(ไม่พบเกมที่อัปเดตในช่วงเวลาดังกล่าว)');
   });
 
@@ -303,6 +309,267 @@ describe('AdminPostSummaryPageComponent', () => {
     }
   });
 
+  it('should calculate masonry grid column count based on items', () => {
+    expect(calculateMasonryColumnCount(1)).toBe(1);
+    expect(calculateMasonryColumnCount(2)).toBe(2);
+    expect(calculateMasonryColumnCount(3)).toBe(2);
+    expect(calculateMasonryColumnCount(4)).toBe(3);
+    expect(calculateMasonryColumnCount(7)).toBe(3);
+    expect(calculateMasonryColumnCount(8)).toBe(4);
+    expect(calculateMasonryColumnCount(14)).toBe(4);
+    expect(calculateMasonryColumnCount(15)).toBe(5);
+    expect(calculateMasonryColumnCount(30)).toBe(5);
+  });
+
+  it('should draw rounded rect fallback correctly', () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    expect(() => {
+      drawRoundedRect(ctx, 0, 0, 100, 100, 6);
+    }).not.toThrow();
+  });
+
+  it('should draw branding overlay onto canvas without error', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d')!;
+    expect(() => {
+      drawBrandingOverlay(ctx, 1024, null);
+    }).not.toThrow();
+  });
+
+  it('should render masonry collage without error', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d')!;
+    const dummyImg = document.createElement('img');
+    const validImages = [
+      { patch: mockPatches[0], img: dummyImg },
+      { patch: mockPatches[2], img: dummyImg }
+    ];
+    expect(() => {
+      renderMasonryCollage(ctx, 1024, validImages);
+    }).not.toThrow();
+  });
+
+  it('should render diagonal collage without error', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d')!;
+    const dummyImg = document.createElement('img');
+    const validImages = [
+      { patch: mockPatches[0], img: dummyImg },
+      { patch: mockPatches[2], img: dummyImg }
+    ];
+    expect(() => {
+      renderDiagonalCollage(ctx, 1024, validImages);
+    }).not.toThrow();
+  });
+
+  it('should default collageMode to masonry and allow switching', () => {
+    expect((component as any).collageMode()).toBe('masonry');
+    (component as any).setCollageMode('diagonal');
+    expect((component as any).collageMode()).toBe('diagonal');
+    expect((component as any).previewImageUrl()).toBeNull();
+
+    // Clicking the same mode should be a no-op
+    (component as any).setCollageMode('diagonal');
+    expect((component as any).collageMode()).toBe('diagonal');
+  });
+
+  it('should render collage mode toggle buttons in template', () => {
+    const modeButtons = fixture.nativeElement.querySelectorAll('.mode-toggle-btn');
+    expect(modeButtons.length).toBe(2);
+    expect(modeButtons[0].textContent).toContain('กริด Masonry');
+    expect(modeButtons[1].textContent).toContain('ลายเอียง 45°');
+
+    // Default active button should be masonry
+    expect(modeButtons[0].classList.contains('mode-toggle-btn--active')).toBeTrue();
+    expect(modeButtons[1].classList.contains('mode-toggle-btn--active')).toBeFalse();
+
+    // Click diagonal button
+    modeButtons[1].click();
+    fixture.detectChanges();
+
+    expect((component as any).collageMode()).toBe('diagonal');
+    expect(modeButtons[0].classList.contains('mode-toggle-btn--active')).toBeFalse();
+    expect(modeButtons[1].classList.contains('mode-toggle-btn--active')).toBeTrue();
+  });
+
+  it('should render masonry collage with explicit columns and handle overflow clipping', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d')!;
+    const dummyImg = document.createElement('img');
+    dummyImg.width = 200;
+    dummyImg.height = 800; // very tall to trigger overflow beyond 1024
+
+    const validImages = [
+      { patch: mockPatches[0], img: dummyImg },
+      { patch: mockPatches[2], img: dummyImg },
+      { patch: mockPatches[0], img: dummyImg },
+      { patch: mockPatches[2], img: dummyImg }
+    ];
+
+    const stats = renderMasonryCollage(ctx, 1024, validImages, 2);
+    expect(stats.fullCount + stats.partialGames.length + stats.omittedGames.length).toBe(4);
+    expect(stats.partialGames.length + stats.omittedGames.length).toBeGreaterThan(0);
+  });
+
+  it('should display masonry stats and allow toggling affected games', () => {
+    (component as any).masonryStats.set({
+      fullCount: 2,
+      partialGames: [mockPatches[0]],
+      omittedGames: [mockPatches[2]]
+    });
+    (component as any).previewImageUrl.set('data:image/jpeg;base64,mock');
+    fixture.detectChanges();
+
+    const statsBox = fixture.nativeElement.querySelector('.masonry-stats-box');
+    expect(statsBox).toBeTruthy();
+
+    const pills = fixture.nativeElement.querySelectorAll('.stats-pill');
+    expect(pills.length).toBe(3);
+    expect(pills[0].textContent).toContain('แสดงเต็ม: 2');
+    expect(pills[1].textContent).toContain('ตัดบางส่วน: 1');
+    expect(pills[2].textContent).toContain('ไม่ได้แสดงเลย: 1');
+
+    const toggleBtn = fixture.nativeElement.querySelector('.affected-toggle-btn');
+    expect(toggleBtn).toBeTruthy();
+
+    // Toggle affected games list
+    toggleBtn.click();
+    fixture.detectChanges();
+
+    expect((component as any).showAffectedGames()).toBeTrue();
+    const affectedGroups = fixture.nativeElement.querySelectorAll('.affected-group');
+    expect(affectedGroups.length).toBe(2);
+
+    const affectedItems = fixture.nativeElement.querySelectorAll('.affected-item');
+    expect(affectedItems.length).toBe(2);
+    expect(affectedItems[0].textContent).toContain('✨');
+  });
+
+  it('should manage column adjustments and auto mode correctly', () => {
+    // Initially customColumns is null (Auto mode)
+    expect((component as any).customColumns()).toBeNull();
+    expect((component as any).columnLabel()).toContain('Auto');
+
+    // Incrementing from Auto sets to auto + 1 (or 10 max)
+    (component as any).incrementColumns();
+    expect((component as any).customColumns()).toBeGreaterThanOrEqual(1);
+    expect((component as any).columnLabel()).toContain('คอลัมน์');
+
+    // Increment up to 10
+    for (let i = 0; i < 15; i++) {
+      (component as any).incrementColumns();
+    }
+    expect((component as any).customColumns()).toBe(10);
+
+    // Decrement down to 1
+    for (let i = 0; i < 9; i++) {
+      (component as any).decrementColumns();
+    }
+    expect((component as any).customColumns()).toBe(1);
+
+    // Decrementing below 1 returns to Auto (null)
+    (component as any).decrementColumns();
+    expect((component as any).customColumns()).toBeNull();
+    expect((component as any).columnLabel()).toContain('Auto');
+  });
+
+  it('should show column stepper in masonry mode and hide in diagonal mode', () => {
+    // In masonry mode (default), stepper should be rendered
+    let stepper = fixture.nativeElement.querySelector('.column-stepper-group');
+    expect(stepper).toBeTruthy();
+
+    const stepperBtns = fixture.nativeElement.querySelectorAll('.stepper-btn');
+    expect(stepperBtns.length).toBe(2);
+
+    // Click increment
+    stepperBtns[1].click();
+    fixture.detectChanges();
+    expect((component as any).customColumns()).not.toBeNull();
+
+    // Switch to diagonal mode -> stepper should disappear
+    (component as any).setCollageMode('diagonal');
+    fixture.detectChanges();
+
+    stepper = fixture.nativeElement.querySelector('.column-stepper-group');
+    expect(stepper).toBeNull();
+  });
+
+  it('should compare patches by new game priority, newest date, and title', () => {
+    const newOldDate: Patch = {
+      id: 'p-new-old',
+      updateDate: '2026-10-01T10:00:00.000Z',
+      haveUpdateFlag: false,
+      gameTitle: 'Alpha',
+      system: 'SNES',
+      translatorId: 't1',
+      translatedBy: 'T1',
+      patchVersion: '1.0',
+      patchTool: '',
+      tags: [],
+      coverUrl: '',
+      patchFileUrl: '',
+      patchedRomUrl: '',
+      referenceText: '',
+      referenceUrl: '',
+      walkthroughUrl: ''
+    };
+
+    const newRecentDate: Patch = {
+      id: 'p-new-recent',
+      updateDate: '2026-10-20T10:00:00.000Z',
+      haveUpdateFlag: false,
+      gameTitle: 'Beta',
+      system: 'SNES',
+      translatorId: 't1',
+      translatedBy: 'T1',
+      patchVersion: '1.0',
+      patchTool: '',
+      tags: [],
+      coverUrl: '',
+      patchFileUrl: '',
+      patchedRomUrl: '',
+      referenceText: '',
+      referenceUrl: '',
+      walkthroughUrl: ''
+    };
+
+    const updateGame: Patch = {
+      id: 'p-update',
+      updateDate: '2026-10-22T10:00:00.000Z',
+      haveUpdateFlag: true,
+      gameTitle: 'Zeta',
+      system: 'SNES',
+      translatorId: 't1',
+      translatedBy: 'T1',
+      patchVersion: '1.2',
+      patchTool: '',
+      tags: [],
+      coverUrl: '',
+      patchFileUrl: '',
+      patchedRomUrl: '',
+      referenceText: '',
+      referenceUrl: '',
+      walkthroughUrl: ''
+    };
+
+    // New game must come before update game regardless of date
+    expect(comparePatchesByNewestAndPriority(newOldDate, updateGame)).toBeLessThan(0);
+    expect(comparePatchesByNewestAndPriority(updateGame, newOldDate)).toBeGreaterThan(0);
+
+    // Among new games, newest updateDate must come first
+    expect(comparePatchesByNewestAndPriority(newRecentDate, newOldDate)).toBeLessThan(0);
+    expect(comparePatchesByNewestAndPriority(newOldDate, newRecentDate)).toBeGreaterThan(0);
+  });
+
   it('should handle repository load errors gracefully', () => {
     spyOn(statusMessageService, 'show');
     mockPatchRepo.watchAll.and.returnValue(throwError(() => new Error('Load failed')));
@@ -311,5 +578,103 @@ describe('AdminPostSummaryPageComponent', () => {
     newFixture.detectChanges();
 
     expect(statusMessageService.show).toHaveBeenCalledWith('ไม่สามารถโหลดข้อมูลเกมได้', 'error');
+  });
+
+  describe('Cropper & Branding Overlay Workflow', () => {
+    it('should open and close cropper modal based on rawBlob state', () => {
+      // With no rawBlob, openCropper should do nothing
+      (component as any).openCropper();
+      expect((component as any).cropperOpen()).toBeFalse();
+
+      // With rawBlob present
+      const blob = new Blob(['mock-img'], { type: 'image/jpeg' });
+      (component as any).rawBlob.set(blob);
+      (component as any).openCropper();
+      expect((component as any).cropperOpen()).toBeTrue();
+
+      (component as any).closeCropper();
+      expect((component as any).cropperOpen()).toBeFalse();
+    });
+
+    it('should update preview image, mark as cropped, and close cropper onCropped', () => {
+      const mockResult = {
+        blob: new Blob(['cropped-img'], { type: 'image/jpeg' }),
+        cropRect: { x: 10, y: 10, width: 100, height: 100 }
+      };
+
+      (component as any).cropperOpen.set(true);
+      (component as any).onCropped(mockResult);
+
+      expect((component as any).isCropped()).toBeTrue();
+      expect((component as any).lastCrop()).toEqual(mockResult.cropRect);
+      expect((component as any).cropperOpen()).toBeFalse();
+      expect((component as any).previewImageUrl()).toBeTruthy();
+    });
+
+    it('should reset to raw image and clear cropped state on resetToOriginal', () => {
+      const originalUrl = 'blob:http://localhost/original-image';
+      (component as any).rawImageUrl.set(originalUrl);
+      (component as any).previewImageUrl.set('blob:http://localhost/cropped-image');
+      (component as any).isCropped.set(true);
+      (component as any).lastCrop.set({ x: 5, y: 5, width: 50, height: 50 });
+
+      (component as any).resetToOriginal();
+
+      expect((component as any).isCropped()).toBeFalse();
+      expect((component as any).lastCrop()).toBeNull();
+      expect((component as any).previewImageUrl()).toBe(originalUrl);
+    });
+
+    it('should render preview frame with branding overlay when previewImageUrl is present', () => {
+      (component as any).previewImageUrl.set('data:image/png;base64,mock');
+      fixture.detectChanges();
+
+      const previewFrame = fixture.nativeElement.querySelector('.preview-frame');
+      expect(previewFrame).toBeTruthy();
+
+      const overlay = fixture.nativeElement.querySelector('.preview-branding-overlay');
+      expect(overlay).toBeTruthy();
+
+      const brandUrl = fixture.nativeElement.querySelector('.overlay-brand-url');
+      expect(brandUrl?.textContent).toContain('thairomdb.pages.dev');
+
+      const cropBtns = fixture.nativeElement.querySelectorAll('.crop-btn');
+      expect(cropBtns.length).toBeGreaterThan(0);
+    });
+
+    it('should show reset crop button when isCropped is true', () => {
+      (component as any).previewImageUrl.set('data:image/png;base64,mock');
+      (component as any).isCropped.set(false);
+      fixture.detectChanges();
+
+      let resetBtn = fixture.nativeElement.querySelector('.reset-crop-btn');
+      expect(resetBtn).toBeNull();
+
+      (component as any).isCropped.set(true);
+      fixture.detectChanges();
+
+      resetBtn = fixture.nativeElement.querySelector('.reset-crop-btn');
+      expect(resetBtn).toBeTruthy();
+    });
+
+    it('should render cropper modal when cropperOpen and rawBlob are true', () => {
+      (component as any).rawBlob.set(new Blob(['test'], { type: 'image/jpeg' }));
+      (component as any).cropperOpen.set(true);
+      fixture.detectChanges();
+
+      const modal = fixture.nativeElement.querySelector('app-image-cropper-modal');
+      expect(modal).toBeTruthy();
+    });
+
+    it('should support drawBrandingOverlay with 1024x1200 dimensions', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1200;
+      const ctx = canvas.getContext('2d')!;
+
+      expect(() => {
+        drawBrandingOverlay(ctx, 1024, 1200, null);
+      }).not.toThrow();
+    });
   });
 });

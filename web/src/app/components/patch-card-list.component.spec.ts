@@ -624,9 +624,9 @@ describe('PatchCardListComponent', () => {
       expect(placeholder).not.toBeNull();
       expect(placeholder.classList.contains('pinterest-card__placeholder--hidden')).toBeFalse();
 
-      const loadingGif = placeholder.querySelector('.pinterest-card__placeholder-img');
-      expect(loadingGif).not.toBeNull();
-      expect(loadingGif.getAttribute('src')).toBe('assets/images/loading.gif');
+      const placeholderIcon = placeholder.querySelector('.pinterest-card__placeholder-icon');
+      expect(placeholderIcon).not.toBeNull();
+      expect(placeholderIcon.classList.contains('fa-image')).toBeTrue();
 
       const img = card.querySelector('.pinterest-card__cover-image');
       expect(img).not.toBeNull();

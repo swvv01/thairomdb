@@ -57,40 +57,6 @@
           <span class="count-badge">พบ {{ stats().gameCount }} เกม ({{ stats().translatorCount }} ทีมแปล)</span>
         }
       </div>
-
-      <div class="action-group">
-        <button
-          type="button"
-          class="button comment-btn"
-          [class.comment-btn--success]="copiedCommentLink()"
-          (click)="copyCommentLink()"
-          title="คัดลอกลิงก์ https://thairomdb.pages.dev ไปวางในคอมเมนต์แรก"
-        >
-          @if (copiedCommentLink()) {
-            <i class="fa-solid fa-check" aria-hidden="true"></i>
-            <span>คัดลอกลิงก์แล้ว!</span>
-          } @else {
-            <i class="fa-solid fa-link" aria-hidden="true"></i>
-            <span>คัดลอกลิงก์คอมเมนต์</span>
-          }
-        </button>
-
-        <button
-          type="button"
-          class="button copy-btn"
-          [class.copy-btn--success]="copied()"
-          (click)="copyText()"
-          [disabled]="loading()"
-        >
-          @if (copied()) {
-            <i class="fa-solid fa-check" aria-hidden="true"></i>
-            <span>คัดลอกเรียบร้อย!</span>
-          } @else {
-            <i class="fa-regular fa-copy" aria-hidden="true"></i>
-            <span>คัดลอกข้อความ</span>
-          }
-        </button>
-      </div>
     </div>
 
     <div class="summary-body">
@@ -158,6 +124,55 @@
       </div>
 
       <div class="action-group">
+        <div class="mode-toggle-group" role="group" aria-label="เลือกรูปแบบรูปภาพรวมปก">
+          <button
+            type="button"
+            class="mode-toggle-btn"
+            [class.mode-toggle-btn--active]="collageMode() === 'masonry'"
+            (click)="setCollageMode('masonry')"
+            title="กริดแนวตั้งสไตล์ Masonry Pinterest"
+          >
+            <i class="fa-solid fa-table-cells" aria-hidden="true"></i>
+            <span>กริด Masonry</span>
+          </button>
+          <button
+            type="button"
+            class="mode-toggle-btn"
+            [class.mode-toggle-btn--active]="collageMode() === 'diagonal'"
+            (click)="setCollageMode('diagonal')"
+            title="ลายโมเสกเอียง 45 องศา"
+          >
+            <i class="fa-solid fa-shapes" aria-hidden="true"></i>
+            <span>ลายเอียง 45°</span>
+          </button>
+        </div>
+
+        @if (collageMode() === 'masonry') {
+          <div class="column-stepper-group" role="group" aria-label="ปรับจำนวนคอลัมน์">
+            <button
+              type="button"
+              class="stepper-btn"
+              (click)="decrementColumns()"
+              title="ลดจำนวนคอลัมน์ (ลดต่ำกว่า 1 จะกลับเป็น Auto)"
+              [disabled]="loading() || generatingImage()"
+            >
+              <i class="fa-solid fa-minus" aria-hidden="true"></i>
+            </button>
+            <span class="stepper-value" [class.stepper-value--auto]="customColumns() === null">
+              {{ columnLabel() }}
+            </span>
+            <button
+              type="button"
+              class="stepper-btn"
+              (click)="incrementColumns()"
+              title="เพิ่มจำนวนคอลัมน์ (สูงสุด 10)"
+              [disabled]="loading() || generatingImage() || customColumns() === 10"
+            >
+              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </button>
+          </div>
+        }
+
         <button
           type="button"
           class="button generate-btn"
@@ -174,6 +189,28 @@
         </button>
 
         @if (previewImageUrl()) {
+          <button
+            type="button"
+            class="button crop-btn"
+            (click)="openCropper()"
+            title="ครอบตัดรูปภาพ"
+          >
+            <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
+            <span>ครอบตัดรูปภาพ</span>
+          </button>
+
+          @if (isCropped()) {
+            <button
+              type="button"
+              class="button reset-crop-btn"
+              (click)="resetToOriginal()"
+              title="คืนค่ารูปภาพต้นฉบับ"
+            >
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+              <span>คืนค่าต้นฉบับ</span>
+            </button>
+          }
+
           <button
             type="button"
             class="button download-btn"
@@ -195,9 +232,106 @@
       } @else {
         @if (previewImageUrl(); as imgUrl) {
           <div class="preview-wrapper">
-            <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
+            <div class="preview-frame">
+              <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
+              <div class="preview-branding-overlay" aria-hidden="true">
+                <img src="assets/images/logo.png" alt="" class="overlay-logo-img" />
+                <span class="overlay-brand-url">thairomdb.pages.dev</span>
+              </div>
+            </div>
           </div>
+
+          @if (collageMode() === 'masonry' && masonryStats(); as stats) {
+            <div class="masonry-stats-box" aria-label="สรุปผลการจัดวางรูปภาพ">
+              <div class="stats-summary-row">
+                <div class="stats-pill stats-pill--full" title="แสดงรูปเต็มใบ">
+                  <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                  <span>แสดงเต็ม: <strong>{{ stats.fullCount }}</strong></span>
+                </div>
+                <div class="stats-pill stats-pill--partial" title="รูปที่ส่วนล่างถูกครอปตัดออก">
+                  <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                  <span>ตัดบางส่วน: <strong>{{ stats.partialGames.length }}</strong></span>
+                </div>
+                <div class="stats-pill stats-pill--omitted" title="รูปที่ล้นเกินกรอบ Canvas ทั้งใบ">
+                  <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                  <span>ไม่ได้แสดงเลย: <strong>{{ stats.omittedGames.length }}</strong></span>
+                </div>
+
+                @if (stats.partialGames.length > 0 || stats.omittedGames.length > 0) {
+                  <button
+                    type="button"
+                    class="affected-toggle-btn"
+                    (click)="toggleAffectedGames()"
+                    [attr.aria-expanded]="showAffectedGames()"
+                  >
+                    <i class="fa-solid" [class.fa-chevron-down]="!showAffectedGames()" [class.fa-chevron-up]="showAffectedGames()" aria-hidden="true"></i>
+                    <span>{{ showAffectedGames() ? 'ซ่อนรายชื่อเกม' : 'ดูรายชื่อเกมที่ถูกตัด' }}</span>
+                  </button>
+                }
+              </div>
+
+              @if (showAffectedGames() && (stats.partialGames.length > 0 || stats.omittedGames.length > 0)) {
+                <div class="affected-lists">
+                  @if (stats.partialGames.length > 0) {
+                    <div class="affected-group">
+                      <h4 class="affected-title affected-title--partial">
+                        <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                        <span>เกมที่รูปถูกตัดบางส่วน ({{ stats.partialGames.length }} เกม):</span>
+                      </h4>
+                      <ul class="affected-items">
+                        @for (game of stats.partialGames; track game.id) {
+                          <li class="affected-item">
+                            {{ game.gameTitle }} [{{ game.system }}]
+                            <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' : '✨' }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+
+                  @if (stats.omittedGames.length > 0) {
+                    <div class="affected-group">
+                      <h4 class="affected-title affected-title--omitted">
+                        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                        <span>เกมที่ไม่ได้แสดงเลย ({{ stats.omittedGames.length }} เกม):</span>
+                      </h4>
+                      <ul class="affected-items">
+                        @for (game of stats.omittedGames; track game.id) {
+                          <li class="affected-item">
+                            {{ game.gameTitle }} [{{ game.system }}]
+                            <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' : '✨' }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
           <div class="bottom-actions">
+            <button
+              type="button"
+              class="button crop-btn"
+              (click)="openCropper()"
+              title="ครอบตัดรูปภาพ"
+            >
+              <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
+              <span>ครอบตัดรูปภาพ</span>
+            </button>
+
+            @if (isCropped()) {
+              <button
+                type="button"
+                class="button reset-crop-btn"
+                (click)="resetToOriginal()"
+                title="คืนค่ารูปภาพต้นฉบับ"
+              >
+                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                <span>คืนค่าต้นฉบับ</span>
+              </button>
+            }
+
             <button
               type="button"
               class="button download-btn"
@@ -217,3 +351,12 @@
     </div>
   </section>
 </main>
+
+@if (cropperOpen() && rawBlob()) {
+  <app-image-cropper-modal
+    [imageBlob]="rawBlob()!"
+    [initialCrop]="lastCrop()"
+    (cropped)="onCropped($event)"
+    (cancelled)="closeCropper()"
+  />
+}

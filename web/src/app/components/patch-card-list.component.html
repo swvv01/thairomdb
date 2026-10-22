@@ -10,7 +10,7 @@
         <div class="pinterest-card__cover-wrap">
           <div class="pinterest-card__placeholder"
             [class.pinterest-card__placeholder--hidden]="loadedImages().has(patch.id)" aria-hidden="true">
-            <img class="pinterest-card__placeholder-img" src="assets/images/loading.gif" alt="" />
+            <i class="fa-regular fa-image pinterest-card__placeholder-icon" aria-hidden="true"></i>
           </div>
           <img class="pinterest-card__cover-image"
             [class.pinterest-card__cover-image--loaded]="loadedImages().has(patch.id)"

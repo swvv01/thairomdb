@@ -125,11 +125,11 @@
 - กำหนด `pointer-events: none` เพื่อให้คลิกผ่านไปยังการเปิด Detail Modal ของเกมได้ตามปกติ
 - บังคับ `display: inline-flex !important` เพื่อป้องกันการถูกซ่อนจากมีเดียคิวรีระดับการ์ดปกติบนจอแท็บเล็ต
 
-### 4.5 Cover Image Placeholder ระหว่างโหลดรูปภาพ (`loading.gif`)
+### 4.5 Cover Image Placeholder ระหว่างโหลดรูปภาพ (`fa-regular fa-image`)
 เพื่อแก้ปัญหาการ์ดแฟบ (Collapse) และภาพกระตุก (Cumulative Layout Shift - CLS) ก่อนที่ไฟล์ภาพปกเกมจะถูกดาวน์โหลดจากเซิร์ฟเวอร์เสร็จ:
-- **โครงสร้างและสีพื้นหลัง:** ใส่ `.pinterest-card__placeholder` ภายใน `.pinterest-card__cover-wrap` โดยใช้โทนสีพื้นหลังสีขาว `var(--color-card-loading-bg)` ให้กลมกลืนเป็นเนื้อเดียวกับภาพ `assets/images/loading.gif` ที่อยู่ตรงกึ่งกลาง
+- **โครงสร้างและสีพื้นหลัง:** ใส่ `.pinterest-card__placeholder` ภายใน `.pinterest-card__cover-wrap` โดยใช้โทนสีพื้นหลัง `var(--color-card-loading-bg)` (อิงจาก `var(--color-surface-light)`) ให้ปรับตามธีมของเว็บไซต์อัตโนมัติ พร้อมไอคอน FontAwesome `fa-regular fa-image` ที่กึ่งกลาง
 - **มิติเริ่มต้น:** กำหนด `aspect-ratio: 3 / 4` คู่กับ `min-height: 200px` และความกว้าง `width: 100%` เพื่อจองพื้นที่สัดส่วนกล่องเกมแนวตั้งมาตรฐานใน Masonry
-- **การจัดวางภาพ Loading:** ใช้ Flexbox จัดรูป `loading.gif` (ขนาดต้นฉบับ 200px) ไว้กึ่งกลางกล่องพอดี โดยตั้ง `max-width: 90%; max-height: 90%` เพื่อความยืดหยุ่นบนจอเล็ก
+- **แอนิเมชัน Pulse สไตล์ Skeleton:** กำหนดแอนิเมชัน `pinterest-placeholder-pulse` ให้ไอคอนขนาด 2.75rem ค่อยๆ หรี่และขยายจังหวะนุ่มนวลระหว่างรอรูปภาพจริง
 - **คงการแสดงผล Overlay และ Badge:** ในช่วงที่ Placeholder กำลังแสดงผล แถบข้อความชื่อเกมและ Game Badge จะยังคงปรากฏชัดเจน (`opacity: 1`) เพื่อให้ผู้ใช้สามารถอ่านข้อมูลเกมได้ทันทีโดยไม่ต้องรอรูปโหลด
 - **Smooth Image Reveal:** ตัวรูปภาพจริงซ่อนอยู่ในเบื้องหลัง (`opacity: 0; position: absolute;`) และเมื่อดาวน์โหลดเสร็จสมบูรณ์ (`onImageLoad`) ตัว Placeholder จะถูกซ่อน (`display: none !important`) และภาพจริงจะ Fade-in ขึ้นมา (`opacity: 1; position: static;`) ด้วย `transition: opacity 0.25s ease` ปรับความสูงตามสัดส่วนภาพจริงโดยอัตโนมัติ
 

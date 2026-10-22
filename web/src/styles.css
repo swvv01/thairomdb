@@ -44,7 +44,8 @@
   --color-card-overlay-system: #ffffff;
   --color-card-overlay-by: #a8abd9;
   --color-card-overlay-shadow: #000000;
-  --color-card-loading-bg: #ffffff;
+  --color-card-loading-bg: var(--color-surface-light);
+  --color-card-loading-icon: var(--color-text-muted);
 }
 
 /****** Begin Pocket Pet Theme Style ******/
