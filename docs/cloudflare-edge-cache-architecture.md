@@ -58,7 +58,8 @@ flowchart TD
   2. เปรียบเทียบ `X-Edge-Cached-At` กับ `localSavedAt` ใน `localStorage`
   3. หากตรงกัน: ส่งคืน `isSameAsLocal: true` เพื่อนำข้อมูลจาก `localStorage` มาแสดงผลทันทีโดยไม่ต้องดาวน์โหลด JSON ซ้ำ
   4. หากไม่ตรงกัน หรือยังไม่มีข้อมูล: ส่งคำขอ `GET /api/data/patches` เพื่อดาวน์โหลดและบันทึกชุดใหม่
-* **Graceful Fallback:** หาก Worker ไม่ตอบสนองหรือขัดข้อง ระบบจะ fallback ไปดึงผ่าน Firebase RTDB SDK โดยอัตโนมัติ
+* **Graceful Offline Mode:** หาก Worker ไม่ตอบสนองหรือขัดข้อง ระบบจะนำข้อมูลเดิมในแคชของเบราว์เซอร์ (`localStorage`) มาแสดงผลแทน (ตัดการดึงก้อนใหญ่จาก Firebase RTDB ออกเพื่อป้องกันโควตารั่วไหล)
+* **R2 Global Cache & RTDB Lockdown:** ดูรายละเอียดสถาปัตยกรรมแคชระดับ R2 และการปิดสิทธิ์ Firebase เพิ่มเติมได้ที่ [r2-global-cache-and-rtdb-lockdown.md](file:///d:/me/rom_collector/docs/r2-global-cache-and-rtdb-lockdown.md)
 
 ### 3.3 การแสดงผล `#last-update` ([web/src/app/app.component.html](file:///d:/me/rom_collector/web/src/app/app.component.html))
 * กล่อง `#last-update` แสดงเวลาจริงที่ข้อมูลถูกบันทึกไว้ที่ Cloudflare Edge Server (จาก Header `X-Edge-Cached-At`)

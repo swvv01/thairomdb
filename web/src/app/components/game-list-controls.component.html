@@ -14,11 +14,11 @@
 </div>
 
 <div id="game-sort-row" class="sort-row" [class.sort-row--open]="sortOpen" [class.sort-row--collapsed]="sortCollapsed">
-  <div class="browse-route-label" (click)="toggleSort()" [style.cursor]="'pointer'" role="button" tabindex="0"
-    (keydown.enter)="toggleSort()" (keydown.space)="toggleSort(); $event.preventDefault()"
+  <div class="browse-route-label win98-titlebar-bg" (click)="toggleSort()" [style.cursor]="'pointer'" role="button"
+    tabindex="0" (keydown.enter)="toggleSort()" (keydown.space)="toggleSort(); $event.preventDefault()"
     [attr.aria-expanded]="!sortCollapsed" aria-controls="game-sort-content"
     [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'">
-    <button type="button" class="win98-ctrl-btn sort-toggle browse-route-label__toggle no-button"
+    <button type="button" class="sort-toggle browse-route-label__toggle no-button"
       [class.sort-row__close-btn]="!sortCollapsed" [class.sort-row__minimize-btn]="!sortCollapsed"
       [class.sort-row__restore-btn]="sortCollapsed" [class.sort-toggle--closed]="sortCollapsed"
       (click)="toggleSort(); $event.stopPropagation()" [attr.aria-label]="sortCollapsed ? 'ขยายตัวกรอง' : 'ย่อตัวกรอง'"
@@ -27,7 +27,7 @@
         aria-hidden="true"></i>
     </button>
     <span class="browse-route-label__title">{{ routeLabel || 'เกมทั้งหมด' }} ({{ totalCount }})</span>
-    <button type="button" class="no-button browse-route-label__clear" aria-label="ล้างตัวกรองทั้งหมด"
+    <button type="button" class="no-button browse-route-label__clear win98-ctrl-btn" aria-label="ล้างตัวกรองทั้งหมด"
       title="ล้างตัวกรองทั้งหมด" (click)="onClearAll($event)">x</button>
   </div>
 

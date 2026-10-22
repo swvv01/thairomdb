@@ -3,9 +3,8 @@
   <div class="browse-column">
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
       [routeKind]="routeKind()" [draft]="filters()" [routeLabel]="activeRouteLabel()"
-      [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)"
-      (clearAll)="clearAllFilters()" />
-@if (isPageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
+      [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)" (clearAll)="clearAllFilters()" />
+    @if (isPageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
     <nav class="pagination pagination--top" aria-label="การแบ่งหน้ารายการแพตช์">
       <button type="button" class="pagination__button no-button" [disabled]="currentPage() === 1"
         aria-label="ไปหน้าก่อนหน้า" (click)="setPage(currentPage() - 1)">&lt;</button>
@@ -19,13 +18,13 @@
     @if (stats.hasData) {
     <div class="browse-stat-bar" aria-label="สถิติเวลาเล่นรวม">
       <span class="browse-stat-label">{{ stats.label }}</span>
-      <button type="button" class="link-button browse-stat-value" (click)="togglePlayTimeUnit()"
+      <button type="button" class="link-button browse-stat-value no-button" (click)="togglePlayTimeUnit()"
         title="คลิกเพื่อสลับหน่วยเวลา" aria-label="คลิกเพื่อสลับหน่วยเวลา">{{ stats.formattedDuration }}</button>
       <span class="browse-stat-subtext">(จาก {{ stats.count }} เกม)</span>
     </div>
     }
     }
-    
+
     @if (loading()) {
     <div class="skeleton-grid" aria-label="กำลังโหลดรายการแพตช์" aria-busy="true">
       @for (skeleton of [1, 2, 3, 4, 5, 6]; track skeleton) { <div class="patch-skeleton"><span></span>

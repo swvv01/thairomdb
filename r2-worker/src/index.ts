@@ -9,6 +9,8 @@ const ALLOWED_COLLECTIONS = new Set(['patches', 'tags', 'systems', 'translators'
 export interface Env {
   COVERS_BUCKET: R2Bucket;
   PUBLIC_URL_BASE: string;
+  PURGE_KEY?: string;
+  FIREBASE_DB_SECRET?: string;
 }
 
 export default {
@@ -26,7 +28,7 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Endpoint: ดึงข้อมูลพร้อม Cloudflare Edge Cache (รองรับทั้ง GET และ HEAD)
+    // Endpoint: ดึงข้อมูลพร้อม Cloudflare Edge Cache และ R2 Global Cache (รองรับทั้ง GET และ HEAD)
     const dataMatch = url.pathname.match(/^\/api\/data\/([a-zA-Z0-9_-]+)$/);
     if (['GET', 'HEAD'].includes(request.method) && dataMatch) {
       const collection = dataMatch[1];
@@ -45,7 +47,9 @@ export default {
       const cacheUrl = new URL(url.pathname, url.origin);
       const cacheKey = new Request(cacheUrl.toString());
       const cache = caches.default;
+      const r2CacheKey = `cache/${collection}.json`;
 
+      // 1. ตรวจสอบ Local POP Cache (เร็วที่สุด 0ms)
       if (!isAuthorizedBypass) {
         const cachedResponse = await cache.match(cacheKey);
         if (cachedResponse) {
@@ -57,10 +61,44 @@ export default {
             headers
           });
         }
+
+        // 2. ถ้า Local POP MISS ให้ตรวจ Global Cache ใน R2 (เร็วมาก ไม่แตะ Firebase RTDB)
+        if (env.COVERS_BUCKET) {
+          try {
+            const r2Object = await env.COVERS_BUCKET.get(r2CacheKey);
+            if (r2Object) {
+              const data = await r2Object.text();
+              const cachedAt = r2Object.customMetadata?.['cachedAt'] || r2Object.uploaded.toISOString();
+              const response = new Response(data, {
+                status: 200,
+                headers: {
+                  ...corsHeaders,
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'public, max-age=0, s-maxage=64800, must-revalidate',
+                  'X-Edge-Cached-At': cachedAt,
+                  'X-Cache-Status': 'R2-HIT'
+                }
+              });
+
+              // ใส่ใน Local POP Cache สำหรับคำขอถัดไปใน POP นี้
+              ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+              if (request.method === 'HEAD') {
+                return new Response(null, { status: 200, headers: response.headers });
+              }
+              return response;
+            }
+          } catch (r2Err) {
+            console.warn(`R2 cache read failed for ${collection}:`, r2Err);
+          }
+        }
       }
 
+      // 3. ถ้าไม่มีใน R2 หรือเป็นคำสั่ง Bypass (Admin Force Refresh) -> ดึงจาก Firebase RTDB
       try {
-        const fbRes = await fetch(`${FIREBASE_DATABASE_URL}/${collection}.json`);
+        const dbSecret = env.FIREBASE_DB_SECRET;
+        const authParam = dbSecret ? `?auth=${encodeURIComponent(dbSecret)}` : '';
+        const fbRes = await fetch(`${FIREBASE_DATABASE_URL}/${collection}.json${authParam}`);
         if (!fbRes.ok) {
           return new Response(JSON.stringify({ error: `Firebase responded with status ${fbRes.status}` }), {
             status: fbRes.status,
@@ -70,6 +108,17 @@ export default {
 
         const data = await fbRes.text();
         const cachedAt = new Date().toISOString();
+
+        // บันทึกเข้า R2 เป็น Global Cache สำหรับทุก POP ทั่วโลก
+        if (env.COVERS_BUCKET) {
+          ctx.waitUntil(
+            env.COVERS_BUCKET.put(r2CacheKey, data, {
+              customMetadata: { cachedAt },
+              httpMetadata: { contentType: 'application/json' }
+            }).catch((err) => console.error('Failed to write to R2 cache:', err))
+          );
+        }
+
         const response = new Response(data, {
           status: 200,
           headers: {
@@ -95,7 +144,7 @@ export default {
       }
     }
 
-    // Endpoint: เคลียร์ Cloudflare Edge Cache (กรณีฉุกเฉินหรือ manual maintenance)
+    // Endpoint: เคลียร์ Cloudflare Edge Cache และ R2 Cache (กรณีฉุกเฉินหรือ manual maintenance)
     if (request.method === 'POST' && url.pathname === '/api/clear-cache') {
       const purgeKey = request.headers.get('X-Purge-Key');
       const expectedKey = (env as unknown as { PURGE_KEY?: string }).PURGE_KEY || 'thairomdb-cache-key-2026';
@@ -121,9 +170,13 @@ export default {
           : Array.from(ALLOWED_COLLECTIONS);
 
         await Promise.all(
-          collectionsToPurge.map((col) => {
+          collectionsToPurge.flatMap((col) => {
             const cacheUrl = new URL(`/api/data/${col}`, url.origin);
-            return cache.delete(new Request(cacheUrl.toString()));
+            const ops: Promise<unknown>[] = [cache.delete(new Request(cacheUrl.toString()))];
+            if (env.COVERS_BUCKET) {
+              ops.push(env.COVERS_BUCKET.delete(`cache/${col}.json`).catch(() => undefined));
+            }
+            return ops;
           })
         );
 
