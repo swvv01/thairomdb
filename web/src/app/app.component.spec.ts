@@ -152,7 +152,8 @@ describe('AppComponent', () => {
         {
           provide: SidebarLinkRepository,
           useValue: {
-            watchAll: () => of([])
+            watchAll: () => of([]),
+            refreshAll: jasmine.createSpy('refreshAll')
           }
         },
         {

@@ -288,7 +288,7 @@ describe('PatchCardListComponent', () => {
     expect(heading.querySelector('.patch-card__actions-row')).toBeNull();
   });
 
-  it('renders badge before game title in heading as inline flow', () => {
+  it('renders badge after game title in heading as inline flow', () => {
     component.patches = [{
       ...basePatch,
       haveUpdateFlag: true
@@ -302,7 +302,7 @@ describe('PatchCardListComponent', () => {
     const title = heading.querySelector('.game-title');
     expect(badge).not.toBeNull();
     expect(title).not.toBeNull();
-    expect(badge.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(title.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('opens and closes detail modal via openDetailModal and closeDetailModal', () => {

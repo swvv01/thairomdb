@@ -305,9 +305,24 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.systemRepository.refreshAll();
       this.articleRepository.refreshAll();
       this.marqueeRepository.refreshAll();
-      await this.libraryService.refreshFromRemote();
-      const patches = await firstValueFrom(this.patchRepository.watchAll());
+      this.sidebarLinkRepository.refreshAll?.();
+
+      const [patches, tags, translators, platforms, articles, sidebarLinks] = await Promise.all([
+        firstValueFrom(this.patchRepository.watchAll()),
+        firstValueFrom(this.tagRepository.watchAll()),
+        firstValueFrom(this.translatorRepository.watchAll()),
+        firstValueFrom(this.systemRepository.watchAll()),
+        firstValueFrom(this.articleRepository.watchAll()),
+        firstValueFrom(this.sidebarLinkRepository.watchAll()),
+        this.libraryService.refreshFromRemote()
+      ]);
+
       this.patches.set(patches);
+      this.tags.set(tags);
+      this.translators.set(translators);
+      this.platforms.set(platforms);
+      this.articles.set(articles);
+      this.sidebarLinks.set(sidebarLinks);
       this.patchesLoaded.set(true);
       this.loadServerCost();
       this.statusMessageService.show('ซิงค์ข้อมูล Edge เรียบร้อยแล้ว', 'success');

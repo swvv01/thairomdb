@@ -37,7 +37,9 @@
     </div>
     <div class="patch-card__body">
 
-      <div class="heading text-center">
+      <div class="heading">
+
+        <span class="game-title">{{ patch.gameTitle }}</span>
 
         @if (patch.haveUpdateFlag) {
         <span class="game-badge update-game-badge" aria-label="แพตช์อัปเดต"><img src="assets/images/update.gif"
@@ -46,8 +48,6 @@
         <span class="game-badge new-game-badge" aria-label="เกมมาใหม่"><img src="assets/images/new.gif"
             alt="new" /></span>
         }
-
-        <span class="game-title">{{ patch.gameTitle }}</span>
         <span class="patch-card__mobile-by">
           <span class="patch-card__by-label">by </span>
           <a routerLink="/translator"

@@ -28,7 +28,7 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Endpoint: ดึงข้อมูลพร้อม Cloudflare Edge Cache และ R2 Global Cache (รองรับทั้ง GET และ HEAD)
+    // Endpoint: ดึงข้อมูลพร้อม R2 Global Cache (รองรับทั้ง GET และ HEAD)
     const dataMatch = url.pathname.match(/^\/api\/data\/([a-zA-Z0-9_-]+)$/);
     if (['GET', 'HEAD'].includes(request.method) && dataMatch) {
       const collection = dataMatch[1];
@@ -46,47 +46,45 @@ export default {
 
       const cacheUrl = new URL(url.pathname, url.origin);
       const cacheKey = new Request(cacheUrl.toString());
-      const cache = caches.default;
       const r2CacheKey = `cache/${collection}.json`;
 
-      // 1. ตรวจสอบ Local POP Cache (เร็วที่สุด 0ms)
-      if (!isAuthorizedBypass) {
-        const cachedResponse = await cache.match(cacheKey);
-        if (cachedResponse) {
-          const headers = new Headers(cachedResponse.headers);
-          Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
-          headers.set('X-Cache-Status', 'HIT');
-          return new Response(request.method === 'HEAD' ? null : cachedResponse.body, {
-            status: cachedResponse.status,
-            headers
-          });
-        }
-
-        // 2. ถ้า Local POP MISS ให้ตรวจ Global Cache ใน R2 (เร็วมาก ไม่แตะ Firebase RTDB)
-        if (env.COVERS_BUCKET) {
+      // 1. ตรวจสอบ Global Cache ใน R2 (เมื่อไม่ได้ส่งคำสั่ง Bypass)
+      if (!isAuthorizedBypass && env.COVERS_BUCKET) {
+        if (request.method === 'HEAD') {
+          try {
+            const r2Head = await env.COVERS_BUCKET.head(r2CacheKey);
+            if (r2Head) {
+              const cachedAt = r2Head.customMetadata?.['cachedAt'] || r2Head.uploaded.toISOString();
+              return new Response(null, {
+                status: 200,
+                headers: {
+                  ...corsHeaders,
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-cache, must-revalidate',
+                  'X-Edge-Cached-At': cachedAt,
+                  'X-Cache-Status': 'R2-HIT'
+                }
+              });
+            }
+          } catch (r2Err) {
+            console.warn(`R2 head check failed for ${collection}:`, r2Err);
+          }
+        } else {
           try {
             const r2Object = await env.COVERS_BUCKET.get(r2CacheKey);
             if (r2Object) {
               const data = await r2Object.text();
               const cachedAt = r2Object.customMetadata?.['cachedAt'] || r2Object.uploaded.toISOString();
-              const response = new Response(data, {
+              return new Response(data, {
                 status: 200,
                 headers: {
                   ...corsHeaders,
                   'Content-Type': 'application/json',
-                  'Cache-Control': 'public, max-age=0, s-maxage=64800, must-revalidate',
+                  'Cache-Control': 'no-cache, must-revalidate',
                   'X-Edge-Cached-At': cachedAt,
                   'X-Cache-Status': 'R2-HIT'
                 }
               });
-
-              // ใส่ใน Local POP Cache สำหรับคำขอถัดไปใน POP นี้
-              ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-              if (request.method === 'HEAD') {
-                return new Response(null, { status: 200, headers: response.headers });
-              }
-              return response;
             }
           } catch (r2Err) {
             console.warn(`R2 cache read failed for ${collection}:`, r2Err);
@@ -94,7 +92,7 @@ export default {
         }
       }
 
-      // 3. ถ้าไม่มีใน R2 หรือเป็นคำสั่ง Bypass (Admin Force Refresh) -> ดึงจาก Firebase RTDB
+      // 2. ถ้าไม่มีใน R2 หรือเป็นคำสั่ง Bypass (Admin Force Refresh) -> ดึงจาก Firebase RTDB
       try {
         const dbSecret = env.FIREBASE_DB_SECRET;
         const authParam = dbSecret ? `?auth=${encodeURIComponent(dbSecret)}` : '';
@@ -111,30 +109,27 @@ export default {
 
         // บันทึกเข้า R2 เป็น Global Cache สำหรับทุก POP ทั่วโลก
         if (env.COVERS_BUCKET) {
-          ctx.waitUntil(
-            env.COVERS_BUCKET.put(r2CacheKey, data, {
-              customMetadata: { cachedAt },
-              httpMetadata: { contentType: 'application/json' }
-            }).catch((err) => console.error('Failed to write to R2 cache:', err))
-          );
+          await env.COVERS_BUCKET.put(r2CacheKey, data, {
+            customMetadata: { cachedAt },
+            httpMetadata: { contentType: 'application/json' }
+          });
         }
 
-        const response = new Response(data, {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-            'Cache-Control': 'public, max-age=0, s-maxage=64800, must-revalidate',
-            'X-Edge-Cached-At': cachedAt,
-            'X-Cache-Status': isAuthorizedBypass ? 'BYPASS' : 'MISS'
-          }
-        });
+        // ล้าง Local POP Cache ตกค้างถ้ามี
+        ctx.waitUntil(caches.default.delete(cacheKey).catch(() => undefined));
 
-        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        const responseHeaders = {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, must-revalidate',
+          'X-Edge-Cached-At': cachedAt,
+          'X-Cache-Status': isAuthorizedBypass ? 'BYPASS' : 'MISS'
+        };
+
         if (request.method === 'HEAD') {
-          return new Response(null, { status: 200, headers: response.headers });
+          return new Response(null, { status: 200, headers: responseHeaders });
         }
-        return response;
+        return new Response(data, { status: 200, headers: responseHeaders });
       } catch (err) {
         console.error(`Fetch from Firebase failed for ${collection}:`, err);
         return new Response(JSON.stringify({ error: `Failed to fetch ${collection} from Firebase RTDB` }), {
