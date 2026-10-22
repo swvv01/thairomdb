@@ -238,6 +238,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   };
   private readonly offlineHandler = () => this.isOffline.set(true);
 
+  @HostListener('document:keydown.escape')
+  protected onEscapeKey(): void {
+    if (this.sidebarOpen()) {
+      this.closeSidebar();
+    }
+  }
+
   protected toggleSidebar(): void { this.sidebarOpen.update((open) => !open); }
   protected closeSidebar(): void { this.sidebarOpen.set(false); }
   protected clearAllFilters(): void {

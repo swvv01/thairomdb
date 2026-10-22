@@ -242,25 +242,34 @@
   padding: 0.2rem 0.4rem;
 }
 
+.mobile-menu-button--grid {
+  display: inline-block !important;
+}
+
+.mobile-sidebar-backdrop {
+  background: var(--color-overlay);
+  border: 0;
+  cursor: pointer;
+  inset: 0;
+  position: fixed;
+  z-index: 15;
+}
+
+:host-context(body.sidebar-open) .app-header {
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
 @media (max-width: 900px) {
   .status-message {
     left: 0;
   }
 
-  :host-context(body.sidebar-open) .app-header {
-    left: 0;
-    position: fixed;
-    right: 0;
-    top: 0;
-    z-index: 30;
-  }
-
   :host-context(body.sidebar-open) .app-shell {
     padding-top: 5rem;
-  }
-
-  :host-context(body.sidebar-open) .app-shell.is-vip {
-    padding-top: 2.75rem;
   }
 }
 
@@ -465,9 +474,29 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .app-shell.is-grid-mode .retro-rail,
+  .app-shell.is-grid-mode .retro-rail:not(.mobile-sidebar-open),
   .app-shell.is-grid-mode .right-ad-sidebar {
     display: none !important;
+  }
+
+  .app-shell.is-grid-mode .retro-rail.mobile-sidebar-open {
+    background: var(--color-surface);
+    bottom: 0;
+    box-shadow: 4px 0 16px var(--color-shadow);
+    display: flex !important;
+    flex-direction: column;
+    left: 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 4rem;
+    padding-top: 5.5rem;
+    position: fixed;
+    top: 0;
+    width: 288px;
+    z-index: 20;
   }
 
   .retro-rail {
@@ -485,14 +514,6 @@
     display: inline-block;
   }
 
-  .mobile-sidebar-backdrop {
-    border: 0;
-    inset: 0;
-    position: fixed;
-    z-index: 15;
-    background: var(--color-overlay);
-  }
-
   .retro-rail {
     background: var(--color-surface);
     bottom: 0;
@@ -507,11 +528,7 @@
     top: 0;
     width: min(18rem, 85vw);
     z-index: 20;
-    padding-top: 5rem;
-  }
-
-  .retro-rail.is-vip {
-    padding-top: 2.75rem;
+    padding-top: 5.5rem;
   }
 
   .retro-rail.mobile-sidebar-open {

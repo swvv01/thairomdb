@@ -408,7 +408,7 @@
   min-width: 0;
   padding: 1.25rem 1rem 1rem;
   position: relative;
-  width: min(calc(100vw - 1rem), 54rem);
+  width: min(calc(100vw - 1rem), 640px);
 }
 
 .patch-detail-dialog__close-btn {
@@ -559,6 +559,8 @@
   box-sizing: border-box;
   display: flex;
   gap: 0.75rem;
+  justify-content: center;
+  margin-inline: auto;
   width: 100%;
 }
 
@@ -568,6 +570,7 @@
   flex: 1 1 0;
   flex-direction: column;
   gap: 0.75rem;
+  max-width: 250px;
   min-width: 0;
 }
 
@@ -577,6 +580,7 @@
   box-shadow: 2px 2px 0 var(--color-shadow);
   box-sizing: border-box;
   cursor: pointer;
+  max-width: 250px;
   overflow: hidden;
   position: relative;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;

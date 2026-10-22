@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PatchRepository } from '../repositories/patch.repository';
 import { TranslatorRepository } from '../repositories/translator.repository';
@@ -22,7 +22,7 @@ import { BrowseGridModeService } from '../services/browse-grid-mode.service';
   styleUrl: './browse-page.component.css',
   templateUrl: './browse-page.component.html'
 })
-export class BrowsePageComponent implements OnInit {
+export class BrowsePageComponent implements OnInit, OnDestroy {
   private static readonly todayWindowMs = 24 * 60 * 60 * 1000;
   private static readonly weekWindowMs = 7 * 24 * 60 * 60 * 1000;
   private readonly patchRepository = inject(PatchRepository);
@@ -111,6 +111,43 @@ export class BrowsePageComponent implements OnInit {
   protected readonly isPageMode = signal(
     !!this.route.snapshot.data['pageMode'] || BrowsePageComponent.getSavedViewMode() === 'page'
   );
+  protected readonly effectivePageMode = computed(() => !this.gridModeService.activeGridMode() && this.isPageMode());
+  private infiniteScrollObserver?: IntersectionObserver;
+  private currentSentinel?: HTMLElement;
+
+  @ViewChild('infiniteScrollSentinel')
+  set infiniteScrollSentinel(ref: ElementRef<HTMLElement> | undefined) {
+    const el = ref?.nativeElement;
+    if (this.currentSentinel === el) return;
+    if (this.currentSentinel && this.infiniteScrollObserver) {
+      this.infiniteScrollObserver.unobserve(this.currentSentinel);
+    }
+    this.currentSentinel = el;
+    if (el && this.infiniteScrollObserver) {
+      this.infiniteScrollObserver.observe(el);
+    }
+  }
+
+  private initInfiniteScrollObserver(): void {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+    this.infiniteScrollObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && this.gridModeService.activeGridMode() && this.hasMore()) {
+            this.loadMore();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: '400px',
+        threshold: 0
+      }
+    );
+    if (this.currentSentinel) {
+      this.infiniteScrollObserver.observe(this.currentSentinel);
+    }
+  }
   protected readonly currentPage = signal(1);
   protected readonly pageSize = computed(() => this.gridModeService.activeGridMode() ? 50 : 10);
   private readonly gridModeEffect = effect(() => {
@@ -166,7 +203,7 @@ export class BrowsePageComponent implements OnInit {
       playTimeStatus: playTimeStatus || null,
       sort: sortBy === 'updateDate' ? null : sortBy,
       dir: direction === 'desc' ? null : direction,
-      page: this.isPageMode() && page > 1 ? String(page) : null
+      page: this.effectivePageMode() && page > 1 ? String(page) : null
     };
 
     if (this.isNavigating()) return;
@@ -258,7 +295,7 @@ export class BrowsePageComponent implements OnInit {
   protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.sortedPatches().length / this.pageSize())));
   protected readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, index) => index + 1));
   protected readonly paginatedPatches = computed(() => {
-    if (this.isPageMode()) {
+    if (this.effectivePageMode()) {
       const page = Math.min(this.currentPage(), this.totalPages());
       const start = (page - 1) * this.pageSize();
       return this.sortedPatches().slice(start, start + this.pageSize());
@@ -372,7 +409,7 @@ export class BrowsePageComponent implements OnInit {
     if (!this.patchesLoaded()) return;
     const lastPage = this.totalPages();
     if (this.currentPage() > lastPage) {
-      if (this.isPageMode()) {
+      if (this.effectivePageMode()) {
         this.setPage(lastPage);
       } else {
         this.currentPage.set(lastPage);
@@ -442,7 +479,7 @@ export class BrowsePageComponent implements OnInit {
     this.filterState.clearAll();
     this.currentPage.set(1);
     this.playTimeStatus.set(null);
-    const targetUrl = this.isForcedPageMode() ? '/page' : '/';
+    const targetUrl = (this.isForcedPageMode() && !this.gridModeService.activeGridMode()) ? '/page' : '/';
     void this.router.navigateByUrl(targetUrl, { replaceUrl: true });
   }
   protected toggleTag(tag: string): void { this.selectedTag.update((current) => current === tag ? null : tag); this.currentPage.set(1); }
@@ -456,7 +493,7 @@ export class BrowsePageComponent implements OnInit {
     const nextPage = Math.max(1, Math.min(page, this.totalPages()));
     if (nextPage === this.currentPage()) return;
     this.currentPage.set(nextPage);
-    if (this.isPageMode()) {
+    if (this.effectivePageMode()) {
       void this.router.navigate([], {
         relativeTo: this.route,
         queryParams: { page: nextPage > 1 ? nextPage : null },
@@ -480,7 +517,7 @@ export class BrowsePageComponent implements OnInit {
   });
   protected toggleMode(event?: Event): void {
     event?.preventDefault();
-    if (this.isForcedPageMode()) return;
+    if (this.isForcedPageMode() || this.gridModeService.activeGridMode()) return;
     const nextMode = !this.isPageMode();
     this.isPageMode.set(nextMode);
     BrowsePageComponent.saveViewMode(nextMode ? 'page' : 'scroll');
@@ -526,6 +563,15 @@ export class BrowsePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateScrollVisibility();
+    this.initInfiniteScrollObserver();
+  }
+
+  ngOnDestroy(): void {
+    if (this.infiniteScrollObserver) {
+      this.infiniteScrollObserver.disconnect();
+      this.infiniteScrollObserver = undefined;
+    }
+    this.currentSentinel = undefined;
   }
 
   protected focusSearch(): void {
@@ -562,7 +608,7 @@ export class BrowsePageComponent implements OnInit {
       this.isForcedPageMode.set(isForcedPage);
       const activePageMode = isForcedPage || BrowsePageComponent.getSavedViewMode() === 'page';
       this.isPageMode.set(activePageMode);
-      if (activePageMode) {
+      if (this.effectivePageMode()) {
         const pageParam = this.route.snapshot.queryParamMap.get('page');
         const parsedPage = pageParam ? Number.parseInt(pageParam, 10) : 1;
         if (Number.isInteger(parsedPage) && parsedPage > 0) {
@@ -592,7 +638,7 @@ export class BrowsePageComponent implements OnInit {
       this.filterState.selectedSystem.set(params.get('system'));
       this.sortBy.set(sort === 'gameTitle' || sort === 'translatedBy' || sort === 'system' || sort === 'updateDate' || sort === 'playTime' ? sort : 'updateDate');
       this.direction.set(direction === 'asc' ? 'asc' : 'desc');
-      if (this.isPageMode()) {
+      if (this.effectivePageMode()) {
         const pageParam = params.get('page');
         const parsedPage = pageParam ? Number.parseInt(pageParam, 10) : 1;
         this.currentPage.set(Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1);

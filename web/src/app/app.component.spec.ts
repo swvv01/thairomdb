@@ -474,4 +474,23 @@ describe('AppComponent', () => {
     expect(marquee.textContent).toContain('เว็บไซต์นี้ใช้ระบบแคชเพื่อช่วยลดค่าใช้จ่ายเซิร์ฟเวอร์');
     expect(marquee.textContent).toContain('ช่วยเหลือค่าเซิร์ฟเวอร์');
   });
+
+  it('should apply mobile-menu-button--grid in grid mode and toggle sidebar with Escape to close', () => {
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.isGameListRoute.set(true);
+    gridModeService.isDesktopOrTablet.set(true);
+    gridModeService.setGridMode(true);
+    fixture.detectChanges();
+
+    const menuBtn = fixture.nativeElement.querySelector('.mobile-menu-button--grid');
+    expect(menuBtn).toBeTruthy();
+
+    menuBtn.click();
+    fixture.detectChanges();
+    expect((app as any).sidebarOpen()).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect((app as any).sidebarOpen()).toBe(false);
+  });
 });

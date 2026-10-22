@@ -4,7 +4,7 @@
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
       [routeKind]="routeKind()" [draft]="filters()" [routeLabel]="activeRouteLabel()"
       [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)" (clearAll)="clearAllFilters()" />
-    @if (isPageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
+    @if (effectivePageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
     <nav class="pagination pagination--top" aria-label="การแบ่งหน้ารายการแพตช์">
       <button type="button" class="pagination__button no-button" [disabled]="currentPage() === 1"
         aria-label="ไปหน้าก่อนหน้า" (click)="setPage(currentPage() - 1)">&lt;</button>
@@ -42,7 +42,7 @@
     <app-patch-card-list [patches]="paginatedPatches()" [translators]="translators()" [systems]="systemMasters()"
       [tags]="tags()" [canEdit]="auth.isAdmin()" />
 
-    @if (isPageMode()) {
+    @if (effectivePageMode()) {
     @if (currentPage() === totalPages()) {
     <div class="load-more-end" aria-live="polite">
       <span>สิ้นสุดรายการแล้ว</span>
@@ -65,7 +65,7 @@
         (click)="setPage(currentPage() + 1)">&gt;</button>
     </nav>
     }
-    @if (!isForcedPageMode()) {
+    @if (!isForcedPageMode() && !gridModeService.activeGridMode()) {
     <div class="mode-toggle-section">
       <button type="button" class="no-button mode-toggle-link" (click)="toggleMode($event)"
         aria-label="สลับไปโหมดโหลดต่อเนื่อง">
@@ -76,18 +76,23 @@
     } @else {
     <div class="load-more-section">
       @if (hasMore()) {
+      @if (!gridModeService.activeGridMode()) {
       <button type="button" class="load-more-button button" (click)="loadMore()" aria-label="โหลดเกมเพิ่มเติม">
         <i class="fa-solid fa-angles-down" aria-hidden="true"></i>
         <span>โหลดเพิ่มเติม (+{{ nextLoadCount() }})</span>
       </button>
+      }
       <p class="load-more-status" aria-live="polite">กำลังแสดง {{ paginatedPatches().length }} จาก {{
         sortedPatches().length }} เกม</p>
+      @if (gridModeService.activeGridMode()) {
+      <div #infiniteScrollSentinel class="infinite-scroll-sentinel" aria-hidden="true"></div>
+      }
       } @else {
       <div class="load-more-end" aria-live="polite">
         <span>สิ้นสุดรายการแล้ว</span>
       </div>
       }
-      @if (!isForcedPageMode()) {
+      @if (!isForcedPageMode() && !gridModeService.activeGridMode()) {
       <button type="button" class="no-button mode-toggle-link" (click)="toggleMode($event)"
         aria-label="สลับไปโหมดแบ่งหน้า">
         <span>สลับไปโหมดแบ่งหน้า</span>

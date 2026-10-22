@@ -1,7 +1,7 @@
 <header class="app-header">
   <div class="app-topbar no-radius flex min-h-10 items-center justify-between border-b-2 border-slate-300 px-1">
     <div class="flex items-center">
-      <button class="mobile-menu-button" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()"
+      <button class="mobile-menu-button" [class.mobile-menu-button--grid]="gridModeService.activeGridMode()" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()"
         aria-controls="system-sidebar" aria-label="Toggle navigation menu">☰</button>
       <a class="site-title" routerLink="/"><img src="assets/images/logo.png" alt="THAI ROM DB"></a>
       @if (authService.isAdmin() || authService.isVip()) {

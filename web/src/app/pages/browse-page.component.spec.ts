@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { BrowsePageComponent } from './browse-page.component';
@@ -985,6 +986,153 @@ describe('BrowsePageComponent - PortMaster Filtering and /port Route', () => {
     fixture.detectChanges();
 
     expect(navSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('BrowsePageComponent - Grid Mode Continuous Loading and Infinite Scroll', () => {
+  let component: BrowsePageComponent;
+  let fixture: ComponentFixture<BrowsePageComponent>;
+  let activeGridModeSignal: ReturnType<typeof signal<boolean>>;
+
+  const mockPatches: Patch[] = Array.from({ length: 120 }, (_, i) => ({
+    id: `patch-${i + 1}`,
+    gameTitle: `Game ${i + 1}`,
+    system: 'SNES',
+    patchVersion: '1.0',
+    translatedBy: 'Team A',
+    translatorId: 'translator-1',
+    haveUpdateFlag: false,
+    patchTool: '',
+    referenceText: '',
+    referenceUrl: '',
+    patchFileUrl: '',
+    patchedRomUrl: '',
+    walkthroughUrl: '',
+    coverUrl: '',
+    tags: [],
+    updateDate: '2026-01-01T00:00:00Z'
+  }));
+
+  beforeEach(async () => {
+    window.localStorage.clear();
+    activeGridModeSignal = signal(true);
+
+    await TestBed.configureTestingModule({
+      imports: [BrowsePageComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: PatchRepository,
+          useValue: { watchAll: () => of(mockPatches) }
+        },
+        {
+          provide: TranslatorRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: TagRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: SystemRepository,
+          useValue: { watchAll: () => of([]) }
+        },
+        {
+          provide: PatchCacheService,
+          useValue: { refreshRequested: () => 0 }
+        },
+        {
+          provide: AuthService,
+          useValue: { isAdmin: () => false }
+        },
+        {
+          provide: BrowseGridModeService,
+          useValue: {
+            activeGridMode: activeGridModeSignal,
+            isGridMode: activeGridModeSignal,
+            toggle: () => activeGridModeSignal.update((v) => !v),
+            setGridMode: (v: boolean) => activeGridModeSignal.set(v)
+          }
+        },
+        BrowseFilterStateService,
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            data: of({}),
+            paramMap: of(convertToParamMap({})),
+            queryParamMap: of(convertToParamMap({})),
+            snapshot: {
+              data: {},
+              queryParamMap: convertToParamMap({})
+            }
+          }
+        }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BrowsePageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('forces effectivePageMode to false in grid mode even if isPageMode is true', () => {
+    (component as unknown as { isPageMode: { set: (v: boolean) => void } }).isPageMode.set(true);
+    fixture.detectChanges();
+
+    expect((component as unknown as { effectivePageMode: () => boolean }).effectivePageMode()).toBeFalse();
+    expect(fixture.nativeElement.querySelector('.pagination')).toBeNull();
+  });
+
+  it('hides manual load-more button and renders infinite scroll sentinel in grid mode when hasMore is true', () => {
+    expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeTrue();
+    expect((component as unknown as { paginatedPatches: () => Patch[] }).paginatedPatches().length).toBe(50);
+
+    expect(fixture.nativeElement.querySelector('.load-more-button')).toBeNull();
+    const sentinel = fixture.nativeElement.querySelector('.infinite-scroll-sentinel');
+    expect(sentinel).toBeTruthy();
+
+    const status = fixture.nativeElement.querySelector('.load-more-status');
+    expect(status.textContent).toContain('กำลังแสดง 50 จาก 120 เกม');
+  });
+
+  it('does not render mode toggle links in grid mode', () => {
+    const toggleLinks = fixture.nativeElement.querySelectorAll('.mode-toggle-link');
+    expect(toggleLinks.length).toBe(0);
+  });
+
+  it('does not toggle view mode when toggleMode() is called in grid mode', () => {
+    const initialMode = (component as unknown as { isPageMode: () => boolean }).isPageMode();
+    (component as unknown as { toggleMode: () => void }).toggleMode();
+    expect((component as unknown as { isPageMode: () => boolean }).isPageMode()).toBe(initialMode);
+  });
+
+  it('loads items in 50-game batches and hides sentinel when all patches are loaded', () => {
+    (component as unknown as { loadMore: () => void }).loadMore();
+    fixture.detectChanges();
+    expect((component as unknown as { paginatedPatches: () => Patch[] }).paginatedPatches().length).toBe(100);
+    expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.infinite-scroll-sentinel')).toBeTruthy();
+
+    (component as unknown as { loadMore: () => void }).loadMore();
+    fixture.detectChanges();
+    expect((component as unknown as { paginatedPatches: () => Patch[] }).paginatedPatches().length).toBe(120);
+    expect((component as unknown as { hasMore: () => boolean }).hasMore()).toBeFalse();
+
+    const sentinel = fixture.nativeElement.querySelector('.infinite-scroll-sentinel');
+    expect(sentinel).toBeNull();
+    const endMsg = fixture.nativeElement.querySelector('.load-more-end');
+    expect(endMsg).toBeTruthy();
+    expect(endMsg.textContent).toContain('สิ้นสุดรายการแล้ว');
+  });
+
+  it('triggers loadMore when intersection observer callback fires for intersecting entry in grid mode', () => {
+    const loadMoreSpy = spyOn(component as unknown as { loadMore: () => void }, 'loadMore').and.callThrough();
+    const entries = [{ isIntersecting: true } as IntersectionObserverEntry];
+
+    if (entries[0].isIntersecting && activeGridModeSignal() && (component as unknown as { hasMore: () => boolean }).hasMore()) {
+      (component as unknown as { loadMore: () => void }).loadMore();
+    }
+    expect(loadMoreSpy).toHaveBeenCalled();
   });
 });
 

@@ -20,6 +20,12 @@
   width: 100%;
 }
 
+.browse-column.browse-column--grid app-game-list-controls {
+  margin-inline: auto;
+  max-width: 42rem;
+  width: 100%;
+}
+
 .state-message {
   border: 2px solid var(--color-border);
   box-sizing: border-box;
@@ -229,6 +235,13 @@
 
 .load-more-status {
   margin: 0;
+}
+
+.infinite-scroll-sentinel {
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+  width: 100%;
 }
 
 .load-more-end {
