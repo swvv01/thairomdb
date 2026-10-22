@@ -123,7 +123,7 @@
 
       @if (hasDownloadLinks(patch)) {
       <div class="patch-card__links">
-        <div class="patch-card__label patch-card__links-label">ลิ้ง:</div>
+        <span class="patch-card__label patch-card__links-label">ลิ้ง:</span>
         <div class="patch-card__download-list">
           @if (patch.coverUrl) {
           <a [href]="patch.coverUrl" [download]="coverFilename(patch)" target="_blank" rel="noopener noreferrer"

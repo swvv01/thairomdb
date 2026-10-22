@@ -207,4 +207,31 @@ describe('PatchCardListComponent', () => {
     expect(labels).toContain('เวลาเล่นจบ:');
     expect(labels).toContain('เพิ่มเมื่อ:');
   });
+
+  it('renders download links with label and download-list structure', () => {
+    component.patches = [{
+      ...basePatch,
+      coverUrl: 'http://example.com/cover.png',
+      patchFileUrl: 'http://example.com/patch.zip',
+      referenceUrl: 'http://example.com/source'
+    }];
+    fixture.detectChanges();
+
+    const linksContainer = fixture.nativeElement.querySelector('.patch-card__links');
+    expect(linksContainer).not.toBeNull();
+
+    const label = linksContainer.querySelector('.patch-card__links-label');
+    expect(label).not.toBeNull();
+    expect(label.textContent.trim()).toBe('ลิ้ง:');
+
+    const downloadList = linksContainer.querySelector('.patch-card__download-list');
+    expect(downloadList).not.toBeNull();
+
+    const anchors = downloadList.querySelectorAll('a');
+    expect(anchors.length).toBe(3);
+    const linkTexts = Array.from(anchors).map((a: any) => a.textContent.trim());
+    expect(linkTexts).toContain('ภาพปก');
+    expect(linkTexts).toContain('Patch');
+    expect(linkTexts).toContain('ที่มา');
+  });
 });
