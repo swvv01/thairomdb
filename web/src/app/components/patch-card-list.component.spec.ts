@@ -63,7 +63,7 @@ describe('PatchCardListComponent', () => {
     expect(versionEl).not.toBeNull();
     expect(linkEl).toBeNull();
     expect(textEl?.textContent?.trim()).toBe('v1.0');
-    expect(versionEl?.textContent?.trim()).toBe('เวอร์ชันแพตช์: v1.0');
+    expect(versionEl?.textContent?.trim()).toBe('เวอร์ชัน: v1.0');
   });
 
   it('renders only the first row as a link when patch version is multiline, and opens modal on click', () => {
@@ -203,7 +203,7 @@ describe('PatchCardListComponent', () => {
       .map((el: any) => el.textContent?.trim());
     expect(labels).toContain('โดย:');
     expect(labels).toContain('ระบบ:');
-    expect(labels).toContain('เวอร์ชันแพตช์:');
+    expect(labels).toContain('เวอร์ชัน:');
     expect(labels).toContain('เวลาเล่นจบ:');
     expect(labels).toContain('เพิ่มเมื่อ:');
   });
@@ -233,5 +233,27 @@ describe('PatchCardListComponent', () => {
     expect(linkTexts).toContain('ภาพปก');
     expect(linkTexts).toContain('Patch');
     expect(linkTexts).toContain('ที่มา');
+  });
+
+  it('renders tags row inside patch-card__description', () => {
+    component.tags = [{ id: 'tag-1', name: 'RPG', slug: 'rpg' }];
+    component.patches = [{
+      ...basePatch,
+      tags: ['tag-1']
+    }];
+    fixture.detectChanges();
+
+    const desc = fixture.nativeElement.querySelector('.patch-card__description');
+    expect(desc).not.toBeNull();
+
+    const tagsRow = desc.querySelector('.patch-card__tags-row');
+    expect(tagsRow).not.toBeNull();
+
+    const tagLabel = tagsRow.querySelector('.patch-card__tags-label');
+    expect(tagLabel?.textContent?.trim()).toBe('แท็ก:');
+
+    const tagLinks = tagsRow.querySelectorAll('a');
+    expect(tagLinks.length).toBe(1);
+    expect(tagLinks[0].textContent.trim()).toBe('RPG');
   });
 });
