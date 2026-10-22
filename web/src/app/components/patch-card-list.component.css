@@ -19,6 +19,7 @@
   grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
   margin: 0 0 .75rem;
   max-width: 100%;
+  position: relative;
   width: 100%;
 }
 
@@ -475,18 +476,24 @@
 @media (max-width: 640px) {
   .patch-card {
     grid-template-columns: 1fr;
-    padding-top: 18pt;
   }
 
   .game-badge {
     display: none;
   }
 
+  .patch-card-title {
+    text-align: center;
+  }
+
+  .game-title {
+    padding-right: 0.35rem;
+  }
+
   .patch-card__mobile-by {
     color: var(--color-text);
     display: inline-block;
     font-size: 1rem;
-    margin-left: 0.35rem;
     vertical-align: baseline;
     white-space: nowrap;
   }
