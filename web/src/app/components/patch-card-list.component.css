@@ -25,7 +25,16 @@
 }
 
 .patch-card .heading {
+  align-items: center;
   color: var(--color-highlight);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.game-title {
   font-size: 1.2rem;
 }
 
@@ -43,11 +52,10 @@
 }
 
 .patch-card__actions-row {
-  display: flex;
   align-items: center;
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
 }
 
 .patch-cover-image {
@@ -109,8 +117,11 @@
   width: min(100%, 250px);
 }
 
-.heading span:first-child {
-  margin-right: 0.5rem;
+
+.game-badge {
+  align-items: center;
+  display: inline-flex;
+  margin-right: auto;
 }
 
 .new-game-badge img {
@@ -350,10 +361,6 @@
   .patch-card {
     grid-template-columns: 1fr;
     padding-top: 18pt;
-  }
-
-  .patch-card .heading {
-    text-align: center;
   }
 
   .patch-cover-wrap {

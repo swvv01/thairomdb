@@ -17,37 +17,34 @@
     <div class="patch-card__body">
 
       <div class="heading">
+          <span class="game-title">{{ patch.gameTitle }}</span>
 
-        <span class="game-title">{{ patch.gameTitle }}</span>
+          @if (patch.haveUpdateFlag) {
+          <span class="game-badge update-game-badge" aria-label="แพตช์อัปเดต"><img src="assets/images/update.gif"
+              alt="update" /></span>
+          } @else if (isNewGame(patch.updateDate)) {
+          <span class="game-badge new-game-badge" aria-label="เกมมาใหม่"><img src="assets/images/new.gif"
+              alt="new" /></span>
+          }
+        
 
-        @if (patch.haveUpdateFlag) {
-        <span class="game-badge update-game-badge" aria-label="แพตช์อัปเดต"><img src="assets/images/update.gif"
-            alt="update" /></span>
-        } @else if (isNewGame(patch.updateDate)) {
-        <span class="game-badge new-game-badge" aria-label="เกมมาใหม่"><img src="assets/images/new.gif"
-            alt="new" /></span>
-        }
+        <div class="patch-card__actions-row">
+          @if (canEdit) {
+          <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+            <span>แก้ไข</span>
+          </a>
+          }
 
-
-      </div>
-
-      <div class="patch-card__actions-row">
-        @if (canEdit) {
-        <a class="button btn-primary px-1" [routerLink]="['/add', patch.id]" target="_blank" rel="noopener noreferrer">
-          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-          <span>แก้ไข</span>
-        </a>
-        }
-
-        <button type="button" class="button" [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
-          [disabled]="togglingLibraryId() === patch.id"
-          [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
-          (click)="toggleLibrary(patch)">
-          <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
-            aria-hidden="true"></i>
-          <span>{{ libraryService.isInLibrary(patch.id) ? 'อยู่ในคลัง' : 'เก็บเข้าคลัง' }}</span>
-        </button>
-
+          <button type="button" class="button" [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
+            [disabled]="togglingLibraryId() === patch.id"
+            [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
+            (click)="toggleLibrary(patch)">
+            <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
+              aria-hidden="true"></i>
+            <span>{{ libraryService.isInLibrary(patch.id) ? 'อยู่ในคลัง' : 'เก็บเข้าคลัง' }}</span>
+          </button>
+        </div>
 
       </div>
 
