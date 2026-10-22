@@ -240,37 +240,37 @@
             </li> }</ul>
         </div>
         }
-      </div>
 
-      @if (hasDownloadLinks(detailPatch)) {
-      <div class="patch-card__links patch-detail-dialog__links">
-        <span class="patch-card__label patch-card__links-label">ลิ้ง:</span>
-        <div class="patch-card__download-list">
-          @if (detailPatch.coverUrl) {
-          <a [href]="detailPatch.coverUrl" [download]="coverFilename(detailPatch)" target="_blank"
-            rel="noopener noreferrer" [class.pointer-events-none]="downloadingPatchId() === detailPatch.id"
-            (click)="downloadCover($event, detailPatch)">ภาพปก</a>
-          }
-          @if (detailPatch.patchTool) {
-          <a [href]="detailPatch.patchTool" target="_blank">Patch Tool</a>
-          }
-          @if (detailPatch.patchFileUrl) {
-          <a [href]="detailPatch.patchFileUrl" target="_blank">Patch</a>
-          }
-          @if (detailPatch.referenceUrl) {
-          <a [href]="detailPatch.referenceUrl" target="_blank" rel="noopener noreferrer">{{ detailPatch.referenceText ||
-            'ที่มา'
-            }}</a>
-          }
-          @if (detailPatch.patchedRomUrl) {
-          <a [href]="detailPatch.patchedRomUrl" target="_blank" rel="noopener noreferrer">รอมแปลไทย</a>
-          }
-          @if (detailPatch.walkthroughUrl) {
-          <a [href]="detailPatch.walkthroughUrl" target="_blank" rel="noopener noreferrer">บทสรุป</a>
-          }
+        @if (hasDownloadLinks(detailPatch)) {
+        <div class="patch-detail-dialog__links-row">
+          <span class="patch-card__label patch-card__links-label">ลิ้ง:</span>
+          <div class="patch-card__download-list">
+            @if (detailPatch.coverUrl) {
+            <a [href]="detailPatch.coverUrl" [download]="coverFilename(detailPatch)" target="_blank"
+              rel="noopener noreferrer" [class.pointer-events-none]="downloadingPatchId() === detailPatch.id"
+              (click)="downloadCover($event, detailPatch)">ภาพปก</a>
+            }
+            @if (detailPatch.patchTool) {
+            <a [href]="detailPatch.patchTool" target="_blank">Patch Tool</a>
+            }
+            @if (detailPatch.patchFileUrl) {
+            <a [href]="detailPatch.patchFileUrl" target="_blank">Patch</a>
+            }
+            @if (detailPatch.referenceUrl) {
+            <a [href]="detailPatch.referenceUrl" target="_blank" rel="noopener noreferrer">{{ detailPatch.referenceText ||
+              'ที่มา'
+              }}</a>
+            }
+            @if (detailPatch.patchedRomUrl) {
+            <a [href]="detailPatch.patchedRomUrl" target="_blank" rel="noopener noreferrer">รอมแปลไทย</a>
+            }
+            @if (detailPatch.walkthroughUrl) {
+            <a [href]="detailPatch.walkthroughUrl" target="_blank" rel="noopener noreferrer">บทสรุป</a>
+            }
+          </div>
         </div>
+        }
       </div>
-      }
     </div>
     <footer class="patch-detail-dialog__footer">
       <button class="button px-3 py-1 font-bold" type="button" (click)="closeDetailModal()">ปิด</button>

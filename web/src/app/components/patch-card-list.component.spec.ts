@@ -340,8 +340,10 @@ describe('PatchCardListComponent', () => {
     const modalDesc = dialog.querySelector('.patch-detail-dialog__description');
     expect(modalDesc).not.toBeNull();
 
-    const modalLinks = dialog.querySelector('.patch-detail-dialog__links');
+    const modalLinks = modalDesc.querySelector('.patch-detail-dialog__links-row');
     expect(modalLinks).not.toBeNull();
+    expect(modalLinks.querySelector('.patch-card__links-label')).not.toBeNull();
+    expect(modalLinks.querySelector('.patch-card__download-list')).not.toBeNull();
   });
 
   it('stacks version modal on top of detail modal when opened from inside detail modal', () => {

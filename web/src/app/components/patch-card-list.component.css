@@ -463,14 +463,13 @@
   display: grid !important;
 }
 
-.patch-detail-dialog .patch-card__links {
-  display: flex !important;
+.patch-detail-dialog .patch-detail-dialog__links-row {
+  display: contents !important;
 }
 
-.patch-detail-dialog__links {
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--color-border);
+.patch-detail-dialog .patch-card__download-list {
+  align-items: baseline;
+  justify-content: flex-start;
 }
 
 @media (max-width: 640px) {
