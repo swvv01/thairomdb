@@ -626,7 +626,7 @@ body[data-theme='classic-blue'] .patch-cover-wrap {
   padding: 2px;
 }
 
-body[data-theme='classic-blue'] .patch-card .heading .game-title {
+body[data-theme='classic-blue'] .patch-card .patch-card__title .patch-card__title-text {
   color: #800080;
 }
 
@@ -835,7 +835,8 @@ body {
 }
 
 .retro-rail-heading,
-.heading {
+.heading,
+.patch-card__title {
   font-family: 'Courier New', monospace;
 }
 

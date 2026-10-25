@@ -105,9 +105,9 @@
     </div>
     <div class="patch-card__body">
 
-      <div class="patch-card-title heading">
-
-        <span class="game-title">{{ patch.gameTitle }}</span>
+      <!-- Desktop Title Block -->
+      <div class="patch-card__title patch-card__title--desktop">
+        <span class="patch-card__title-text">{{ patch.gameTitle }}</span>
 
         @if (!inDialog) {
         @if (patch.haveUpdateFlag) {
@@ -118,6 +118,12 @@
             alt="new" /></span>
         }
         }
+      </div>
+
+      <!-- Mobile Title Block -->
+      <div class="patch-card__title patch-card__title--mobile">
+        <span class="patch-card__title-text">{{ patch.gameTitle }}</span>
+
         @if (!inDialog) {
         <span class="patch-card__mobile-by">
           <span class="patch-card__by-label">by </span>
@@ -128,16 +134,15 @@
         }
       </div>
 
-      @if (inDialog) {
       <div class="patch-card__dialog-actions">
         @if (canEdit) {
-        <a class="button btn-primary patch-card__action-btn" [routerLink]="['/add', patch.id]" target="_blank"
+        <a class="button btn-primary patch-card__action-btn patch-card__action-btn--edit" [routerLink]="['/add', patch.id]" target="_blank"
           rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
           <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
         </a>
         }
 
-        <button type="button" class="button patch-card__action-btn"
+        <button type="button" class="button patch-card__action-btn patch-card__action-btn--bookmark"
           [class.library-btn--active]="libraryService.isInLibrary(patch.id)"
           [disabled]="togglingLibraryId() === patch.id"
           [attr.aria-label]="libraryService.isInLibrary(patch.id) ? 'นำออกจากคลัง' : 'เก็บเข้าคลัง'"
@@ -147,7 +152,6 @@
             aria-hidden="true"></i>
         </button>
       </div>
-      }
 
       <div class="patch-card__description">
 

@@ -293,7 +293,7 @@ describe('PatchCardListComponent', () => {
     const libraryBtn = actionsRow.querySelector('button.button');
     expect(libraryBtn).not.toBeNull();
 
-    const heading = fixture.nativeElement.querySelector('.patch-card .heading');
+    const heading = fixture.nativeElement.querySelector('.patch-card__title');
     expect(heading).not.toBeNull();
     expect(heading.querySelector('.patch-card__actions-row')).toBeNull();
   });
@@ -305,11 +305,11 @@ describe('PatchCardListComponent', () => {
     }];
     fixture.detectChanges();
 
-    const heading = fixture.nativeElement.querySelector('.patch-card .heading');
+    const heading = fixture.nativeElement.querySelector('.patch-card__title');
     expect(heading).not.toBeNull();
 
     const badge = heading.querySelector('.game-badge');
-    const title = heading.querySelector('.game-title');
+    const title = heading.querySelector('.patch-card__title-text');
     expect(badge).not.toBeNull();
     expect(title).not.toBeNull();
     expect(title.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -326,7 +326,7 @@ describe('PatchCardListComponent', () => {
 
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
-    expect(dialog.querySelector('.game-title')?.textContent).toContain(basePatch.gameTitle);
+    expect(dialog.querySelector('.patch-card__title-text')?.textContent).toContain(basePatch.gameTitle);
     expect(dialog.querySelector('.patch-detail-dialog__close-btn')).not.toBeNull();
 
     // Escape closes detail modal
@@ -421,6 +421,24 @@ describe('PatchCardListComponent', () => {
     expect(libraryBtn).not.toBeNull();
   });
 
+  it('renders actions inside card body for desktop mode', () => {
+    component.patches = [basePatch];
+    component.canEdit = true;
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.patch-card');
+    expect(card).not.toBeNull();
+
+    const actions = card.querySelector('.patch-card__body .patch-card__dialog-actions');
+    expect(actions).not.toBeNull();
+
+    const editBtn = actions.querySelector('a.patch-card__action-btn--edit');
+    expect(editBtn).not.toBeNull();
+
+    const libraryBtn = actions.querySelector('button.patch-card__action-btn--bookmark');
+    expect(libraryBtn).not.toBeNull();
+  });
+
   it('stacks version modal on top of detail modal when opened from inside detail modal', () => {
     const multiPatch = {
       ...basePatch,
@@ -459,10 +477,10 @@ describe('PatchCardListComponent', () => {
     }];
     fixture.detectChanges();
 
-    const heading = fixture.nativeElement.querySelector('.heading');
-    expect(heading).not.toBeNull();
+    const mobileHeading = fixture.nativeElement.querySelector('.patch-card__title--mobile');
+    expect(mobileHeading).not.toBeNull();
 
-    const mobileBy = heading.querySelector('.patch-card__mobile-by');
+    const mobileBy = mobileHeading.querySelector('.patch-card__mobile-by');
     expect(mobileBy).not.toBeNull();
     expect(mobileBy.textContent).toContain('by');
     expect(mobileBy.textContent).toContain('Happy2You');
@@ -470,6 +488,10 @@ describe('PatchCardListComponent', () => {
     const link = mobileBy.querySelector('a');
     expect(link).not.toBeNull();
     expect(link.textContent.trim()).toBe('Happy2You');
+
+    const desktopHeading = fixture.nativeElement.querySelector('.patch-card__title--desktop');
+    expect(desktopHeading).not.toBeNull();
+    expect(desktopHeading.querySelector('.patch-card__mobile-by')).toBeNull();
   });
 
   it('renders cover system badge link inside actions row', () => {

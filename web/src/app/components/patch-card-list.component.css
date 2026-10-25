@@ -29,16 +29,25 @@
   min-width: 0;
 }
 
-.patch-card .heading {
+.patch-card__title {
   color: var(--color-highlight);
   display: block;
+  font-family: 'Courier New', monospace;
   line-height: 1.35;
   margin-bottom: 0.35rem;
 }
 
-.game-title {
+.patch-card__title-text {
   display: inline;
   font-size: 1.2rem;
+}
+
+.patch-card__title--desktop {
+  display: block;
+}
+
+.patch-card__title--mobile {
+  display: none;
 }
 
 .patch-card__mobile-by {
@@ -201,6 +210,7 @@
 
 .patch-cover-wrap {
   align-items: stretch;
+  align-self: flex-start;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: 2px 2px 0 var(--color-shadow);
@@ -209,7 +219,6 @@
   flex-direction: column;
   justify-content: flex-start;
   margin-inline: auto;
-  min-height: 170px;
   position: relative;
   width: min(100%, 250px);
 }
@@ -533,12 +542,18 @@
 .patch-card--dialog .patch-card__cover-system-badge,
 .patch-detail-dialog .patch-card__cover-system-badge,
 .patch-card--dialog .patch-card__mobile-by,
-.patch-detail-dialog .patch-card__mobile-by {
+.patch-detail-dialog .patch-card__mobile-by,
+.patch-card--dialog .patch-card__actions-row,
+.patch-detail-dialog .patch-card__actions-row {
   display: none !important;
 }
 
 .patch-card__dialog-actions {
-  display: none;
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-start;
+  margin: 0.2rem 0 0.4rem;
 }
 
 @media (max-width: 640px) {
@@ -546,15 +561,24 @@
     grid-template-columns: 1fr;
   }
 
+  .patch-card:not(.patch-card--dialog) .patch-card__dialog-actions {
+    display: none;
+  }
+
   .game-badge {
     display: none;
   }
 
-  .patch-card-title {
+  .patch-card__title--desktop {
+    display: none;
+  }
+
+  .patch-card__title--mobile {
+    display: block;
     text-align: center;
   }
 
-  .game-title {
+  .patch-card__title-text {
     padding-right: 0.35rem;
   }
 
@@ -627,19 +651,10 @@
     display: flex !important;
   }
 
-  .patch-detail-dialog .patch-card-title {
+  .patch-detail-dialog .patch-card__title,
+  .patch-detail-dialog .patch-card__title--mobile {
     text-align: left;
   }
-
-  .patch-detail-dialog .patch-card__dialog-actions {
-    align-items: center;
-    display: flex;
-    gap: 0.35rem;
-    justify-content: flex-start;
-    margin: 0.2rem 0 0.4rem;
-  }
-
-
 }
 
 
