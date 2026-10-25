@@ -94,7 +94,14 @@
 
       <div class="patch-card-title heading">
 
-        <span class="game-title">{{ patch.gameTitle }}</span>
+        <span class="game-title">
+          {{ patch.gameTitle }}
+          @if (!inDialog && patch.system.trim()) {
+          <span class="patch-card__mobile-system">[<a routerLink="/system"
+              [queryParams]="{ system: patch.system }"
+              class="patch-card__system-link">{{ patch.system }}</a>]</span>
+          }
+        </span>
 
         @if (!inDialog) {
         @if (patch.haveUpdateFlag) {

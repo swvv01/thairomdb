@@ -366,6 +366,7 @@ describe('PatchCardListComponent', () => {
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
     expect(dialog.querySelector('.patch-card__mobile-by')).toBeNull();
+    expect(dialog.querySelector('.patch-card__mobile-system')).toBeNull();
   });
 
   it('does not render game-badge inside detail modal even when patch has update or is new', () => {
@@ -469,6 +470,43 @@ describe('PatchCardListComponent', () => {
     const link = mobileBy.querySelector('a');
     expect(link).not.toBeNull();
     expect(link.textContent.trim()).toBe('Happy2You');
+  });
+
+  it('renders mobile system tag inside game title next to title text with link inside brackets', () => {
+    component.patches = [{
+      ...basePatch,
+      system: 'SFC'
+    }];
+    fixture.detectChanges();
+
+    const heading = fixture.nativeElement.querySelector('.heading');
+    expect(heading).not.toBeNull();
+
+    const gameTitle = heading.querySelector('.game-title');
+    expect(gameTitle).not.toBeNull();
+
+    const mobileSystem = gameTitle.querySelector('.patch-card__mobile-system');
+    expect(mobileSystem).not.toBeNull();
+    expect(mobileSystem.tagName.toLowerCase()).toBe('span');
+    expect(mobileSystem.textContent.trim()).toBe('[SFC]');
+
+    const link = mobileSystem.querySelector('a');
+    expect(link).not.toBeNull();
+    expect(link.classList.contains('patch-card__system-link')).toBeTrue();
+    expect(link.textContent.trim()).toBe('SFC');
+    expect(link.getAttribute('href')).toContain('/system?system=SFC');
+  });
+
+  it('does not render mobile system tag when system is empty or whitespace', () => {
+    component.patches = [{
+      ...basePatch,
+      system: '   '
+    }];
+    fixture.detectChanges();
+
+    const heading = fixture.nativeElement.querySelector('.heading');
+    expect(heading).not.toBeNull();
+    expect(heading.querySelector('.patch-card__mobile-system')).toBeNull();
   });
 
   describe('Pinterest Masonry Grid Mode', () => {
