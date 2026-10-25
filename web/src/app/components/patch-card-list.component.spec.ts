@@ -366,7 +366,7 @@ describe('PatchCardListComponent', () => {
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
     expect(dialog.querySelector('.patch-card__mobile-by')).toBeNull();
-    expect(dialog.querySelector('.patch-card__mobile-system')).toBeNull();
+    expect(dialog.querySelector('.patch-card__cover-system-badge')).toBeNull();
   });
 
   it('does not render game-badge inside detail modal even when patch has update or is new', () => {
@@ -472,41 +472,54 @@ describe('PatchCardListComponent', () => {
     expect(link.textContent.trim()).toBe('Happy2You');
   });
 
-  it('renders mobile system tag inside game title next to title text with link inside brackets', () => {
+  it('renders cover system badge link inside actions row', () => {
     component.patches = [{
       ...basePatch,
       system: 'SFC'
     }];
     fixture.detectChanges();
 
-    const heading = fixture.nativeElement.querySelector('.heading');
-    expect(heading).not.toBeNull();
+    const coverWrap = fixture.nativeElement.querySelector('.patch-cover-wrap');
+    expect(coverWrap).not.toBeNull();
 
-    const gameTitle = heading.querySelector('.game-title');
-    expect(gameTitle).not.toBeNull();
-
-    const mobileSystem = gameTitle.querySelector('.patch-card__mobile-system');
-    expect(mobileSystem).not.toBeNull();
-    expect(mobileSystem.tagName.toLowerCase()).toBe('span');
-    expect(mobileSystem.textContent.trim()).toBe('[SFC]');
-
-    const link = mobileSystem.querySelector('a');
-    expect(link).not.toBeNull();
-    expect(link.classList.contains('patch-card__system-link')).toBeTrue();
-    expect(link.textContent.trim()).toBe('SFC');
-    expect(link.getAttribute('href')).toContain('/system?system=SFC');
+    const systemBadge = coverWrap.querySelector('.patch-card__cover-system-badge');
+    expect(systemBadge).not.toBeNull();
+    expect(systemBadge.textContent.trim()).toBe('SFC');
+    expect(systemBadge.getAttribute('href')).toContain('/system?system=SFC');
   });
 
-  it('does not render mobile system tag when system is empty or whitespace', () => {
+  it('does not render cover system badge when system is empty or whitespace', () => {
     component.patches = [{
       ...basePatch,
       system: '   '
     }];
     fixture.detectChanges();
 
-    const heading = fixture.nativeElement.querySelector('.heading');
-    expect(heading).not.toBeNull();
-    expect(heading.querySelector('.patch-card__mobile-system')).toBeNull();
+    const coverWrap = fixture.nativeElement.querySelector('.patch-cover-wrap');
+    expect(coverWrap).not.toBeNull();
+    expect(coverWrap.querySelector('.patch-card__cover-system-badge')).toBeNull();
+  });
+
+  it('renders actions row under cover with bookmark on left, edit in center, and system on right', () => {
+    component.canEdit = true;
+    component.patches = [{
+      ...basePatch,
+      system: 'SFC'
+    }];
+    fixture.detectChanges();
+
+    const actionsRow = fixture.nativeElement.querySelector('.patch-card__actions-row');
+    expect(actionsRow).not.toBeNull();
+
+    const left = actionsRow.querySelector('.patch-card__actions-left .patch-card__action-btn--bookmark');
+    expect(left).not.toBeNull();
+
+    const center = actionsRow.querySelector('.patch-card__actions-center .patch-card__action-btn--edit');
+    expect(center).not.toBeNull();
+
+    const right = actionsRow.querySelector('.patch-card__actions-right .patch-card__cover-system-badge');
+    expect(right).not.toBeNull();
+    expect(right.textContent.trim()).toBe('SFC');
   });
 
   describe('Pinterest Masonry Grid Mode', () => {
