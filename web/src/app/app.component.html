@@ -18,7 +18,8 @@
         [attr.title]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
         [attr.aria-label]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
         (click)="gridModeService.toggle()">
-        <i class="fa-solid fa-grip" aria-hidden="true"></i>
+        <span class="grid-mode-toggle__label">Grid</span>
+        <i class="fa-solid" [class.fa-toggle-on]="gridModeService.isGridMode()" [class.fa-toggle-off]="!gridModeService.isGridMode()" aria-hidden="true"></i>
       </button>
       }
 

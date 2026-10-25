@@ -54,10 +54,12 @@
 
 ### 3.1 ปุ่ม Toggle สลับโหมดบน Header
 - ติดตั้งปุ่ม Retro Toggle ด้านหน้า `#last-update`
+- จัดวางแบบแนวนอนแถวเดียว: วาง Label `Grid` (ขนาด 1rem) ไว้ข้างหน้า และตามด้วยไอคอน `fa-toggle` (ขนาด 2rem)
+- การแสดงสี: เมื่อ active ไอคอนจะแสดงสี `--color-accent` (Label คงสีปกติ และไม่มีการเปลี่ยนสีตอน hover)
 - ซ่อนบนหน้าจอมือถือและแท็บเล็ตผ่าน `@media (max-width: 1023px) { display: none !important; }`
 - สลับไอคอนตามสถานะ:
-  - ขณะเป็น Grid Mode: แสดงไอคอนรายการ `fa-solid fa-list`
-  - ขณะเป็น List Mode: แสดงไอคอนตาราง `fa-solid fa-table-cells`
+  - ขณะเป็น Grid Mode: แสดงไอคอนเปิด `fa-solid fa-toggle-on`
+  - ขณะเป็น List Mode: แสดงไอคอนปิด `fa-solid fa-toggle-off`
 
 ### 3.2 การขยายเต็มจอ (Full Width)
 - เมื่อ `activeGridMode()` เป็นจริง:
