@@ -58,7 +58,8 @@
 </header>
 
 <div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()"
-  [class.is-grid-mode]="gridModeService.activeGridMode()">
+  [class.is-grid-mode]="gridModeService.activeGridMode()"
+  [class.has-right-sidebar]="hasRightSidebar()">
   <aside id="system-sidebar" class="retro-rail" [class.mobile-sidebar-open]="sidebarOpen()"
     [class.is-vip]="authService.isVip()" (click)="$event.stopPropagation()" aria-label="Main navigation">
 
@@ -267,7 +268,7 @@
 
 
 
-    @if (!isDesktop() || gridModeService.activeGridMode()) {
+    @if (!hasRightSidebar()) {
     <ng-container *ngTemplateOutlet="secondarySidebar"></ng-container>
     }
 
@@ -422,7 +423,7 @@
   <aside class="right-ad-sidebar" aria-label="แถบข้อมูลเสริมและโฆษณา">
 
 
-    @if (isDesktop() && !gridModeService.activeGridMode()) {
+    @if (hasRightSidebar()) {
     <ng-container *ngTemplateOutlet="secondarySidebar"></ng-container>
     }
 

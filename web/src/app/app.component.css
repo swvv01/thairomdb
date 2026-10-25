@@ -465,12 +465,6 @@
 }
 
 
-@media (max-width: 1024px) {
-  .right-ad-sidebar {
-    display: none;
-  }
-}
-
 @media (min-width: 901px) {
   .app-shell {
     align-items: stretch;
@@ -514,7 +508,7 @@
   }
 }
 
-@media (max-width: 479px) {
+@media (max-width: 1023px) {
   .grid-mode-toggle {
     display: none !important;
   }
@@ -591,18 +585,12 @@
   }
 }
 
-@media (min-width: 1200px) {
-  .app-shell {
-    grid-template-columns: 288px minmax(0, 1fr) 288px;
-  }
+.app-shell.has-right-sidebar {
+  grid-template-columns: 288px minmax(0, 1fr) 288px;
+}
 
-  .app-shell.is-grid-mode {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .right-ad-sidebar {
-    display: block;
-  }
+.app-shell.has-right-sidebar .right-ad-sidebar {
+  display: block;
 }
 
 .retro-sidebar-section:first-child,

@@ -305,6 +305,27 @@ describe('AppComponent', () => {
     expect(rightHitCounter).toBeNull();
   });
 
+  it('should manage has-right-sidebar class on app-shell and body', () => {
+    expect(AppComponent.desktopBreakpoint).toBe(1280);
+
+    const isDesktopSignal = (app as unknown as { isDesktop: { set: (val: boolean) => void } }).isDesktop;
+    const gridModeService = TestBed.inject(BrowseGridModeService);
+    gridModeService.setGridMode(false);
+
+    isDesktopSignal.set(true);
+    fixture.detectChanges();
+
+    const appShell = fixture.nativeElement.querySelector('.app-shell') as HTMLElement;
+    expect(appShell.classList.contains('has-right-sidebar')).toBeTrue();
+    expect(document.body.classList.contains('has-right-sidebar')).toBeTrue();
+
+    isDesktopSignal.set(false);
+    fixture.detectChanges();
+
+    expect(appShell.classList.contains('has-right-sidebar')).toBeFalse();
+    expect(document.body.classList.contains('has-right-sidebar')).toBeFalse();
+  });
+
   it('should render secondary sections in right sidebar when desktop', () => {
     const isDesktopSignal = (app as unknown as { isDesktop: { set: (val: boolean) => void } }).isDesktop;
     isDesktopSignal.set(true);

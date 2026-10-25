@@ -1,4 +1,4 @@
-import { calculateCoverDimensions, calculateStepDownDimensions, ImageProcessorService } from './image-processor.service';
+import { calculateCoverDimensions, calculateStepDownDimensions, detectImageType, ImageProcessorService } from './image-processor.service';
 
 function createTestImageBlob(width: number, height: number): Promise<Blob> {
   const canvas = document.createElement('canvas');
@@ -52,6 +52,39 @@ describe('calculateStepDownDimensions', () => {
   });
 });
 
+describe('detectImageType', () => {
+  it('detects JPEG magic bytes', () => {
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00]);
+    expect(detectImageType(bytes)).toEqual({ mimeType: 'image/jpeg', isHeic: false });
+  });
+
+  it('detects PNG magic bytes', () => {
+    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    expect(detectImageType(bytes)).toEqual({ mimeType: 'image/png', isHeic: false });
+  });
+
+  it('detects WebP magic bytes', () => {
+    const bytes = new Uint8Array([
+      0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+      0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38
+    ]);
+    expect(detectImageType(bytes)).toEqual({ mimeType: 'image/webp', isHeic: false });
+  });
+
+  it('detects HEIC magic bytes and marks isHeic true', () => {
+    const bytes = new Uint8Array([
+      0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70, // ...ftyp
+      0x68, 0x65, 0x69, 0x63, 0x00, 0x00, 0x00, 0x00  // heic....
+    ]);
+    expect(detectImageType(bytes)).toEqual({ mimeType: 'image/heic', isHeic: true });
+  });
+
+  it('returns null mimeType for unknown bytes', () => {
+    const bytes = new Uint8Array([0x01, 0x02, 0x03, 0x04]);
+    expect(detectImageType(bytes)).toEqual({ mimeType: null, isHeic: false });
+  });
+});
+
 describe('ImageProcessorService', () => {
   let service: ImageProcessorService;
 
@@ -64,13 +97,23 @@ describe('ImageProcessorService', () => {
     await expectAsync(service.process(textBlob)).toBeRejectedWithError('ไฟล์ที่เลือกต้องเป็นรูปภาพ');
   });
 
-  it('processes image and returns scaled dimensions', async () => {
+  it('rejects HEIC blobs with helpful Thai message', async () => {
+    const heicBytes = new Uint8Array([
+      0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70,
+      0x6d, 0x69, 0x66, 0x31, 0x00, 0x00, 0x00, 0x00
+    ]);
+    const heicBlob = new Blob([heicBytes], { type: 'image/heic' });
+    await expectAsync(service.process(heicBlob)).toBeRejectedWithError('ไฟล์ภาพ .HEIC จาก iPhone ยังไม่รองรับ กรุณาเลือกไฟล์ .JPG, .PNG หรือแคปภาพหน้าจอแทน');
+  });
+
+  it('processes image and returns scaled dimensions and cleanRawBlob', async () => {
     const blob = await createTestImageBlob(500, 300);
     const result = await service.process(blob);
     expect(result.width).toBe(250);
     expect(result.height).toBe(150);
     expect(result.blob).toBeDefined();
     expect(result.blob.type).toBe('image/png');
+    expect(result.cleanRawBlob).toBeDefined();
   });
 
   it('falls back to canvas processing when createImageBitmap fails', async () => {

@@ -102,10 +102,10 @@ describe('BrowseGridModeService', () => {
     expect(newService.isGridMode()).toBeTrue();
   });
 
-  it('should initialize matchMedia query for min-width 480px when window is defined', () => {
+  it('should initialize matchMedia query for min-width 1024px when window is defined', () => {
     const matchMediaSpy = spyOn(window, 'matchMedia').and.callThrough();
     const newService = TestBed.runInInjectionContext(() => new BrowseGridModeService());
-    expect(matchMediaSpy).toHaveBeenCalledWith('(min-width: 480px)');
+    expect(matchMediaSpy).toHaveBeenCalledWith('(min-width: 1024px)');
     expect(newService).toBeTruthy();
   });
 });

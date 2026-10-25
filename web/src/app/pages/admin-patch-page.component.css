@@ -220,8 +220,6 @@ label.required::before {
   }
 }
 
-@media (min-width: 1200px) {
-  .floating-action {
-    right: 300px;
-  }
+:host-context(body.has-right-sidebar) .floating-action {
+  right: 300px;
 }

@@ -51,6 +51,7 @@ export interface ProcessedCover {
   filename: string;
   width: number;
   height: number;
+  cleanRawBlob?: Blob;
 }
 
 export type GameListSortField = 'gameTitle' | 'translatedBy' | 'system' | 'updateDate' | 'playTime';

@@ -62,7 +62,7 @@ export class BrowseGridModeService {
       });
 
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      const mql = window.matchMedia('(min-width: 480px)');
+      const mql = window.matchMedia('(min-width: 1024px)');
       this.isDesktopOrTablet.set(mql.matches);
       mql.addEventListener('change', (e) => {
         this.isDesktopOrTablet.set(e.matches);

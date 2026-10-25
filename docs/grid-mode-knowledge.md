@@ -10,7 +10,7 @@
 * **เป้าหมาย:**
   1. สร้างโหมดการแสดงผลแบบ **Pinterest Masonry Grid Layout** เน้นรูปภาพปกเกมแบบ Visual-First
   2. จัดเรียงตามอัตราส่วนความสูงจริงของปกโดยไม่มีช่องว่างแนวตั้ง และแบ่งเป็น 2 คอลัมน์ขึ้นไปอย่างสมดุล
-  3. ตั้งค่าให้เป็น **โหมดเริ่มต้น (Default Mode)** สำหรับผู้ใช้บนหน้าจอขนาด $\ge$ 480px
+  3. ตั้งค่าให้เป็น **โหมดเริ่มต้น (Default Mode)** สำหรับผู้ใช้บนหน้าจอ Desktop ขนาด $\ge$ 1024px
   4. จดจำการสลับโหมดของผู้ใช้ผ่าน `localStorage` หากผู้ใช้ต้องการใช้ List Mode
   5. ระบบโหลดข้อมูลแบบต่อเนื่องอัตโนมัติ (Infinite Scroll) พร้อมดึงข้อมูลล่วงหน้าก่อนผู้ใช้เลื่อนถึงช่องว่าง
   6. ขยายหน้าจอเต็มพื้นที่ (Full Width) พร้อมระบบ Hamburger Navigation Drawer สำหรับเข้าถึงเมนูหลัก
@@ -28,7 +28,7 @@
   - หากมีค่าบันทึกไว้ จะตรวจสอบว่าตรงกับ `'grid'` หรือไม่ (`saved === 'grid'`)
 - **Signal-Based Architecture:**
   - `isGridMode`: Writable Signal เก็บสถานะความต้องการของผู้ใช้ (`true` หรือ `false`)
-  - `isDesktopOrTablet`: Writable Signal ติดตามขนาดหน้าจอผ่าน `window.matchMedia('(min-width: 480px)')`
+  - `isDesktopOrTablet`: Writable Signal ติดตามขนาดหน้าจอ Desktop ผ่าน `window.matchMedia('(min-width: 1024px)')`
   - `isBrowseRoute`: Writable Signal ตรวจจับว่า URL ปัจจุบันเป็นหน้ารายการเกมที่รองรับ Grid Mode หรือไม่
   - `activeGridMode`: Computed Signal สรุปผลการเปิดใช้งานจริง:
     ```typescript
@@ -37,11 +37,11 @@
     );
     ```
 
-### 2.2 Breakpoint & Responsive Guard (480px)
-- **ทำไมต้อง 480px?**
-  - คอลัมน์การ์ดใน Grid Mode มีความกว้างอยู่ที่ประมาณ 210px - 250px
-  - หน้าจอขนาดตั้งแต่ 480px ขึ้นไป (รวมระยะ Gap และขอบจอ) จะมีพื้นที่พอดีสำหรับการจัดแสดงผล **2 คอลัมน์**
-  - หน้าจอที่แคบกว่า 480px (สมาร์ตโฟนขนาดเล็กในแนวตั้ง) จะถูกปิด Grid Mode อัตโนมัติ (`activeGridMode = false`) และแสดงผลในรูปแบบ List Mode แบบ 1 คอลัมน์เดิมเพื่อประสบการณ์ใช้งานที่เหมาะสม
+### 2.2 Breakpoint & Responsive Guard (1024px - Desktop Only)
+- **ทำไมต้อง 1024px?**
+  - Grid Mode ได้รับการออกแบบมาเพื่อให้ประสบการณ์สำรวจรูปภาพปกแบบ Masonry อย่างเต็มประสิทธิภาพบนหน้าจอขนาดใหญ่ (Desktop / Laptop)
+  - หน้าจอขนาดตั้งแต่ 1024px ขึ้นไปมีพื้นที่เพียงพอสำหรับการจัดแสดงผลหลายคอลัมน์พร้อมช่องว่างที่เหมาะสม
+  - หน้าจอที่มีขนาดต่ำกว่า 1024px (มือถือและแท็บเล็ต) จะถูกจำกัดให้แสดงผลในรูปแบบ List Mode แบบมาตรฐานเท่านั้น โดยที่ `activeGridMode = false` และซ่อนปุ่มสลับโหมดออกจาก Header
 
 ---
 
@@ -54,7 +54,7 @@
 
 ### 3.1 ปุ่ม Toggle สลับโหมดบน Header
 - ติดตั้งปุ่ม Retro Toggle ด้านหน้า `#last-update`
-- ซ่อนบนหน้าจอขนาดเล็กมากผ่าน `@media (max-width: 479px) { display: none !important; }`
+- ซ่อนบนหน้าจอมือถือและแท็บเล็ตผ่าน `@media (max-width: 1023px) { display: none !important; }`
 - สลับไอคอนตามสถานะ:
   - ขณะเป็น Grid Mode: แสดงไอคอนรายการ `fa-solid fa-list`
   - ขณะเป็น List Mode: แสดงไอคอนตาราง `fa-solid fa-table-cells`

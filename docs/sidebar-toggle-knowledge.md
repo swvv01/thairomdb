@@ -53,7 +53,7 @@ flowchart TD
    - ปุ่มจะถูกซ่อน (`display: none;`) เนื่องจากหน้าเว็บแสดงผลแบบ 3 คอลัมน์เต็มพื้นที่ มี Sidebar ซ้ายและขวาอยู่บนหน้าจออยู่แล้ว
 2. **บน Mobile Mode (จอ $\le$ 900px):**
    - แสดงปุ่มอัตโนมัติ (`display: inline-block;`) เพื่อเปิด Drawer
-3. **บน Grid Mode (ทุกขนาดหน้าจอ $\ge$ 480px):**
+3. **บน Grid Mode (หน้าจอ Desktop $\ge$ 1024px):**
    - มีการใส่คลาส `.mobile-menu-button--grid` เพื่อบังคับให้ปุ่มแสดงผลเสมอ (`display: inline-block !important;`) แม้อยู่บนหน้าจอ Desktop กว้างพิเศษ เพื่อให้ผู้ใช้สามารถเรียกเปิดเมนู Drawer ได้ตลอดเวลา
 
 ---

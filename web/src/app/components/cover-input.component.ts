@@ -153,12 +153,12 @@ export class CoverInputComponent {
   protected async process(source: Blob, isNewRaw = true): Promise<void> {
     this.error.set(null);
     try {
+      const result = await this.processor.process(source);
       if (isNewRaw) {
-        this.rawBlob.set(source);
+        this.rawBlob.set(result.cleanRawBlob ?? source);
         this.isCropped.set(false);
         this.lastCrop.set(null);
       }
-      const result = await this.processor.process(source);
       this.revokePreviewBlob();
       this.preview.set(URL.createObjectURL(result.blob));
       this.selected.emit(result.blob);

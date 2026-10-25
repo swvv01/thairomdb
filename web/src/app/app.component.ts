@@ -34,16 +34,18 @@ export type MarqueeDisplayItem = { type: 'text'; text: string } | { type: 'donat
   styleUrl: './app.component.css'
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
+  public static readonly desktopBreakpoint = 1280;
+
   protected readonly isDesktop = signal(
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(min-width: 1200px)').matches
+      ? window.matchMedia(`(min-width: ${AppComponent.desktopBreakpoint}px)`).matches
       : false
   );
 
   @HostListener('window:resize')
   protected onResize(): void {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      this.isDesktop.set(window.matchMedia('(min-width: 1200px)').matches);
+      this.isDesktop.set(window.matchMedia(`(min-width: ${AppComponent.desktopBreakpoint}px)`).matches);
     }
   }
   private static readonly themeStorageKey = 'rom-collector-theme';
@@ -63,6 +65,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   protected readonly libraryService = inject(GameLibraryService);
   protected readonly gridModeService = inject(BrowseGridModeService);
+  protected readonly hasRightSidebar = computed(
+    () => this.isDesktop() && !this.gridModeService.activeGridMode()
+  );
   protected readonly filterState = inject(BrowseFilterStateService);
   protected readonly statusMessage = this.statusMessageService.message;
   protected readonly platforms = signal<SystemMaster[]>([]);
@@ -190,6 +195,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }, { allowSignalWrites: true });
   private readonly sidebarScrollLock = effect(() => {
     this.document.body.classList.toggle('sidebar-open', this.sidebarOpen());
+  });
+  private readonly rightSidebarClassEffect = effect(() => {
+    this.document.body.classList.toggle('has-right-sidebar', this.hasRightSidebar());
   });
   protected readonly sidebarOpen = signal(false);
   protected readonly browseRoute = browseRoute;
@@ -400,7 +408,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('online', this.onlineHandler);
     window.removeEventListener('offline', this.offlineHandler);
     this.document.body.classList.remove('sidebar-open');
+    this.document.body.classList.remove('has-right-sidebar');
     this.sidebarScrollLock.destroy();
+    this.rightSidebarClassEffect.destroy();
   }
 
   protected toggleTheme(): void {

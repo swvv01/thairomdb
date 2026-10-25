@@ -26,16 +26,78 @@ export function calculateStepDownDimensions(
   return steps;
 }
 
+export function detectImageType(bytes: Uint8Array): { mimeType: string | null; isHeic: boolean } {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return { mimeType: 'image/jpeg', isHeic: false };
+  }
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return { mimeType: 'image/png', isHeic: false };
+  }
+  if (bytes.length >= 6 && bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    return { mimeType: 'image/gif', isHeic: false };
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return { mimeType: 'image/webp', isHeic: false };
+  }
+  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    let ftypText = '';
+    const maxIdx = Math.min(bytes.length, 32);
+    for (let i = 8; i < maxIdx; i++) {
+      ftypText += String.fromCharCode(bytes[i]);
+    }
+    if (ftypText.includes('avif') || ftypText.includes('avis')) {
+      return { mimeType: 'image/avif', isHeic: false };
+    }
+    if (
+      ftypText.includes('heic') ||
+      ftypText.includes('heix') ||
+      ftypText.includes('mif1') ||
+      ftypText.includes('msf1') ||
+      ftypText.includes('hevc') ||
+      ftypText.includes('hevx')
+    ) {
+      return { mimeType: 'image/heic', isHeic: true };
+    }
+  }
+  if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) {
+    return { mimeType: 'image/bmp', isHeic: false };
+  }
+  return { mimeType: null, isHeic: false };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ImageProcessorService {
   async process(source: Blob): Promise<ProcessedCover> {
-    if (!source.type.startsWith('image/')) throw new Error('ไฟล์ที่เลือกต้องเป็นรูปภาพ');
+    const buffer = await source.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const detected = detectImageType(bytes);
 
-    try {
-      return await this.processWithBitmap(source);
-    } catch {
-      return await this.processWithCanvasFallback(source);
+    if (detected.isHeic || source.type === 'image/heic' || source.type === 'image/heif') {
+      throw new Error('ไฟล์ภาพ .HEIC จาก iPhone ยังไม่รองรับ กรุณาเลือกไฟล์ .JPG, .PNG หรือแคปภาพหน้าจอแทน');
     }
+
+    const effectiveMime = detected.mimeType || (source.type?.startsWith('image/') ? source.type : null);
+    if (!effectiveMime) {
+      throw new Error('ไฟล์ที่เลือกต้องเป็นรูปภาพ');
+    }
+
+    const cleanBlob = new Blob([buffer], { type: effectiveMime });
+
+    let processed: ProcessedCover;
+    try {
+      processed = await this.processWithBitmap(cleanBlob);
+    } catch {
+      processed = await this.processWithCanvasFallback(cleanBlob);
+    }
+
+    return {
+      ...processed,
+      cleanRawBlob: cleanBlob
+    };
   }
 
   private async processWithBitmap(source: Blob): Promise<ProcessedCover> {
@@ -43,34 +105,25 @@ export class ImageProcessorService {
       throw new Error('createImageBitmap is not supported');
     }
 
-    const initialBitmap = await createImageBitmap(source);
-    const origWidth = initialBitmap.width;
-    const origHeight = initialBitmap.height;
-    initialBitmap.close();
-
-    const { width, height } = calculateCoverDimensions(origWidth, origHeight);
-
-    const resizedBitmap = await createImageBitmap(source, {
-      resizeWidth: width,
-      resizeHeight: height,
-      resizeQuality: 'high'
-    });
-
+    const bitmap = await createImageBitmap(source);
     try {
+      const { width, height } = calculateCoverDimensions(bitmap.width, bitmap.height);
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
 
-      ctx.drawImage(resizedBitmap, 0, 0, width, height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, 0, 0, width, height);
 
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
       );
       return { blob, width, height, filename: `cover_max250px_${Date.now()}.png` };
     } finally {
-      resizedBitmap.close();
+      bitmap.close();
     }
   }
 
@@ -111,10 +164,28 @@ export class ImageProcessorService {
 
   private decode(source: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
-      const image = new Image(); const url = URL.createObjectURL(source);
-      image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
-      image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('ไม่สามารถอ่านรูปภาพได้')); };
-      image.src = url;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = async () => {
+          try {
+            if (typeof image.decode === 'function') {
+              await image.decode();
+            }
+            resolve(image);
+          } catch {
+            resolve(image);
+          }
+        };
+        image.onerror = () => {
+          reject(new Error('ไม่สามารถอ่านรูปภาพได้ กรุณาลองใช้รูปอื่นหรือแคปภาพหน้าจอ'));
+        };
+        image.src = reader.result as string;
+      };
+      reader.onerror = () => {
+        reject(new Error('ไม่สามารถอ่านรูปภาพได้ กรุณาลองใช้รูปอื่นหรือแคปภาพหน้าจอ'));
+      };
+      reader.readAsDataURL(source);
     });
   }
 }

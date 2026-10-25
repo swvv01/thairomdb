@@ -9,15 +9,15 @@
 ### 1.1 โครงสร้าง 3 คอลัมน์ (CSS Grid)
 โครงสร้างหลักของเว็บไซต์ใน `web/src/app/app.component.html` จัดวางด้วย CSS Grid ดังนี้:
 
-- **Desktop Wide (≥ 1200px):**
+- **Desktop Wide (≥ 1280px):** ควบคุมผ่านคลาส `.has-right-sidebar` บน `.app-shell` และ `body`
   - คอลัมน์ที่ 1: `288px` (Left Navigation Rail: `.retro-rail`)
   - คอลัมน์ที่ 2: `minmax(0, 1fr)` (Center Content Area: `.app-content`)
   - คอลัมน์ที่ 3: `288px` (Right Ad Sidebar: `.right-ad-sidebar`)
-- **Desktop Normal (901px - 1199px):** 2 คอลัมน์ (`288px minmax(0, 1fr)`) ซ่อนแถบโฆษณาด้านขวา
+- **Desktop Normal (901px - 1279px):** 2 คอลัมน์ (`288px minmax(0, 1fr)`) ซ่อนแถบข้อมูลเสริมด้านขวา และย้ายเนื้อหามาไว้ที่ Left Sidebar
 - **Mobile / Small Screen (≤ 900px):** คอลัมน์เดียวเต็มความกว้าง เมนูซ้ายซ่อนเป็น Drawer/Off-canvas พร้อมปุ่ม Hamburger บน Header
 
 ### 1.2 การป้องกัน Content ทะลุ / ล้นทับ Sidebar (Overflow Prevention)
-เมื่อหน้าจอคอมพิวเตอร์อยู่ในช่วง 1200px - 1450px คอลัมน์กลางจะมีพื้นที่เหลือประมาณ 600px - 750px ซึ่งแคบกว่าปกติ
+เมื่อหน้าจอคอมพิวเตอร์อยู่ในช่วง 1280px - 1450px คอลัมน์กลางจะมีพื้นที่เหลือประมาณ 704px - 874px
 
 **ข้อกำหนดที่ต้องปฏิบัติตามสำหรับทุกหน้า:**
 1. **Container `.app-content`:**

@@ -349,12 +349,6 @@
   }
 }
 
-@media (min-width: 1200px) {
-  .browse-floating-actions {
-    right: 300px;
-  }
-
-  .browse-catalogue--grid .browse-floating-actions {
-    right: 1rem;
-  }
+:host-context(body.has-right-sidebar) .browse-floating-actions {
+  right: 300px;
 }

@@ -205,7 +205,7 @@
 1. **จับคู่ Breakpoint อย่างเคร่งครัด:**
    - **Mobile / Drawer:** `@media (max-width: 900px)`
    - **Desktop Grid:** `@media (min-width: 901px)` (ห้ามใช้ `769px` เป็นอันขาด)
-   - **Desktop Wide (3-Column):** `@media (min-width: 1200px)`
+   - **Desktop Wide (3-Column):** ควบคุมผ่านคลาส `.has-right-sidebar` (Breakpoint 1280px)
 2. **Component ย่อยต้องใช้ Breakpoint เดียวกัน:**
    - องค์ประกอบที่มีการปรับตำแหน่งบน Mobile เช่น ปุ่มลอย (`.floating-action`, `.browse-floating-actions`), ระยะของแถบฟอร์ม (`.form-actions`), หรือหัวข้อ Route Label ต้องใช้ `@media (max-width: 900px)` ให้สอดคล้องกันทั้งแอปพลิเคชัน
 
