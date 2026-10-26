@@ -958,7 +958,7 @@ a:hover .fa-regular,
 
 .admin-dialog {
   width: min(100%, 32rem);
-  border: 2px solid var(--color-accent);
+  border: 2px solid var(--color-border);
   background: var(--color-surface);
   padding: 1.25rem;
   color: var(--color-text);

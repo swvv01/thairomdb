@@ -318,6 +318,17 @@
 }
 
 
+.site-branding {
+  align-items: center;
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.vip-badge-gif {
+  display: inline-block;
+  margin-left: 0.25rem;
+}
+
 .site-title {
   align-items: center;
   display: inline-flex;
@@ -637,4 +648,29 @@
 
 a i {
   text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    position: relative;
+  }
+
+  .site-branding {
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%);
+  }
+
+  .vip-badge-gif {
+    left: 100%;
+    margin-left: 0.25rem;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .mobile-menu-button {
+    position: relative;
+    z-index: 2;
+  }
 }
