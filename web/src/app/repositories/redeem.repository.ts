@@ -228,11 +228,8 @@ export class RedeemRepository {
       if (data.donationId) {
         if (newAmount > 0) {
           updates[`donations/${data.donationId}/amount`] = newAmount;
-          if (newDonatedAt) {
-            updates[`donations/${data.donationId}/donatedAt`] = newDonatedAt;
-          } else if (data.donatedAt) {
-            updates[`donations/${data.donationId}/donatedAt`] = data.createdAt;
-          }
+          const targetDonatedAt = newDonatedAt || data.donatedAt || data.createdAt || new Date().toISOString();
+          updates[`donations/${data.donationId}/donatedAt`] = targetDonatedAt;
         } else {
           updates[`donations/${data.donationId}`] = null;
           if (oldCodeStr === newCodeStr) {
@@ -248,11 +245,12 @@ export class RedeemRepository {
         } else {
           updates[`redeemCodes/${newCodeStr}/donationId`] = donationId;
         }
-        updates[`donations/${donationId}`] = { amount: newAmount, donatedAt: newDonatedAt || data.createdAt };
+        updates[`donations/${donationId}`] = { amount: newAmount, donatedAt: newDonatedAt || data.donatedAt || data.createdAt || new Date().toISOString() };
       }
 
       await update(ref(this.database), updates);
     } catch (error) {
+      console.error('Failed to update redeem code:', error);
       if (error instanceof RepositoryError) throw error;
       throw new RepositoryError('ไม่สามารถแก้ไขโค้ดได้', 'update');
     }
