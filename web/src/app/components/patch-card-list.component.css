@@ -76,7 +76,9 @@
   margin-top: auto;
   min-height: 32px;
   padding: 0.25rem 0.5rem;
+  position: relative;
   width: 100%;
+  z-index: 2;
 }
 
 .patch-card__actions-left {
@@ -160,10 +162,41 @@
   width: 100%;
 }
 
+.patch-cover-frame {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-height: 160px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
 .patch-cover-placeholder {
+  align-items: center;
+  background: var(--color-card-loading-bg);
+  display: flex;
   inset: 0;
+  justify-content: center;
+  opacity: 1;
   pointer-events: none;
   position: absolute;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 0;
+}
+
+.patch-cover-placeholder-icon {
+  animation: pinterest-placeholder-pulse 1.8s ease-in-out infinite;
+  color: var(--color-card-loading-icon, var(--color-text-muted));
+  display: inline-block;
+  font-size: 2.75rem;
+  line-height: 1;
+}
+
+.patch-cover-placeholder--hidden {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .patch-cover-image {
@@ -171,6 +204,7 @@
   position: relative;
   transition: opacity .2s ease;
   border: none;
+  z-index: 1;
 }
 
 .patch-cover-image--loaded {
@@ -219,6 +253,7 @@
   flex-direction: column;
   justify-content: flex-start;
   margin-inline: auto;
+  min-height: 200px;
   position: relative;
   width: min(100%, 250px);
 }
@@ -707,6 +742,7 @@
 
 .pinterest-card__cover-wrap {
   background: var(--color-surface-light);
+  min-height: 200px;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -719,6 +755,8 @@
   display: flex;
   justify-content: center;
   min-height: 200px;
+  opacity: 1;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
   width: 100%;
 }
 
@@ -745,7 +783,12 @@
 }
 
 .pinterest-card__placeholder--hidden {
-  display: none !important;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  z-index: 0;
 }
 
 .pinterest-card__placeholder:not(.pinterest-card__placeholder--hidden)~.pinterest-card__overlay {
@@ -765,7 +808,8 @@
 
 .pinterest-card__cover-image--loaded {
   opacity: 1;
-  position: static;
+  position: relative;
+  z-index: 1;
 }
 
 .pinterest-card__badge {
@@ -777,7 +821,7 @@
   right: 0.35rem;
   top: 0.35rem;
   transform: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .pinterest-card__overlay {
@@ -793,6 +837,7 @@
   pointer-events: none;
   position: absolute;
   transition: opacity 0.2s ease;
+  z-index: 2;
 }
 
 .pinterest-card:hover .pinterest-card__overlay,

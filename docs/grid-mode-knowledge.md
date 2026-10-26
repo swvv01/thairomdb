@@ -133,10 +133,10 @@
 ### 4.5 Cover Image Placeholder ระหว่างโหลดรูปภาพ (`fa-regular fa-image`)
 เพื่อแก้ปัญหาการ์ดแฟบ (Collapse) และภาพกระตุก (Cumulative Layout Shift - CLS) ก่อนที่ไฟล์ภาพปกเกมจะถูกดาวน์โหลดจากเซิร์ฟเวอร์เสร็จ:
 - **โครงสร้างและสีพื้นหลัง:** ใส่ `.pinterest-card__placeholder` ภายใน `.pinterest-card__cover-wrap` โดยใช้โทนสีพื้นหลัง `var(--color-card-loading-bg)` (อิงจาก `var(--color-surface-light)`) ให้ปรับตามธีมของเว็บไซต์อัตโนมัติ พร้อมไอคอน FontAwesome `fa-regular fa-image` ที่กึ่งกลาง
-- **มิติเริ่มต้น:** กำหนด `aspect-ratio: 3 / 4` คู่กับ `min-height: 200px` และความกว้าง `width: 100%` เพื่อจองพื้นที่สัดส่วนกล่องเกมแนวตั้งมาตรฐานใน Masonry
+- **มิติเริ่มต้นและการป้องกันกรอบแฟบ (Anti-Collapse Foundation):** กำหนด `min-height: 200px` ที่ตัวครอบ `.pinterest-card__cover-wrap` ควบคู่กับ `aspect-ratio: 3 / 4` ที่ตัว Placeholder เพื่อจองพื้นที่สัดส่วนกล่องเกมแนวตั้งมาตรฐาน และรับประกันว่าตัวการ์ดจะไม่มีวันแฟบลงเป็นเส้นขีด (Zero-Height Collapse) ไม่ว่าจะอยู่ในจังหวะโหลดหรือสลับสถานะใดๆ
 - **แอนิเมชัน Pulse สไตล์ Skeleton:** กำหนดแอนิเมชัน `pinterest-placeholder-pulse` ให้ไอคอนขนาด 2.75rem ค่อยๆ หรี่และขยายจังหวะนุ่มนวลระหว่างรอรูปภาพจริง
 - **คงการแสดงผล Overlay และ Badge:** ในช่วงที่ Placeholder กำลังแสดงผล แถบข้อความชื่อเกมและ Game Badge จะยังคงปรากฏชัดเจน (`opacity: 1`) เพื่อให้ผู้ใช้สามารถอ่านข้อมูลเกมได้ทันทีโดยไม่ต้องรอรูปโหลด
-- **Smooth Image Reveal:** ตัวรูปภาพจริงซ่อนอยู่ในเบื้องหลัง (`opacity: 0; position: absolute;`) และเมื่อดาวน์โหลดเสร็จสมบูรณ์ (`onImageLoad`) ตัว Placeholder จะถูกซ่อน (`display: none !important`) และภาพจริงจะ Fade-in ขึ้นมา (`opacity: 1; position: static;`) ด้วย `transition: opacity 0.25s ease` ปรับความสูงตามสัดส่วนภาพจริงโดยอัตโนมัติ
+- **Smooth Image Reveal:** ตัวรูปภาพจริงซ่อนอยู่ในเบื้องหลัง (`opacity: 0; position: absolute;`) และเมื่อดาวน์โหลดเสร็จสมบูรณ์ (`onImageLoad`) ตัว Placeholder จะค่อยๆ Fade Out ออกไปอย่างนุ่มนวล 0.2s (`transition: opacity 0.2s ease, visibility 0.2s ease; position: absolute; inset: 0;`) ขณะที่ภาพจริง Fade-in ขึ้นมา (`opacity: 1; position: relative; z-index: 1;`) ด้วย `transition: opacity 0.25s ease` ปรับความสูงตามสัดส่วนภาพจริงโดยอัตโนมัติโดยไม่มีจังหวะกระพริบวูบ
 
 ---
 

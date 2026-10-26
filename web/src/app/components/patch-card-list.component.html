@@ -64,10 +64,15 @@
     <div class="patch-cover-wrap" (click)="onCoverClick(patch)" (keydown.enter)="onCoverClick(patch)"
       [attr.tabindex]="(!inDialog && isMobile()) ? 0 : null" [attr.role]="(!inDialog && isMobile()) ? 'button' : null"
       [attr.aria-label]="(!inDialog && isMobile()) ? ('ดูรายละเอียดเกม ' + patch.gameTitle) : null">
-      <div class="patch-cover-placeholder" aria-hidden="true"></div>
-      <img class="mock-cover patch-cover-image" [class.patch-cover-image--loaded]="loadedImages().has(patch.id)"
-        [attr.loading]="priorityImage ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
-        [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
+      <div class="patch-cover-frame">
+        <div class="patch-cover-placeholder"
+          [class.patch-cover-placeholder--hidden]="loadedImages().has(patch.id)" aria-hidden="true">
+          <i class="fa-regular fa-image patch-cover-placeholder-icon" aria-hidden="true"></i>
+        </div>
+        <img class="mock-cover patch-cover-image" [class.patch-cover-image--loaded]="loadedImages().has(patch.id)"
+          [attr.loading]="priorityImage ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
+          [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
+      </div>
 
       <div class="patch-card__actions-row" (click)="$event.stopPropagation()">
 

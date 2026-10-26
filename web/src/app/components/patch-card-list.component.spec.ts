@@ -773,6 +773,39 @@ describe('PatchCardListComponent', () => {
       expect(img.classList.contains('pinterest-card__cover-image--loaded')).toBeTrue();
     });
 
+    it('renders skeleton placeholder in card mode while image is loading, and hides it after onImageLoad', () => {
+      gridModeService.isDesktopOrTablet.set(true);
+      gridModeService.isGameListRoute.set(true);
+      gridModeService.setGridMode(false);
+      component.patches = [{ ...basePatch, id: 'patch-card-load-1' }];
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.patch-card');
+      expect(card).not.toBeNull();
+
+      const frame = card.querySelector('.patch-cover-frame');
+      expect(frame).not.toBeNull();
+
+      const placeholder = card.querySelector('.patch-cover-placeholder');
+      expect(placeholder).not.toBeNull();
+      expect(placeholder.classList.contains('patch-cover-placeholder--hidden')).toBeFalse();
+
+      const placeholderIcon = placeholder.querySelector('.patch-cover-placeholder-icon');
+      expect(placeholderIcon).not.toBeNull();
+      expect(placeholderIcon.classList.contains('fa-image')).toBeTrue();
+
+      const img = card.querySelector('.patch-cover-image');
+      expect(img).not.toBeNull();
+      expect(img.classList.contains('patch-cover-image--loaded')).toBeFalse();
+
+      // Trigger image load
+      (component as any).onImageLoad('patch-card-load-1');
+      fixture.detectChanges();
+
+      expect(placeholder.classList.contains('patch-cover-placeholder--hidden')).toBeTrue();
+      expect(img.classList.contains('patch-cover-image--loaded')).toBeTrue();
+    });
+
     it('keeps overlay and badge present during placeholder loading state', () => {
       gridModeService.isDesktopOrTablet.set(true);
       gridModeService.isGameListRoute.set(true);
