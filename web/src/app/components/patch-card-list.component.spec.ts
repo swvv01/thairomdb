@@ -4,6 +4,7 @@ import { PatchCardListComponent } from './patch-card-list.component';
 import { StatusMessageService } from '../shared/status-message.service';
 import { GameLibraryService } from '../services/game-library.service';
 import { BrowseGridModeService } from '../services/browse-grid-mode.service';
+import { ImageProcessorService } from '../services/image-processor.service';
 import { Patch } from '../models/patch.models';
 
 describe('PatchCardListComponent', () => {
@@ -245,6 +246,65 @@ describe('PatchCardListComponent', () => {
     expect(linkTexts).toContain('ภาพปก');
     expect(linkTexts).toContain('Patch');
     expect(linkTexts).toContain('ที่มา');
+  });
+
+  it('converts webp cover to png on downloadCover', async () => {
+    const imageProcessor = TestBed.inject(ImageProcessorService);
+    const mockWebpBlob = new Blob(['fake-webp'], { type: 'image/webp' });
+    const mockPngBlob = new Blob(['fake-png'], { type: 'image/png' });
+    spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response(mockWebpBlob)));
+    spyOn(imageProcessor, 'convertToPng').and.returnValue(Promise.resolve(mockPngBlob));
+    const createUrlSpy = spyOn(URL, 'createObjectURL').and.returnValue('blob:http://example.com/mock-blob');
+    const revokeUrlSpy = spyOn(URL, 'revokeObjectURL');
+
+    const patch: Patch = {
+      ...basePatch,
+      coverUrl: 'http://example.com/cover.webp'
+    };
+    const event = new MouseEvent('click');
+    spyOn(event, 'preventDefault');
+
+    await (component as any).downloadCover(event, patch);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(window.fetch).toHaveBeenCalledWith('http://example.com/cover.webp?download=1');
+    expect(imageProcessor.convertToPng).toHaveBeenCalledWith(mockWebpBlob);
+    expect(createUrlSpy).toHaveBeenCalledWith(mockPngBlob);
+    expect(revokeUrlSpy).toHaveBeenCalledWith('blob:http://example.com/mock-blob');
+  });
+
+  it('does not transcode if cover is already png on downloadCover', async () => {
+    const imageProcessor = TestBed.inject(ImageProcessorService);
+    const mockPngBlob = new Blob(['fake-png'], { type: 'image/png' });
+    spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response(mockPngBlob)));
+    spyOn(imageProcessor, 'convertToPng');
+    spyOn(URL, 'createObjectURL').and.returnValue('blob:http://example.com/mock-blob');
+    spyOn(URL, 'revokeObjectURL');
+
+    const patch: Patch = {
+      ...basePatch,
+      coverUrl: 'http://example.com/cover.png'
+    };
+    const event = new MouseEvent('click');
+
+    await (component as any).downloadCover(event, patch);
+
+    expect(imageProcessor.convertToPng).not.toHaveBeenCalled();
+  });
+
+  it('falls back to window.open if downloadCover fetch fails', async () => {
+    spyOn(window, 'fetch').and.returnValue(Promise.reject(new Error('Network error')));
+    const openSpy = spyOn(window, 'open');
+
+    const patch: Patch = {
+      ...basePatch,
+      coverUrl: 'http://example.com/cover.webp'
+    };
+    const event = new MouseEvent('click');
+
+    await (component as any).downloadCover(event, patch);
+
+    expect(openSpy).toHaveBeenCalledWith('http://example.com/cover.webp', '_blank', 'noopener,noreferrer');
   });
 
   it('renders tags row inside patch-card__description', () => {

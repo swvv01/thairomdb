@@ -7,6 +7,7 @@ import { SystemMaster } from '../repositories/system.repository';
 import { StatusMessageService } from '../shared/status-message.service';
 import { GameLibraryService } from '../services/game-library.service';
 import { BrowseGridModeService } from '../services/browse-grid-mode.service';
+import { ImageProcessorService } from '../services/image-processor.service';
 
 @Component({
   selector: 'app-patch-card-list',
@@ -19,6 +20,7 @@ export class PatchCardListComponent implements AfterViewInit, OnDestroy {
   private static readonly newGameWindowMs = 7 * 24 * 60 * 60 * 1000;
   private readonly status = inject(StatusMessageService);
   private readonly hostEl = inject(ElementRef<HTMLElement>);
+  private readonly imageProcessor = inject(ImageProcessorService);
   protected readonly libraryService = inject(GameLibraryService);
   protected readonly gridModeService = inject(BrowseGridModeService);
 
@@ -207,7 +209,10 @@ export class PatchCardListComponent implements AfterViewInit, OnDestroy {
       const downloadUrl = `${patch.coverUrl}${sep}download=1`;
       const response = await fetch(downloadUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
+      let blob = await response.blob();
+      if (blob.type !== 'image/png') {
+        blob = await this.imageProcessor.convertToPng(blob);
+      }
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;

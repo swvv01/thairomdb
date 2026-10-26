@@ -283,7 +283,8 @@ export class AdminPatchPageComponent implements OnInit {
       let coverUrl = '';
       const patchId = this.editId ?? crypto.randomUUID();
       if (this.cover) {
-        coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.png`, abortSignal);
+        const ext = this.cover.type === 'image/webp' ? 'webp' : (this.cover.type === 'image/png' ? 'png' : 'webp');
+        coverUrl = await this.coverStorage.upload(patchId, this.cover, `cover_max250px_${Date.now()}.${ext}`, abortSignal);
         if (requestId !== this.saveRequestId) return;
         coverUrl = `${coverUrl.split('?')[0]}?t=${Date.now()}`;
       }

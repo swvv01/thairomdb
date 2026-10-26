@@ -12,7 +12,9 @@ export class CoverStorageService {
   private readonly workerUrl = environment.r2?.workerUrl;
 
   async upload(patchId: string, blob: Blob, filename: string, signal?: AbortSignal): Promise<string> {
-    if (!patchId || blob.type !== 'image/png' || !filename.match(/^cover_max250px_[0-9]+\.png$/)) throw new RepositoryError('ไฟล์ปกไม่ถูกต้อง', 'create');
+    const isValidType = blob.type === 'image/webp' || blob.type === 'image/png';
+    const isValidFilename = Boolean(filename.match(/^cover_max250px_[0-9]+\.(webp|png)$/));
+    if (!patchId || !isValidType || !isValidFilename) throw new RepositoryError('ไฟล์ปกไม่ถูกต้อง', 'create');
     
     if (!this.workerUrl) {
       throw new RepositoryError('ระบบอัปโหลดรูปภาพยังไม่ได้ตั้งค่า', 'create');

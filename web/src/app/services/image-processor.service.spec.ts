@@ -112,7 +112,8 @@ describe('ImageProcessorService', () => {
     expect(result.width).toBe(250);
     expect(result.height).toBe(150);
     expect(result.blob).toBeDefined();
-    expect(result.blob.type).toBe('image/png');
+    expect(result.blob.type).toBe('image/webp');
+    expect(result.filename.endsWith('.webp')).toBeTrue();
     expect(result.cleanRawBlob).toBeDefined();
   });
 
@@ -126,8 +127,25 @@ describe('ImageProcessorService', () => {
       expect(result.width).toBe(250);
       expect(result.height).toBe(167);
       expect(result.blob).toBeDefined();
+      expect(result.blob.type).toBe('image/webp');
     } finally {
       window.createImageBitmap = originalCreateImageBitmap;
     }
+  });
+
+  it('convertToPng returns the same blob if already image/png', async () => {
+    const pngBlob = new Blob(['png'], { type: 'image/png' });
+    const result = await service.convertToPng(pngBlob);
+    expect(result).toBe(pngBlob);
+  });
+
+  it('convertToPng converts non-png blob to image/png', async () => {
+    const testBlob = await createTestImageBlob(100, 100);
+    // testBlob is an image, let's process it to webp first
+    const processed = await service.process(testBlob);
+    expect(processed.blob.type).toBe('image/webp');
+
+    const pngConverted = await service.convertToPng(processed.blob);
+    expect(pngConverted.type).toBe('image/png');
   });
 });

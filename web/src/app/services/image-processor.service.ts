@@ -119,9 +119,9 @@ export class ImageProcessorService {
       ctx.drawImage(bitmap, 0, 0, width, height);
 
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
+        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', 0.85)
       );
-      return { blob, width, height, filename: `cover_max250px_${Date.now()}.png` };
+      return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
     } finally {
       bitmap.close();
     }
@@ -157,9 +157,47 @@ export class ImageProcessorService {
       ctx.drawImage(currentSource, 0, 0, width, height);
     }
     const blob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', 0.85)
+    );
+    return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
+  }
+
+  async convertToPng(source: Blob): Promise<Blob> {
+    if (source.type === 'image/png') {
+      return source;
+    }
+
+    if (typeof createImageBitmap === 'function') {
+      try {
+        const bitmap = await createImageBitmap(source);
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
+          ctx.drawImage(bitmap, 0, 0);
+          return await new Promise<Blob>((resolve, reject) =>
+            canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
+          );
+        } finally {
+          bitmap.close();
+        }
+      } catch {
+        // Fallback to decode if createImageBitmap fails
+      }
+    }
+
+    const image = await this.decode(source);
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
+    ctx.drawImage(image, 0, 0);
+    return await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
     );
-    return { blob, width, height, filename: `cover_max250px_${Date.now()}.png` };
   }
 
   private decode(source: Blob): Promise<HTMLImageElement> {
