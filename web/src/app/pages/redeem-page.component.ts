@@ -21,6 +21,7 @@ export class RedeemPageComponent {
 
   protected readonly code = signal('');
   protected readonly loading = signal(false);
+  protected readonly redeemedDonationId = signal<string | null>(null);
 
   protected async signIn(): Promise<void> {
     this.loading.set(true);
@@ -46,11 +47,14 @@ export class RedeemPageComponent {
     this.statusMessage.show('กำลังตรวจสอบโค้ด...', 'info');
 
     try {
-      await this.redeemRepo.redeemCode(codeVal, user.uid, user.email ?? '');
+      const res = await this.redeemRepo.redeemCode(codeVal, user.uid, user.email ?? '');
 
       this.statusMessage.show('Redeem สำเร็จ! คุณได้รับสถานะ VIP แล้ว', 'success');
       this.code.set('');
       this.authService.isVip.set(true);
+      if (res?.donationId) {
+        this.redeemedDonationId.set(res.donationId);
+      }
     } catch (error: any) {
       this.statusMessage.show(error.message || 'เกิดข้อผิดพลาดในการตรวจสอบโค้ด', 'error');
     } finally {

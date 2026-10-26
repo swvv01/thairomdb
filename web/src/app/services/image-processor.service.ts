@@ -71,7 +71,7 @@ export function detectImageType(bytes: Uint8Array): { mimeType: string | null; i
 
 @Injectable({ providedIn: 'root' })
 export class ImageProcessorService {
-  async process(source: Blob, quality?: number): Promise<ProcessedCover> {
+  async process(source: Blob, quality?: number, maxWidth = 250): Promise<ProcessedCover> {
     const buffer = await source.arrayBuffer();
     const bytes = new Uint8Array(buffer);
     const detected = detectImageType(bytes);
@@ -90,9 +90,9 @@ export class ImageProcessorService {
 
     let processed: ProcessedCover;
     try {
-      processed = await this.processWithBitmap(cleanBlob, targetQuality);
+      processed = await this.processWithBitmap(cleanBlob, targetQuality, maxWidth);
     } catch {
-      processed = await this.processWithCanvasFallback(cleanBlob, targetQuality);
+      processed = await this.processWithCanvasFallback(cleanBlob, targetQuality, maxWidth);
     }
 
     return {
@@ -101,14 +101,14 @@ export class ImageProcessorService {
     };
   }
 
-  private async processWithBitmap(source: Blob, quality: number): Promise<ProcessedCover> {
+  private async processWithBitmap(source: Blob, quality: number, maxWidth = 250): Promise<ProcessedCover> {
     if (typeof createImageBitmap !== 'function') {
       throw new Error('createImageBitmap is not supported');
     }
 
     const bitmap = await createImageBitmap(source);
     try {
-      const { width, height } = calculateCoverDimensions(bitmap.width, bitmap.height);
+      const { width, height } = calculateCoverDimensions(bitmap.width, bitmap.height, maxWidth);
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -122,15 +122,15 @@ export class ImageProcessorService {
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', quality)
       );
-      return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
+      return { blob, width, height, filename: `cover_max${maxWidth}px_${Date.now()}.webp` };
     } finally {
       bitmap.close();
     }
   }
 
-  private async processWithCanvasFallback(source: Blob, quality: number): Promise<ProcessedCover> {
+  private async processWithCanvasFallback(source: Blob, quality: number, maxWidth = 250): Promise<ProcessedCover> {
     const image = await this.decode(source);
-    const { width, height } = calculateCoverDimensions(image.width, image.height);
+    const { width, height } = calculateCoverDimensions(image.width, image.height, maxWidth);
     const steps = calculateStepDownDimensions(image.width, image.height, width, height);
 
     let currentSource: CanvasImageSource = image;
@@ -160,7 +160,7 @@ export class ImageProcessorService {
     const blob = await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', quality)
     );
-    return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
+    return { blob, width, height, filename: `cover_max${maxWidth}px_${Date.now()}.webp` };
   }
 
   async convertToPng(source: Blob): Promise<Blob> {

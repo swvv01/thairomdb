@@ -1,0 +1,106 @@
+<div class="modal-backdrop" (click)="close()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <header class="modal-header">
+      <div class="modal-header-text">
+        <h2 id="modal-title" class="modal-title">ตกแต่งการ์ดผู้สนับสนุน</h2>
+      </div>
+      <button type="button" class="modal-close-btn" (click)="close()" [disabled]="isProcessing()"
+        aria-label="ปิดหน้าต่าง">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    <!-- Error message if any -->
+    @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <i class="fa-solid fa-circle-exclamation mr-2" aria-hidden="true"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- Certificate Card Live Layout Form -->
+    <form (ngSubmit)="submit()" class="modal-card-form">
+      <div class="donor-certificate-card-edit">
+        <!-- Certificate Header -->
+        <div class="certificate-top">
+          <div class="certificate-emblem" aria-hidden="true">
+            <img src="assets/images/logo.png" alt="THAI ROM DB" class="certificate-emblem-img" />
+          </div>
+          <div class="certificate-headline">
+            <h3 class="certificate-title">ขอขอบพระคุณผู้สนับสนุน</h3>
+            <time class="certificate-date" [dateTime]="donation.donatedAt">
+              วันที่ {{ formatThaiDate(donation.donatedAt) }}
+            </time>
+          </div>
+        </div>
+
+        <!-- Certificate Photo Frame (Clickable to pick image) -->
+        <div class="certificate-photo-frame clickable-photo-frame"
+          [class.photo-frame--empty]="!previewUrl() && !donation.imageUrl" (click)="fileInput.click()" tabindex="0"
+          role="button" (keydown.enter)="fileInput.click()" (keydown.space)="fileInput.click(); $event.preventDefault()"
+          title="คลิกเพื่อเลือกภาพ">
+          @if (previewUrl() || donation.imageUrl) {
+          <img [src]="previewUrl() || donation.imageUrl" alt="รูปภาพผู้บริจาค" class="certificate-photo" />
+          } @else {
+          <div class="empty-photo-placeholder">
+            <i class="fa-solid fa-camera empty-photo-icon" aria-hidden="true"></i>
+            <span class="empty-photo-text">คลิกเพื่อเลือกภาพ</span>
+            <span class="empty-photo-subtext">(ไม่บังคับ)</span>
+          </div>
+          }
+          <input #fileInput type="file" class="hidden-file-input" accept="image/png,image/jpeg,image/webp"
+            (change)="onFileSelected($event)" [disabled]="isProcessing()" />
+        </div>
+
+        <!-- Certificate Info Box (Interactive Name Input + Details) -->
+        <div class="certificate-info-box">
+          <div class="donor-input-wrap">
+            <label for="donor-name-field" class="sr-only">ชื่อผู้บริจาค หรือ นามแฝง</label>
+            <input id="donor-name-field" type="text" class="certificate-donor-input" [value]="donorName()"
+              (input)="donorName.set($any($event.target).value)" maxlength="400"
+              placeholder="พิมพ์ชื่อของคุณ หรือ นามแฝง..." [disabled]="isProcessing()" required autocomplete="off" />
+            <div class="char-count-row">
+              <span class="char-count" [class.char-count--warn]="donorName().length > 380">
+                {{ donorName().length }}/400
+              </span>
+            </div>
+          </div>
+
+          <div class="certificate-amount-line">
+            <span class="certificate-amount-label">บริจาคเงิน</span>
+            <span class="certificate-amount">{{ donation.amount | number }}</span>
+            <span class="certificate-amount-unit">บาท</span>
+          </div>
+          <p class="certificate-thanks-line">ขอขอบคุณมา ณ โอกาสนี้</p>
+        </div>
+      </div>
+
+      <!-- One-Time Edit Warning Alert (Hidden for now to allow repeated edits) -->
+      <aside class="warning-callout" role="alert" [hidden]="true">
+        <i class="fa-solid fa-triangle-exclamation warning-icon" aria-hidden="true"></i>
+        <div class="warning-text">
+          <strong class="warning-bold">แจ้งเตือนสำคัญ: แก้ไขได้เพียงครั้งเดียวเท่านั้น</strong>
+          <p class="warning-desc">เมื่อกดยืนยันแล้ว ข้อมูลชื่อและรูปภาพจะไม่สามารถเปลี่ยนแปลงได้อีก
+            กรุณาตรวจสอบความถูกต้องก่อนบันทึก</p>
+        </div>
+      </aside>
+
+      <!-- Modal Footer Buttons -->
+      <footer class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="close()" [disabled]="isProcessing()">
+          ยกเลิก
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="isProcessing() || !donorName().trim()">
+          @if (isProcessing()) {
+          <i class="fa-solid fa-circle-notch fa-spin mr-2" aria-hidden="true"></i>
+          <span>{{ processingText() || 'กำลังบันทึก...' }}</span>
+          } @else {
+          <i class="fa-solid fa-check mr-2" aria-hidden="true"></i>
+          <span>ยืนยันบันทึกข้อมูล</span>
+          }
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>

@@ -13,7 +13,7 @@ export class CoverStorageService {
 
   async upload(patchId: string, blob: Blob, filename: string, signal?: AbortSignal): Promise<string> {
     const isValidType = blob.type === 'image/webp' || blob.type === 'image/png';
-    const isValidFilename = Boolean(filename.match(/^cover_max250px_[0-9]+\.(webp|png)$/));
+    const isValidFilename = Boolean(filename.match(/^cover_max[0-9]+px_[0-9]+\.(webp|png)$/));
     if (!patchId || !isValidType || !isValidFilename) throw new RepositoryError('ไฟล์ปกไม่ถูกต้อง', 'create');
     
     if (!this.workerUrl) {

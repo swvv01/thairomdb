@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, get, ref, set, update, remove, query, orderByChild, limitToLast } from '@angular/fire/database';
+import { Database, get, ref, update, remove, query, orderByChild, limitToLast, equalTo } from '@angular/fire/database';
 import { RedeemCode } from '../models/redeem.models';
 import { RepositoryError } from './repository-error';
 
@@ -19,7 +19,7 @@ export class RedeemRepository {
     }
   }
 
-  async redeemCode(code: string, uid: string, email: string): Promise<void> {
+  async redeemCode(code: string, uid: string, email: string): Promise<{ donationId?: string }> {
     const codeStr = code.trim();
     if (!codeStr) throw new RepositoryError('กรุณากรอกโค้ด', 'update');
     
@@ -45,9 +45,36 @@ export class RedeemRepository {
       };
 
       await update(ref(this.database, `redeemCodes/${codeStr}`), updates);
+
+      if (data.donationId) {
+        try {
+          await update(ref(this.database, `donations/${data.donationId}`), {
+            redeemedBy: uid
+          });
+        } catch (e) {
+          console.warn('Failed to link donation to user:', e);
+        }
+      }
+
+      return { donationId: data.donationId };
     } catch (error) {
       if (error instanceof RepositoryError) throw error;
       throw new RepositoryError('ไม่สามารถใช้งานโค้ดนี้ได้ (ข้อมูลอาจไม่ถูกต้องหรือถูกใช้ไปแล้ว)', 'update');
+    }
+  }
+
+  async getUserRedeemedCodes(uid: string): Promise<RedeemCode[]> {
+    if (!uid) return [];
+    try {
+      const q = query(ref(this.database, 'redeemCodes'), orderByChild('redeemedBy'), equalTo(uid));
+      const snapshot = await get(q);
+      const items: RedeemCode[] = [];
+      snapshot.forEach((child) => {
+        items.push({ id: child.key!, ...child.val() });
+      });
+      return items;
+    } catch {
+      return [];
     }
   }
 
@@ -66,7 +93,8 @@ export class RedeemRepository {
         if (data.amount > 0 && !data.donationId) {
           const donationId = 'don_' + Date.now().toString(36) + Math.random().toString(36).substring(2) + syncCount;
           
-          updates["donations/" + donationId] = { amount: data.amount, donatedAt: data.donatedAt || data.createdAt }; updates["redeemCodes/" + codeStr + "/donationId"] = donationId;
+          updates["donations/" + donationId] = { amount: data.amount, donatedAt: data.donatedAt || data.createdAt };
+          updates["redeemCodes/" + codeStr + "/donationId"] = donationId;
           syncCount++;
         }
       });
@@ -218,7 +246,7 @@ export class RedeemRepository {
         if (oldCodeStr === newCodeStr) {
           updates[`redeemCodes/${oldCodeStr}/donationId`] = donationId;
         } else {
-          updates[`redeemCodes/${newCodeStr}`].donationId = donationId;
+          updates[`redeemCodes/${newCodeStr}/donationId`] = donationId;
         }
         updates[`donations/${donationId}`] = { amount: newAmount, donatedAt: newDonatedAt || data.createdAt };
       }
@@ -244,4 +272,3 @@ export class RedeemRepository {
     }
   }
 }
-

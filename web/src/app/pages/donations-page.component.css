@@ -62,7 +62,7 @@
   margin: 0;
 }
 
-/* Tab Folder Section inside Card */
+/* Segmented Control / Pill Switch Section */
 .donations-tab-section {
   display: flex;
   flex-direction: column;
@@ -70,64 +70,88 @@
   min-width: 0;
 }
 
-.tab-folder-header {
+.segmented-control-wrap {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--color-highlight);
-  position: relative;
-  z-index: 2;
-  margin-bottom: 0;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+  width: 100%;
 }
 
-.tab-btn {
+.segmented-control-track {
   align-items: center;
-  background: var(--color-surface, rgba(255, 255, 255, 0.05));
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-highlight);
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-radius: 9999px;
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  max-width: 100%;
+  padding: 0.35rem;
+}
+
+.segmented-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9999px;
   color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
+  font-family: inherit;
   font-size: 1rem;
+  font-weight: 500;
   gap: 0.5rem;
-  min-height: 42px;
-  padding: 0.55rem 1.15rem;
-  margin-bottom: -1px;
-  position: relative;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.45rem 1.15rem;
+  text-decoration: none;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.tab-btn:hover {
+.segmented-btn:hover {
   background: var(--color-surface-light);
   color: var(--color-text);
 }
 
-.tab-btn--active {
-  background: var(--color-surface-light);
-  border-color: var(--color-highlight);
-  border-bottom: 1px solid var(--color-surface-light);
-  box-shadow: 0 -2px 0 var(--color-highlight);
-  color: var(--color-highlight);
-  margin-bottom: -1px;
-  padding-bottom: calc(0.55rem + 1px);
-  z-index: 3;
+.segmented-btn--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  color: var(--color-accent-text);
+  font-weight: 700;
 }
 
-.tab-count-badge {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  color: inherit;
+.segmented-btn--active:hover {
+  background: var(--color-accent-hover, var(--color-accent));
+  color: var(--color-accent-text);
+}
+
+.segmented-label {
+  font-size: 1rem;
   line-height: 1;
-  padding: 0.15rem 0.45rem;
-  font-size: 0.8rem;
 }
 
-.tab-btn--active .tab-count-badge {
-  background: var(--color-highlight);
-  color: var(--color-accent-text, #000);
-  font-weight: 800;
+.segmented-badge {
+  align-items: center;
+  background: var(--color-surface-light);
+  border-radius: 9999px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  min-width: 1.5rem;
+  padding: 0.15rem 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.segmented-btn--active .segmented-badge {
+  background: var(--color-surface);
+  color: var(--color-accent);
 }
 
 /* Donations List Container */
@@ -135,100 +159,292 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  background-color: var(--color-surface-light);
-  border: 1px solid var(--color-highlight);
-  border-top: none;
+  background: transparent;
+  border: none;
 }
 
-.donation-item {
-  align-items: center;
-  border-bottom: 1px solid var(--color-border);
+/* Responsive Certificate Card List - 1 Card per Row */
+.donations-grid {
   display: flex;
-  gap: 0.75rem;
-  justify-content: space-between;
-  padding: 0.85rem 0.5rem;
-  transition: background-color 0.15s ease;
-}
-
-.donation-item:last-child {
-  border-bottom: none;
-}
-
-.donation-item:hover {
-  background-color: color-mix(in srgb, var(--color-text) 4%, transparent);
-}
-
-.donation-item-left {
-  align-items: center;
-  display: flex;
-  gap: 0.85rem;
-  min-width: 0;
-}
-
-.donation-avatar {
-  align-items: center;
-  background: rgba(255, 77, 103, 0.15);
-  border: 1px solid var(--color-brand);
-  border-radius: 9999px;
-  color: var(--color-brand);
-  display: flex;
-  flex-shrink: 0;
-  font-size: 0.9rem;
-  height: 2.25rem;
-  justify-content: center;
-  width: 2.25rem;
-}
-
-.donation-time {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.donation-date-wrap {
-  align-items: center;
-  color: var(--color-text);
-  display: flex;
-  font-size: 0.95rem;
-  font-weight: 600;
-  gap: 0.4rem;
-}
-
-.donation-item-right {
-  align-items: center;
-  display: flex;
-  flex-shrink: 0;
-}
-
-/* Retro Coin Amount */
-.donation-amount {
-  align-items: center;
-  background: var(--color-highlight);
-  border: 2px solid var(--color-highlight);
-  border-radius: 9999px !important;
-  box-shadow: inset 0 0 0 2px rgba(255, 217, 43, 0.2), 2px 2px 0 var(--color-shadow);
-  color: var(--color-accent-text, #000);
-  display: inline-flex;
   flex-direction: column;
-  height: 3.25rem;
-  justify-content: center;
-  min-width: 3.25rem;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 0 0;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .donations-grid {
+    padding: 1.5rem 0 0;
+    gap: 1.5rem;
+  }
+}
+
+/* Donor Card Wrapper & Actions outside card */
+.donor-card-wrapper {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 540px;
+  width: 100%;
+}
+
+/* Donor Certificate Card (Matching sample layout with web theme) */
+.donor-certificate-card {
+  width: 100%;
+  max-width: 100%;
+  background: var(--color-surface-light);
+  border: 2px solid var(--color-border);
+  box-shadow: 3px 3px 0 var(--color-shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  transition: transform 0.15s ease;
-  user-select: none;
-  white-space: nowrap;
+  gap: 1rem;
+  position: relative;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.donation-item:hover .donation-amount {
-  transform: scale(1.06) rotate(-3deg);
+.donor-card--own {
+  border-color: var(--color-accent);
 }
 
-.coin-val {
-  font-size: 1.2rem;
+/* Certificate Top Header */
+.certificate-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  width: 100%;
+  position: relative;
+}
+
+.certificate-emblem {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.certificate-emblem-img {
+  height: 40px;
+  width: auto;
+  max-width: min(100%, 250px);
+  object-fit: contain;
+  display: block;
+}
+
+.certificate-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.certificate-title {
+  font-size: 1.45rem;
   font-weight: 900;
-  line-height: 1;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.certificate-sub {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-highlight);
+  margin: 0;
+}
+
+.certificate-date {
+  font-size: 1rem;
+  color: var(--color-text);
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+/* Certificate Photo Frame */
+.certificate-photo-frame {
+  width: 250px;
+  border: 1px solid var(--color-border);
+  max-width: 100%;
+  height: auto;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.certificate-photo {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Certificate Bottom Info Box */
+.certificate-info-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  box-sizing: border-box;
+}
+
+.certificate-donor-name {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--color-highlight);
+  margin: 0;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.certificate-amount-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0.35rem 0;
+  line-height: 1.2;
+}
+
+.certificate-amount-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.certificate-amount {
+  font-size: 2.75rem;
+  font-weight: 900;
+  color: var(--color-highlight);
+  line-height: 1.1;
+  text-shadow: 2px 2px 0 var(--color-shadow);
+  letter-spacing: -0.02em;
+}
+
+.certificate-amount-unit {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.certificate-thanks-line {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+/* Customize & Download Actions outside card */
+.donor-card-actions,
+.certificate-actions {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .donor-card-actions,
+  .certificate-actions {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+.btn-customize-card,
+.btn-download-card {
+  align-items: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1 1 0;
+  font-size: 1rem;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.btn-customize-card {
+  background: var(--color-accent);
+  color: var(--color-accent-text, #000);
+  border: 1px solid var(--color-shadow);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+}
+
+.btn-customize-card:hover {
+  background: var(--color-accent-hover, var(--color-accent));
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-customize-card:active {
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  transform: translateY(1px);
+}
+
+.btn-download-card {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+}
+
+.btn-download-card:hover:not(:disabled) {
+  background: var(--color-surface-light);
+  border-color: var(--color-highlight);
+  color: var(--color-highlight);
+  transform: translateY(-1px);
+}
+
+.btn-download-card:active:not(:disabled) {
+  box-shadow: 1px 1px 0 var(--color-shadow);
+  transform: translateY(1px);
+}
+
+.btn-download-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.badge-customized-done {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-status-success);
+  background: color-mix(in srgb, var(--color-status-success) 12%, transparent);
+  border: 1px solid var(--color-status-success);
+  border-radius: 6px;
 }
 
 /* Empty State Boxes */
@@ -252,7 +468,7 @@
 
 .redeem-callout-desc {
   color: var(--color-text-muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.6;
   margin: 0 0 1.25rem;
 }
@@ -267,7 +483,7 @@
   align-items: center;
   box-shadow: 2px 2px 0 var(--color-shadow);
   display: inline-flex;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   justify-content: center;
   padding: 0.65rem 1.15rem;
@@ -300,7 +516,7 @@
 /* Responsive */
 @media (max-width: 640px) {
   :host .donations-page-shell {
-    padding: 1rem 0.75rem;
+    padding: 0;
   }
 
   .donations-card-wrap {
@@ -312,7 +528,14 @@
     padding: 1rem;
   }
 
-  .donation-item {
-    padding: 0.75rem 0.25rem;
+  .segmented-control-track {
+    border-radius: 20px;
+    padding: 0.4rem;
+    gap: 0.4rem;
+  }
+
+  .donations-grid {
+    padding: 1rem 0 0;
+    gap: 1.25rem;
   }
 }
