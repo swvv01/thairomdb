@@ -101,4 +101,35 @@ export class EdgeDataService {
     }
     return { data: toRows(result.data), isSameAsLocal: false };
   }
+
+  async syncEdge(collection: CacheKey): Promise<boolean> {
+    const workerUrl = environment.r2?.workerUrl;
+    if (!workerUrl) return false;
+    const isAdmin = typeof this.auth?.isAdmin === 'function' ? this.auth.isAdmin() : false;
+    if (!isAdmin) return false;
+
+    try {
+      const query = `?fresh=true&t=${Date.now()}`;
+      const headers: Record<string, string> = {};
+      if (environment.r2?.purgeKey) {
+        headers['X-Purge-Key'] = environment.r2.purgeKey;
+      }
+      const res = await fetch(`${workerUrl}/api/data/${collection}${query}`, {
+        headers,
+        cache: 'no-store'
+      });
+      if (!res.ok) return false;
+
+      const edgeCachedAt = res.headers.get('X-Edge-Cached-At');
+      if (edgeCachedAt) {
+        const timestamp = Date.parse(edgeCachedAt);
+        if (!Number.isNaN(timestamp)) {
+          this.cache.setSavedAt(collection, timestamp);
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

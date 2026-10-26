@@ -41,14 +41,17 @@ describe('AdminPatchPageComponent - Bug Condition Exploration', () => {
 
   const translatorRepositoryStub = {
     watchAll: () => of([]),
+    create: jasmine.createSpy('create').and.returnValue(Promise.resolve({ data: { id: 'trans-1', shortName: 'T1', name: 'Team 1' }, edgeSynced: true })),
   };
 
   const tagRepositoryStub = {
     watchAll: () => of([]),
+    create: jasmine.createSpy('create').and.returnValue(Promise.resolve({ data: { id: 'tag-1', name: 'Action', slug: 'action' }, edgeSynced: true })),
   };
 
   const systemRepositoryStub = {
     watchAll: () => of([]),
+    create: jasmine.createSpy('create').and.returnValue(Promise.resolve({ data: { id: 'sys-1', shortName: 'SFC', name: 'Super Famicom' }, edgeSynced: true })),
   };
 
   const coverStorageStub = {
@@ -1051,7 +1054,7 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
 
   it('creates tag in repository if tag does not exist in suggestions', async () => {
     const tagRepo = TestBed.inject(TagRepository) as any;
-    tagRepo.create.and.returnValue(Promise.resolve({ id: 'tag-new', name: 'custom', slug: 'custom' }));
+    tagRepo.create.and.returnValue(Promise.resolve({ data: { id: 'tag-new', name: 'custom', slug: 'custom' }, edgeSynced: true }));
     await comp.addQuickTag('custom');
 
     expect(tagRepo.create).toHaveBeenCalledWith('custom');
@@ -1080,6 +1083,35 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
     const pad = (n: number) => String(n).padStart(2, '0');
     const expectedDate = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T00:00`;
     expect(val).toBe(expectedDate);
+  });
+
+  it('creates quick translator and triggers edge sync feedback', async () => {
+    (comp as any).newTranslatorName = 'Siam Translators';
+    (comp as any).newTranslatorShortName = 'Siam';
+    (comp as any).newTranslatorLink = 'https://siam.org';
+    (comp as any).newTranslatorModTool = 'SiamTool';
+
+    await (comp as any).createTranslator();
+
+    expect(translatorRepositoryStub.create).toHaveBeenCalledWith('Siam', 'Siam Translators', 'https://siam.org', 'SiamTool');
+    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มทีมแปลสำเร็จ', 'success');
+  });
+
+  it('creates quick tag and triggers edge sync feedback', async () => {
+    (comp as any).newTagName = 'Adventure';
+    await (comp as any).createTag();
+
+    expect(tagRepositoryStub.create).toHaveBeenCalledWith('Adventure');
+    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มหมวดหมู่สำเร็จ', 'success');
+  });
+
+  it('creates quick system and triggers edge sync feedback', async () => {
+    (comp as any).newSystemShortName = 'PS1';
+    (comp as any).newSystemName = 'PlayStation';
+    await (comp as any).createSystem();
+
+    expect(systemRepositoryStub.create).toHaveBeenCalledWith('PS1', 'PlayStation');
+    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มเครื่องเกมสำเร็จ', 'success');
   });
 });
 

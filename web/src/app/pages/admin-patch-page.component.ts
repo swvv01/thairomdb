@@ -15,6 +15,7 @@ import { Tag, Translator } from '../models/patch.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ConfirmDialogComponent } from '../components/confirm-dialog.component';
 import { AuthService } from '../services/auth.service';
+import { showEdgeSyncFeedback } from '../shared/edge-sync-feedback.util';
 
 const compareDropdownLabels = (a: { shortName: string; name: string }, b: { shortName: string; name: string }): number =>
   a.shortName.localeCompare(b.shortName, 'th', { sensitivity: 'base' }) || a.name.localeCompare(b.name, 'th', { sensitivity: 'base' });
@@ -553,8 +554,9 @@ export class AdminPatchPageComponent implements OnInit {
       return;
     }
     try {
-      const tag = await this.tagRepository.create(trimmed);
+      const { data: tag, edgeSynced } = await this.tagRepository.create(trimmed);
       this.selectTag(tag);
+      showEdgeSyncFeedback(this.status, 'เพิ่มหมวดหมู่สำเร็จ', edgeSynced);
     } catch (error) {
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถเพิ่ม tag ได้', 'error');
     }
@@ -575,7 +577,7 @@ export class AdminPatchPageComponent implements OnInit {
       }
       this.savingTranslator = true;
       this.status.show('กำลังบันทึกทีมแปล…');
-      const translator = await this.translatorRepository.create(this.newTranslatorShortName, name, removeFacebookReference(this.newTranslatorLink), this.newTranslatorModTool);
+      const { data: translator, edgeSynced } = await this.translatorRepository.create(this.newTranslatorShortName, name, removeFacebookReference(this.newTranslatorLink), this.newTranslatorModTool);
       this.translatorOptions = [...this.translatorOptions.filter((item) => item.id !== translator.id), translator].sort(compareDropdownLabels);
       this.form.controls.translatorId.setValue(translator.id);
       if (!this.editId) this.form.controls.patchTool.setValue(translator.modTool ?? '');
@@ -584,7 +586,7 @@ export class AdminPatchPageComponent implements OnInit {
       this.newTranslatorLink = '';
       this.newTranslatorModTool = '';
       this.translatorDialogOpen = false;
-      this.status.show('เพิ่มทีมแปลสำเร็จ', 'success');
+      showEdgeSyncFeedback(this.status, 'เพิ่มทีมแปลสำเร็จ', edgeSynced);
     } catch (error) {
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถเพิ่มทีมแปลได้', 'error');
     } finally {
@@ -602,13 +604,13 @@ export class AdminPatchPageComponent implements OnInit {
       }
       this.savingSystem = true;
       this.status.show('กำลังบันทึกเครื่องเกม…');
-      const system = await this.systemRepository.create(this.newSystemShortName, this.newSystemName);
+      const { data: system, edgeSynced } = await this.systemRepository.create(this.newSystemShortName, this.newSystemName);
       this.form.controls.system.setValue(system.shortName);
       this.systemSearchText = this.systemLabel(system);
       this.newSystemName = '';
       this.newSystemShortName = '';
       this.systemDialogOpen = false;
-      this.status.show('เพิ่มเครื่องเกมสำเร็จ', 'success');
+      showEdgeSyncFeedback(this.status, 'เพิ่มเครื่องเกมสำเร็จ', edgeSynced);
     } catch (error) {
       this.status.show(error instanceof Error ? error.message : 'ไม่สามารถเพิ่มเครื่องเกมได้', 'error');
     } finally {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Database, get, push, ref, remove, update } from '@angular/fire/database';
-import { Observable, Subject, catchError, from, map, startWith, switchMap, throwError } from 'rxjs';
+import { Observable, Subject, catchError, firstValueFrom, from, map, startWith, switchMap, throwError } from 'rxjs';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
 import { EdgeDataService } from '../services/edge-data.service';
 import { RepositoryError } from './repository-error';
@@ -41,8 +41,53 @@ const rows = (value: unknown): Record<string, unknown>[] => Object.entries((valu
       .filter(row => row.shortName && row.name)
       .sort((a, b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }));
   }
-async create(shortName: string, name: string): Promise<SystemMaster> { const s = normalizeName(shortName), n = normalizeName(name); if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของเครื่องเกม', 'create'); try { const r = push(ref(this.database, 'systems')); await update(r, { shortName: s, name: n }); this.cache.clear('systems'); this.refresh.next(); return { id: r.key!, shortName: s, name: n }; } catch { throw new RepositoryError('ไม่สามารถเพิ่มเครื่องเกมได้', 'create'); } }
-async update(id: string, shortName: string, name: string): Promise<SystemMaster> { const s = normalizeName(shortName), n = normalizeName(name); if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของเครื่องเกม', 'update'); try { await update(ref(this.database, `systems/${id}`), { shortName: s, name: n }); this.cache.clear('systems'); this.refresh.next(); return { id, shortName: s, name: n }; } catch { throw new RepositoryError('ไม่สามารถแก้ไขเครื่องเกมได้', 'update'); } }
+  async create(shortName: string, name: string): Promise<{ data: SystemMaster; edgeSynced: boolean }> {
+    const s = normalizeName(shortName), n = normalizeName(name);
+    if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของเครื่องเกม', 'create');
+    let system: SystemMaster;
+    try {
+      const r = push(ref(this.database, 'systems'));
+      await update(r, { shortName: s, name: n });
+      system = { id: r.key!, shortName: s, name: n };
+    } catch {
+      throw new RepositoryError('ไม่สามารถเพิ่มเครื่องเกมได้', 'create');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('systems');
+    this.cache.clear('systems');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { data: system, edgeSynced };
+  }
+
+  async update(id: string, shortName: string, name: string): Promise<{ data: SystemMaster; edgeSynced: boolean }> {
+    const s = normalizeName(shortName), n = normalizeName(name);
+    if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของเครื่องเกม', 'update');
+    let system: SystemMaster;
+    try {
+      await update(ref(this.database, `systems/${id}`), { shortName: s, name: n });
+      system = { id, shortName: s, name: n };
+    } catch {
+      throw new RepositoryError('ไม่สามารถแก้ไขเครื่องเกมได้', 'update');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('systems');
+    this.cache.clear('systems');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { data: system, edgeSynced };
+  }
+
   refreshAll(): void { this.cache.invalidate('systems'); this.refresh.next(); }
-  async delete(id: string): Promise<void> { try { await remove(ref(this.database, `systems/${id}`)); this.cache.clear('systems'); this.refresh.next(); } catch { throw new RepositoryError('ไม่สามารถลบเครื่องเกมได้', 'delete'); } }
+
+  async delete(id: string): Promise<{ edgeSynced: boolean }> {
+    try {
+      await remove(ref(this.database, `systems/${id}`));
+    } catch {
+      throw new RepositoryError('ไม่สามารถลบเครื่องเกมได้', 'delete');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('systems');
+    this.cache.clear('systems');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { edgeSynced };
+  }
 }

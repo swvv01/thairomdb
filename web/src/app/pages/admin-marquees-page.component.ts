@@ -7,6 +7,7 @@ import { MarqueeRepository } from '../repositories/marquee.repository';
 import { AuthService } from '../services/auth.service';
 import { StatusMessageService } from '../shared/status-message.service';
 import { AdminMasterPageComponent } from './admin-master-page.component';
+import { showEdgeSyncFeedback } from '../shared/edge-sync-feedback.util';
 
 @Component({
   selector: 'app-admin-marquees-page',
@@ -60,13 +61,11 @@ export class AdminMarqueesPageComponent {
     this.status.show('กำลังบันทึกข้อความ Marquee...');
     try {
       const editing = !!this.id;
-      if (this.id) {
-        await this.repo.update(this.id, trimmed, this.isActive);
-      } else {
-        await this.repo.create(trimmed, this.isActive);
-      }
+      const result = this.id
+        ? await this.repo.update(this.id, trimmed, this.isActive)
+        : await this.repo.create(trimmed, this.isActive);
       this.open = false;
-      this.status.show(editing ? 'แก้ไขข้อความ Marquee สำเร็จ' : 'เพิ่มข้อความ Marquee สำเร็จ', 'success');
+      showEdgeSyncFeedback(this.status, editing ? 'แก้ไขข้อความ Marquee สำเร็จ' : 'เพิ่มข้อความ Marquee สำเร็จ', result.edgeSynced);
     } catch (e) {
       this.status.show(e instanceof Error ? e.message : 'ไม่สามารถบันทึกข้อความ Marquee ได้', 'error');
     } finally {
@@ -79,8 +78,8 @@ export class AdminMarqueesPageComponent {
     this.saving = true;
     this.status.show('กำลังลบข้อความ Marquee...');
     try {
-      await this.repo.delete(item.id);
-      this.status.show('ลบข้อความ Marquee สำเร็จ', 'success');
+      const result = await this.repo.delete(item.id);
+      showEdgeSyncFeedback(this.status, 'ลบข้อความ Marquee สำเร็จ', result.edgeSynced);
     } catch (e) {
       this.status.show(e instanceof Error ? e.message : 'ไม่สามารถลบข้อความ Marquee ได้', 'error');
     } finally {

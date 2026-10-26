@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Database, get, push, ref, remove, update } from '@angular/fire/database';
-import { Observable, Subject, catchError, from, map, startWith, switchMap, throwError } from 'rxjs';
+import { Observable, Subject, catchError, firstValueFrom, from, map, startWith, switchMap, throwError } from 'rxjs';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
 import { EdgeDataService } from '../services/edge-data.service';
 import { RepositoryError } from './repository-error';
@@ -59,9 +59,52 @@ export class SidebarLinkRepository {
       .filter(item => item.label && sections.includes(item.section) && types.includes(item.type) && (item.type === 'article' ? !!item.articleSlug : isExternalUrl(item.url)))
       .sort((a, b) => a.label.localeCompare(b.label, 'th', { sensitivity: 'base' }));
   }
-  async create(label: string, type: SidebarLinkType, articleSlug: string, url: string, section: SidebarLinkSection): Promise<SidebarLink> { const item = this.normalizeItem(label, type, articleSlug, url, section, 'create'); try { const r = push(ref(this.database, 'sidebarLinks')); await update(r, this.databaseItem(item)); this.cache.clear('sidebarLinks'); this.refresh.next(); return { id: r.key!, ...item }; } catch { throw new RepositoryError('ไม่สามารถเพิ่มลิงก์ sidebar ได้', 'create'); } }
-  async update(id: string, label: string, type: SidebarLinkType, articleSlug: string, url: string, section: SidebarLinkSection): Promise<SidebarLink> { const item = this.normalizeItem(label, type, articleSlug, url, section, 'update'); try { await update(ref(this.database, `sidebarLinks/${id}`), this.databaseItem(item)); this.cache.clear('sidebarLinks'); this.refresh.next(); return { id, ...item }; } catch { throw new RepositoryError('ไม่สามารถแก้ไขลิงก์ sidebar ได้', 'update'); } }
-  async delete(id: string): Promise<void> { try { await remove(ref(this.database, `sidebarLinks/${id}`)); this.cache.clear('sidebarLinks'); this.refresh.next(); } catch { throw new RepositoryError('ไม่สามารถลบลิงก์ sidebar ได้', 'delete'); } }
+  async create(label: string, type: SidebarLinkType, articleSlug: string, url: string, section: SidebarLinkSection): Promise<{ data: SidebarLink; edgeSynced: boolean }> {
+    const item = this.normalizeItem(label, type, articleSlug, url, section, 'create');
+    let link: SidebarLink;
+    try {
+      const r = push(ref(this.database, 'sidebarLinks'));
+      await update(r, this.databaseItem(item));
+      link = { id: r.key!, ...item };
+    } catch {
+      throw new RepositoryError('ไม่สามารถเพิ่มลิงก์ sidebar ได้', 'create');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('sidebarLinks');
+    this.cache.clear('sidebarLinks');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { data: link, edgeSynced };
+  }
+
+  async update(id: string, label: string, type: SidebarLinkType, articleSlug: string, url: string, section: SidebarLinkSection): Promise<{ data: SidebarLink; edgeSynced: boolean }> {
+    const item = this.normalizeItem(label, type, articleSlug, url, section, 'update');
+    let link: SidebarLink;
+    try {
+      await update(ref(this.database, `sidebarLinks/${id}`), this.databaseItem(item));
+      link = { id, ...item };
+    } catch {
+      throw new RepositoryError('ไม่สามารถแก้ไขลิงก์ sidebar ได้', 'update');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('sidebarLinks');
+    this.cache.clear('sidebarLinks');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { data: link, edgeSynced };
+  }
+
+  async delete(id: string): Promise<{ edgeSynced: boolean }> {
+    try {
+      await remove(ref(this.database, `sidebarLinks/${id}`));
+    } catch {
+      throw new RepositoryError('ไม่สามารถลบลิงก์ sidebar ได้', 'delete');
+    }
+    const edgeSynced = await this.edgeData.syncEdge('sidebarLinks');
+    this.cache.clear('sidebarLinks');
+    this.refresh.next();
+    try { await firstValueFrom(this.watchAll()); } catch { /* ignore watch error */ }
+    return { edgeSynced };
+  }
+
   refreshAll(): void { this.cache.invalidate('sidebarLinks'); this.refresh.next(); }
   private databaseItem(item: Omit<SidebarLink, 'id'>): Record<string, string | null> { return { ...item, articleSlug: item.type === 'article' ? item.articleSlug : null, url: item.type === 'external' ? item.url : null }; }
   private normalizeItem(label: string, type: SidebarLinkType, articleSlug: string, url: string, section: SidebarLinkSection, operation: 'create' | 'update'): Omit<SidebarLink, 'id'> { const item = { label: normalize(label), type, articleSlug: type === 'article' ? normalize(articleSlug) : '', url: type === 'external' ? normalize(url) : '', section }; if (!item.label || !types.includes(item.type) || !sections.includes(item.section) || (item.type === 'article' ? !item.articleSlug : !isExternalUrl(item.url))) throw new RepositoryError('กรุณากรอกข้อมูลลิงก์ให้ครบถ้วน', operation); return item; }

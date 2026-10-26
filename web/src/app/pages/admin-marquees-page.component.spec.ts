@@ -83,7 +83,7 @@ describe('AdminMarqueesPageComponent', () => {
   });
 
   it('creates new marquee item successfully', async () => {
-    mockRepo.create.and.resolveTo({ id: 'm3', text: 'ข้อความใหม่', isActive: true, createdAt: '2026-01-03' });
+    mockRepo.create.and.resolveTo({ data: { id: 'm3', text: 'ข้อความใหม่', isActive: true, createdAt: '2026-01-03' }, edgeSynced: true });
     (component as any).id = null;
     (component as any).text = 'ข้อความใหม่';
     (component as any).isActive = true;
@@ -95,8 +95,24 @@ describe('AdminMarqueesPageComponent', () => {
     expect(mockStatus.show).toHaveBeenCalledWith('เพิ่มข้อความ Marquee สำเร็จ', 'success');
   });
 
+  it('shows info warning if creating marquee succeeds but edge sync fails', async () => {
+    mockRepo.create.and.resolveTo({ data: { id: 'm3', text: 'ข้อความใหม่', isActive: true, createdAt: '2026-01-03' }, edgeSynced: false });
+    (component as any).id = null;
+    (component as any).text = 'ข้อความใหม่';
+    (component as any).isActive = true;
+
+    await (component as any).save();
+
+    expect(mockRepo.create).toHaveBeenCalledWith('ข้อความใหม่', true);
+    expect((component as any).open).toBeFalse();
+    expect(mockStatus.show).toHaveBeenCalledWith(
+      'เพิ่มข้อความ Marquee สำเร็จ แต่ซิงค์ Edge ไม่สำเร็จ กรุณากดปุ่ม \'ซิงค์ข้อมูล Edge\' ที่แถบเมนูด้านข้าง',
+      'info'
+    );
+  });
+
   it('updates existing marquee item successfully', async () => {
-    mockRepo.update.and.resolveTo({ id: 'm1', text: 'แก้ไขข้อความ', isActive: false, createdAt: '2026-01-01' });
+    mockRepo.update.and.resolveTo({ data: { id: 'm1', text: 'แก้ไขข้อความ', isActive: false, createdAt: '2026-01-01' }, edgeSynced: true });
     (component as any).id = 'm1';
     (component as any).text = 'แก้ไขข้อความ';
     (component as any).isActive = false;
@@ -110,7 +126,7 @@ describe('AdminMarqueesPageComponent', () => {
 
   it('deletes marquee item when confirmed', async () => {
     spyOn(window, 'confirm').and.returnValue(true);
-    mockRepo.delete.and.resolveTo();
+    mockRepo.delete.and.resolveTo({ edgeSynced: true });
 
     const item = { id: 'm1', text: 'ลบฉัน', isActive: true, createdAt: '2026-01-01' };
     await (component as any).remove(item);

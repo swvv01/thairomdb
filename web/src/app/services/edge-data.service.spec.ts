@@ -121,4 +121,42 @@ describe('EdgeDataService', () => {
     expect(capturedUrl).toContain('fresh=true');
     expect(capturedHeaders?.['X-Purge-Key']).toBeDefined();
   });
+
+  describe('syncEdge', () => {
+    it('returns false if user is not admin', async () => {
+      mockIsAdmin.set(false);
+      const result = await service.syncEdge('translators');
+      expect(result).toBeFalse();
+    });
+
+    it('returns true and updates cache savedAt when edge request succeeds', async () => {
+      mockIsAdmin.set(true);
+      const newDate = new Date(1710000000000).toISOString();
+      const setSavedAtSpy = spyOn(cacheService, 'setSavedAt');
+      spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { 'X-Edge-Cached-At': newDate }
+      })));
+
+      const result = await service.syncEdge('translators');
+      expect(result).toBeTrue();
+      expect(setSavedAtSpy).toHaveBeenCalledWith('translators', 1710000000000);
+    });
+
+    it('returns false when worker responds with error status', async () => {
+      mockIsAdmin.set(true);
+      spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response('Error', { status: 500 })));
+
+      const result = await service.syncEdge('translators');
+      expect(result).toBeFalse();
+    });
+
+    it('returns false when fetch throws error', async () => {
+      mockIsAdmin.set(true);
+      spyOn(window, 'fetch').and.returnValue(Promise.reject(new Error('Network offline')));
+
+      const result = await service.syncEdge('translators');
+      expect(result).toBeFalse();
+    });
+  });
 });
