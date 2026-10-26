@@ -551,7 +551,7 @@
 .patch-card__dialog-actions {
   align-items: center;
   display: flex;
-  gap: 0.35rem;
+  gap: 1rem;
   justify-content: flex-start;
   margin: 0.2rem 0 0.4rem;
 }

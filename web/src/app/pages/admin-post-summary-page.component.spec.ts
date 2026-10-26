@@ -625,18 +625,15 @@ describe('AdminPostSummaryPageComponent', () => {
       expect((component as any).previewImageUrl()).toBe(originalUrl);
     });
 
-    it('should render preview frame with branding overlay when previewImageUrl is present', () => {
+    it('should render preview image and crop button without preview-branding-overlay when previewImageUrl is present', () => {
       (component as any).previewImageUrl.set('data:image/png;base64,mock');
       fixture.detectChanges();
 
-      const previewFrame = fixture.nativeElement.querySelector('.preview-frame');
-      expect(previewFrame).toBeTruthy();
+      const previewImg = fixture.nativeElement.querySelector('.collage-preview-img');
+      expect(previewImg).toBeTruthy();
 
       const overlay = fixture.nativeElement.querySelector('.preview-branding-overlay');
-      expect(overlay).toBeTruthy();
-
-      const brandUrl = fixture.nativeElement.querySelector('.overlay-brand-url');
-      expect(brandUrl?.textContent).toContain('thairomdb.pages.dev');
+      expect(overlay).toBeNull();
 
       const cropBtns = fixture.nativeElement.querySelectorAll('.crop-btn');
       expect(cropBtns.length).toBeGreaterThan(0);

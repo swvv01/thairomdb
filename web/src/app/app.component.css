@@ -30,36 +30,63 @@
   color: var(--color-text);
   cursor: pointer;
   display: inline-flex;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 0.2rem;
   justify-content: center;
   line-height: 1;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
+  text-align: center;
 }
 
 .grid-mode-toggle__label {
-  color: var(--color-text);
+  color: var(--color-highlight);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
 
-.grid-mode-toggle i {
-  color: var(--color-text);
-  font-size: 2rem;
-  line-height: 1;
+/* 3D Beveled Retro Slider */
+.retro-slider {
+  align-items: center;
+  background: #333333;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  box-shadow: inset 1px 1px 0px #000000;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 1rem;
+  padding: 1px;
+  position: relative;
+  transition: background-color 0.2s ease;
+  width: 2rem;
 }
 
-.grid-mode-toggle--active i {
-  color: var(--color-accent);
+.grid-mode-toggle--active .retro-slider {
+  background: var(--color-accent);
+}
+
+.retro-slider__knob {
+  background: #c0c0c0;
+  border: 1px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: 1px 1px 0px #000000;
+  box-sizing: border-box;
+  display: block;
+  height: 10px;
+  left: 1px;
+  position: absolute;
+  top: 1px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 11px;
+}
+
+.grid-mode-toggle--active .retro-slider__knob {
+  transform: translateX(15px);
 }
 
 #last-update {
-  color: var(--color-highlight);
-  flex: 0 1 auto;
-  line-height: 1.2;
-  margin-left: 0.5rem;
-  text-align: right;
+  display: none !important;
 }
 
 .marquee {
@@ -85,12 +112,7 @@
   min-height: calc(100vh - 5rem);
 }
 
-@media (max-width: 480px) {
-  #last-update {
-    max-width: 9rem;
-  }
 
-}
 
 .retro-rail {
   align-self: stretch;

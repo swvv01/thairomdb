@@ -1,4 +1,5 @@
-<main class="browse-catalogue min-h-full p-4 sm:p-6 lg:p-8 main-content" [class.browse-catalogue--grid]="gridModeService.activeGridMode()">
+<main class="browse-catalogue min-h-full p-4 sm:p-6 lg:p-8 main-content"
+  [class.browse-catalogue--grid]="gridModeService.activeGridMode()">
 
   <div class="browse-column" [class.browse-column--grid]="gridModeService.activeGridMode()">
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
@@ -78,8 +79,7 @@
       @if (hasMore()) {
       @if (!gridModeService.activeGridMode()) {
       <button type="button" class="load-more-button button" (click)="loadMore()" aria-label="โหลดเกมเพิ่มเติม">
-        <i class="fa-solid fa-angles-down" aria-hidden="true"></i>
-        <span>โหลดเพิ่มเติม (+{{ nextLoadCount() }})</span>
+        <span>โหลดเพิ่ม (+{{ nextLoadCount() }})</span>
       </button>
       }
       <p class="load-more-status" aria-live="polite">กำลังแสดง {{ paginatedPatches().length }} จาก {{

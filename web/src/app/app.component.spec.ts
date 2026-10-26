@@ -601,13 +601,14 @@ describe('AppComponent', () => {
     const toggleBtn = fixture.nativeElement.querySelector('.grid-mode-toggle');
     expect(toggleBtn).toBeTruthy();
     expect(toggleBtn.querySelector('.grid-mode-toggle__label')?.textContent?.trim()).toBe('Grid');
-    expect(toggleBtn.querySelector('i')?.classList.contains('fa-toggle-on')).toBeTrue();
+    expect(toggleBtn.querySelector('.retro-slider')).toBeTruthy();
+    expect(toggleBtn.classList.contains('grid-mode-toggle--active')).toBeTrue();
     expect(gridModeService.isGridMode()).toBeTrue();
 
     toggleBtn.click();
     fixture.detectChanges();
 
     expect(gridModeService.isGridMode()).toBeFalse();
-    expect(toggleBtn.querySelector('i')?.classList.contains('fa-toggle-off')).toBeTrue();
+    expect(toggleBtn.classList.contains('grid-mode-toggle--active')).toBeFalse();
   });
 });

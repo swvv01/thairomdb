@@ -232,13 +232,7 @@
       } @else {
         @if (previewImageUrl(); as imgUrl) {
           <div class="preview-wrapper">
-            <div class="preview-frame">
-              <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
-              <div class="preview-branding-overlay" aria-hidden="true">
-                <img src="assets/images/logo.png" alt="" class="overlay-logo-img" />
-                <span class="overlay-brand-url">thairomdb.pages.dev</span>
-              </div>
-            </div>
+            <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
           </div>
 
           @if (collageMode() === 'masonry' && masonryStats(); as stats) {

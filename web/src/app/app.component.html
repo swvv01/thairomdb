@@ -19,7 +19,9 @@
         [attr.aria-label]="gridModeService.isGridMode() ? 'สลับไปโหมดรายการ (List View)' : 'สลับไปโหมดแกลเลอรี (Pinterest Grid)'"
         (click)="gridModeService.toggle()">
         <span class="grid-mode-toggle__label">Grid</span>
-        <i class="fa-solid" [class.fa-toggle-on]="gridModeService.isGridMode()" [class.fa-toggle-off]="!gridModeService.isGridMode()" aria-hidden="true"></i>
+        <span class="retro-slider" aria-hidden="true">
+          <span class="retro-slider__knob"></span>
+        </span>
       </button>
       }
 

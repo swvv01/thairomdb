@@ -53,13 +53,16 @@
 - [`web/src/app/app.component.ts`](file:///d:/me/rom_collector/web/src/app/app.component.ts)
 
 ### 3.1 ปุ่ม Toggle สลับโหมดบน Header
-- ติดตั้งปุ่ม Retro Toggle ด้านหน้า `#last-update`
-- จัดวางแบบแนวนอนแถวเดียว: วาง Label `Grid` (ขนาด 1rem) ไว้ข้างหน้า และตามด้วยไอคอน `fa-toggle` (ขนาด 2rem)
-- การแสดงสี: เมื่อ active ไอคอนจะแสดงสี `--color-accent` (Label คงสีปกติ และไม่มีการเปลี่ยนสีตอน hover)
+- ติดตั้งปุ่ม Retro Toggle ที่มุมขวาของ Header (ซ่อน `#last-update`)
+- จัดวางแบบ 2 บรรทัด (Vertical Stack): บรรทัดบนเป็น Label `Grid` (ขนาด 1rem) และบรรทัดล่างเป็นสวิตช์ **3D Beveled Retro Slider** (`.retro-slider`, สูง 1rem กว้าง 2rem)
+- โครงสร้างและมิติของสวิตช์:
+  - รางสไลด์ยุบตัว 3D Inset Bevel (`#808080 #ffffff #ffffff #808080`) ขนาด 1rem x 2rem
+  - ปุ่มเลื่อน 3D Raised Beveled Knob (`#ffffff #808080 #808080 #ffffff`) เลื่อนซ้าย-ขวาอย่างนุ่มนวล
+- การแสดงสี:
+  - ขณะปิด (List Mode / Inactive): รางสไลด์เป็นสีร่องมืดเข้ม `#333333` และปุ่ม Knob อยู่ฝั่งซ้าย
+  - ขณะเปิด (Grid Mode / Active): รางสไลด์เปลี่ยนเป็นสี `var(--color-accent)` และปุ่ม Knob เลื่อนไปฝั่งขวา
+  - ข้อความ Label `Grid` คงสีปกติ `var(--color-text)` เสมอ และไม่มีการเปลี่ยนสีตอน hover
 - ซ่อนบนหน้าจอมือถือและแท็บเล็ตผ่าน `@media (max-width: 1023px) { display: none !important; }`
-- สลับไอคอนตามสถานะ:
-  - ขณะเป็น Grid Mode: แสดงไอคอนเปิด `fa-solid fa-toggle-on`
-  - ขณะเป็น List Mode: แสดงไอคอนปิด `fa-solid fa-toggle-off`
 
 ### 3.2 การขยายเต็มจอ (Full Width)
 - เมื่อ `activeGridMode()` เป็นจริง:
