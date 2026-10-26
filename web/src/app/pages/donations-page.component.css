@@ -363,9 +363,11 @@
   gap: 0.65rem;
   margin-top: 0;
   width: 100%;
+  margin-bottom: 1rem;
 }
 
 @media (min-width: 480px) {
+
   .donor-card-actions,
   .certificate-actions {
     flex-direction: row;
