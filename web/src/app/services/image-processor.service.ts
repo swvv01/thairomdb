@@ -71,7 +71,7 @@ export function detectImageType(bytes: Uint8Array): { mimeType: string | null; i
 
 @Injectable({ providedIn: 'root' })
 export class ImageProcessorService {
-  async process(source: Blob): Promise<ProcessedCover> {
+  async process(source: Blob, quality?: number): Promise<ProcessedCover> {
     const buffer = await source.arrayBuffer();
     const bytes = new Uint8Array(buffer);
     const detected = detectImageType(bytes);
@@ -86,12 +86,13 @@ export class ImageProcessorService {
     }
 
     const cleanBlob = new Blob([buffer], { type: effectiveMime });
+    const targetQuality = quality ?? (effectiveMime === 'image/webp' ? 0.95 : 0.85);
 
     let processed: ProcessedCover;
     try {
-      processed = await this.processWithBitmap(cleanBlob);
+      processed = await this.processWithBitmap(cleanBlob, targetQuality);
     } catch {
-      processed = await this.processWithCanvasFallback(cleanBlob);
+      processed = await this.processWithCanvasFallback(cleanBlob, targetQuality);
     }
 
     return {
@@ -100,7 +101,7 @@ export class ImageProcessorService {
     };
   }
 
-  private async processWithBitmap(source: Blob): Promise<ProcessedCover> {
+  private async processWithBitmap(source: Blob, quality: number): Promise<ProcessedCover> {
     if (typeof createImageBitmap !== 'function') {
       throw new Error('createImageBitmap is not supported');
     }
@@ -119,7 +120,7 @@ export class ImageProcessorService {
       ctx.drawImage(bitmap, 0, 0, width, height);
 
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', 0.85)
+        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', quality)
       );
       return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
     } finally {
@@ -127,7 +128,7 @@ export class ImageProcessorService {
     }
   }
 
-  private async processWithCanvasFallback(source: Blob): Promise<ProcessedCover> {
+  private async processWithCanvasFallback(source: Blob, quality: number): Promise<ProcessedCover> {
     const image = await this.decode(source);
     const { width, height } = calculateCoverDimensions(image.width, image.height);
     const steps = calculateStepDownDimensions(image.width, image.height, width, height);
@@ -157,7 +158,7 @@ export class ImageProcessorService {
       ctx.drawImage(currentSource, 0, 0, width, height);
     }
     const blob = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', 0.85)
+      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/webp', quality)
     );
     return { blob, width, height, filename: `cover_max250px_${Date.now()}.webp` };
   }
@@ -175,16 +176,16 @@ export class ImageProcessorService {
           canvas.width = bitmap.width;
           canvas.height = bitmap.height;
           const ctx = canvas.getContext('2d');
-          if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
+          if (!ctx) throw new Error('Cannot get 2d context');
           ctx.drawImage(bitmap, 0, 0);
           return await new Promise<Blob>((resolve, reject) =>
-            canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
+            canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('Failed to convert to PNG'))), 'image/png')
           );
         } finally {
           bitmap.close();
         }
       } catch {
-        // Fallback to decode if createImageBitmap fails
+        // Fall back to decode
       }
     }
 
@@ -193,10 +194,10 @@ export class ImageProcessorService {
     canvas.width = image.width;
     canvas.height = image.height;
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('ไม่สามารถเข้าถึง 2D Canvas ได้');
+    if (!ctx) throw new Error('Cannot get 2d context');
     ctx.drawImage(image, 0, 0);
     return await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('ไม่สามารถแปลงรูปภาพได้'))), 'image/png')
+      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('Failed to convert to PNG'))), 'image/png')
     );
   }
 

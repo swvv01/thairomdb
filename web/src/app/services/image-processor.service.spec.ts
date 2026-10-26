@@ -117,6 +117,18 @@ describe('ImageProcessorService', () => {
     expect(result.cleanRawBlob).toBeDefined();
   });
 
+  it('processes webp image with high quality setting', async () => {
+    const originalBlob = await createTestImageBlob(200, 200);
+    const firstResult = await service.process(originalBlob);
+    expect(firstResult.blob.type).toBe('image/webp');
+
+    // Re-process the webp image (simulating editing/cropping an existing webp)
+    const secondResult = await service.process(firstResult.blob);
+    expect(secondResult.blob.type).toBe('image/webp');
+    expect(secondResult.width).toBe(200);
+    expect(secondResult.height).toBe(200);
+  });
+
   it('falls back to canvas processing when createImageBitmap fails', async () => {
     const originalCreateImageBitmap = window.createImageBitmap;
     (window as unknown as { createImageBitmap?: unknown }).createImageBitmap = undefined;
@@ -141,7 +153,6 @@ describe('ImageProcessorService', () => {
 
   it('convertToPng converts non-png blob to image/png', async () => {
     const testBlob = await createTestImageBlob(100, 100);
-    // testBlob is an image, let's process it to webp first
     const processed = await service.process(testBlob);
     expect(processed.blob.type).toBe('image/webp');
 

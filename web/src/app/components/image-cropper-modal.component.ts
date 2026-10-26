@@ -26,10 +26,16 @@ interface CropBox {
   styleUrl: './image-cropper-modal.component.css'
 })
 export class ImageCropperModalComponent implements OnInit, OnDestroy {
-  @Input({ required: true }) imageBlob!: Blob;
+  @Input() imageSource?: Blob | string | null;
+  @Input() set imageBlob(blob: Blob | undefined | null) {
+    if (blob) {
+      this.imageSource = blob;
+    }
+  }
   @Input() initialCrop?: CropRect | null;
   @Output() readonly cropped = new EventEmitter<CropResult>();
   @Output() readonly cancelled = new EventEmitter<void>();
+  @Output() readonly loadFailed = new EventEmitter<void>();
 
   private readonly ngZone = inject(NgZone);
 
@@ -38,23 +44,33 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
 
   protected readonly imageUrl = signal<string>('');
   protected readonly box = signal<CropBox>({ x: 0, y: 0, w: 0, h: 0 });
-  protected readonly cropWidthPx = signal<number>(0);
-  protected readonly cropHeightPx = signal<number>(0);
   protected readonly confirming = signal(false);
+  protected readonly loadError = signal(false);
 
   private dragMode: string | null = null;
   private startPointer = { x: 0, y: 0 };
   private startStagePos = { x: 0, y: 0 };
   private startBox: CropBox = { x: 0, y: 0, w: 0, h: 0 };
   private hasDrawn = false;
+  private createdObjectUrl: string | null = null;
 
   ngOnInit(): void {
-    this.imageUrl.set(URL.createObjectURL(this.imageBlob));
+    if (typeof this.imageSource === 'string') {
+      const url = this.imageSource;
+      const isRemote = url.startsWith('http://') || url.startsWith('https://');
+      const cleanUrl = isRemote ? (url.includes('?') ? `${url}&cors=1` : `${url}?cors=1`) : url;
+      this.imageUrl.set(cleanUrl);
+    } else if (this.imageSource instanceof Blob) {
+      this.createdObjectUrl = URL.createObjectURL(this.imageSource);
+      this.imageUrl.set(this.createdObjectUrl);
+    }
   }
 
   ngOnDestroy(): void {
-    const url = this.imageUrl();
-    if (url) URL.revokeObjectURL(url);
+    if (this.createdObjectUrl) {
+      URL.revokeObjectURL(this.createdObjectUrl);
+      this.createdObjectUrl = null;
+    }
   }
 
   @HostListener('document:keydown.escape')
@@ -63,6 +79,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   }
 
   protected onImageLoaded(): void {
+    this.loadError.set(false);
     requestAnimationFrame(() => {
       if (this.initialCrop) {
         this.restoreSelection(this.initialCrop);
@@ -70,6 +87,11 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
         this.resetSelection();
       }
     });
+  }
+
+  protected onImageError(): void {
+    this.loadError.set(true);
+    this.loadFailed.emit();
   }
 
   protected resetSelection(): void {
@@ -98,102 +120,105 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
 
   protected onStagePointerDown(event: PointerEvent): void {
     const stage = this.stageRef?.nativeElement;
-    if (!stage) return;
-    const rect = stage.getBoundingClientRect();
-    const stageX = event.clientX - rect.left;
-    const stageY = event.clientY - rect.top;
+    const img = this.stageImgRef?.nativeElement;
+    if (!stage || !img) return;
 
+    const rect = img.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    if (x < 0 || y < 0 || x > img.clientWidth || y > img.clientHeight) return;
+
+    event.preventDefault();
+    this.hasDrawn = false;
     this.dragMode = 'draw';
     this.startPointer = { x: event.clientX, y: event.clientY };
-    this.startStagePos = { x: stageX, y: stageY };
-    this.startBox = { ...this.box() };
-    this.hasDrawn = false;
+    this.startStagePos = { x, y };
+
+    const onMove = (e: PointerEvent): void => this.onGlobalPointerMove(e);
+    const onUp = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      this.dragMode = null;
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   }
 
   protected onPointerDown(event: PointerEvent, mode: string): void {
     event.stopPropagation();
     event.preventDefault();
 
-    const img = this.stageImgRef?.nativeElement;
-    const currentBox = this.box();
-    const isFullSize = img && currentBox.w >= img.clientWidth - 4 && currentBox.h >= img.clientHeight - 4;
-
-    if (mode === 'move' && isFullSize) {
-      this.onStagePointerDown(event);
-      return;
-    }
-
     this.dragMode = mode;
     this.startPointer = { x: event.clientX, y: event.clientY };
-    this.startBox = { ...currentBox };
+    this.startBox = { ...this.box() };
+
+    const onMove = (e: PointerEvent): void => this.onGlobalPointerMove(e);
+    const onUp = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      this.dragMode = null;
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   }
 
-  @HostListener('window:pointermove', ['$event'])
-  protected onWindowPointerMove(event: PointerEvent): void {
+  private onGlobalPointerMove(event: PointerEvent): void {
     if (!this.dragMode) return;
     const img = this.stageImgRef?.nativeElement;
-    const stage = this.stageRef?.nativeElement;
-    if (!img || !stage) return;
-
-    const maxW = img.clientWidth;
-    const maxH = img.clientHeight;
-    if (maxW <= 0 || maxH <= 0) return;
-
-    if (this.dragMode === 'draw') {
-      const rect = stage.getBoundingClientRect();
-      const curX = Math.max(0, Math.min(event.clientX - rect.left, maxW));
-      const curY = Math.max(0, Math.min(event.clientY - rect.top, maxH));
-      const dist = Math.hypot(event.clientX - this.startPointer.x, event.clientY - this.startPointer.y);
-
-      if (dist > 5 || this.hasDrawn) {
-        this.hasDrawn = true;
-        const x = Math.min(this.startStagePos.x, curX);
-        const y = Math.min(this.startStagePos.y, curY);
-        const w = Math.max(20, Math.abs(curX - this.startStagePos.x));
-        const h = Math.max(20, Math.abs(curY - this.startStagePos.y));
-        this.updateBox({ x, y, w, h });
-      }
-      return;
-    }
+    if (!img) return;
 
     const dx = event.clientX - this.startPointer.x;
     const dy = event.clientY - this.startPointer.y;
-    let { x, y, w, h } = this.startBox;
+
+    if (this.dragMode === 'draw') {
+      const currentX = Math.max(0, Math.min(this.startStagePos.x + dx, img.clientWidth));
+      const currentY = Math.max(0, Math.min(this.startStagePos.y + dy, img.clientHeight));
+
+      const x = Math.min(this.startStagePos.x, currentX);
+      const y = Math.min(this.startStagePos.y, currentY);
+      const w = Math.abs(currentX - this.startStagePos.x);
+      const h = Math.abs(currentY - this.startStagePos.y);
+
+      if (w > 5 || h > 5) {
+        this.hasDrawn = true;
+      }
+      this.updateBox({ x, y, w: Math.max(w, 20), h: Math.max(h, 20) });
+      return;
+    }
+
+    const b = this.startBox;
+    let nextBox: CropBox = { ...b };
 
     if (this.dragMode === 'move') {
-      const maxX = Math.max(0, maxW - w);
-      const maxY = Math.max(0, maxH - h);
-      x = Math.max(0, Math.min(x + dx, maxX));
-      y = Math.max(0, Math.min(y + dy, maxY));
+      nextBox.x = b.x + dx;
+      nextBox.y = b.y + dy;
     } else {
-      if (this.dragMode.includes('e')) {
-        w = Math.max(20, Math.min(this.startBox.w + dx, maxW - this.startBox.x));
-      }
-      if (this.dragMode.includes('s')) {
-        h = Math.max(20, Math.min(this.startBox.h + dy, maxH - this.startBox.y));
-      }
       if (this.dragMode.includes('w')) {
-        const nextW = Math.max(20, Math.min(this.startBox.w - dx, this.startBox.x + this.startBox.w));
-        const nextX = this.startBox.x + (this.startBox.w - nextW);
-        w = nextW;
-        x = nextX;
+        const newW = b.w - dx;
+        if (newW >= 20) {
+          nextBox.x = b.x + dx;
+          nextBox.w = newW;
+        }
+      }
+      if (this.dragMode.includes('e')) {
+        nextBox.w = Math.max(20, b.w + dx);
       }
       if (this.dragMode.includes('n')) {
-        const nextH = Math.max(20, Math.min(this.startBox.h - dy, this.startBox.y + this.startBox.h));
-        const nextY = this.startBox.y + (this.startBox.h - nextH);
-        h = nextH;
-        y = nextY;
+        const newH = b.h - dy;
+        if (newH >= 20) {
+          nextBox.y = b.y + dy;
+          nextBox.h = newH;
+        }
+      }
+      if (this.dragMode.includes('s')) {
+        nextBox.h = Math.max(20, b.h + dy);
       }
     }
 
-    this.updateBox({ x, y, w, h });
-  }
-
-  @HostListener('window:pointerup')
-  @HostListener('window:pointercancel')
-  protected onWindowPointerUp(): void {
-    this.dragMode = null;
-    this.hasDrawn = false;
+    this.updateBox(nextBox);
   }
 
   private updateBox(nextBox: CropBox): void {
@@ -210,11 +235,6 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     const clampedH = Math.max(20, Math.min(nextBox.h, maxH - clampedY));
 
     this.box.set({ x: clampedX, y: clampedY, w: clampedW, h: clampedH });
-
-    const scaleX = img.naturalWidth / img.clientWidth;
-    const scaleY = img.naturalHeight / img.clientHeight;
-    this.cropWidthPx.set(Math.round(clampedW * scaleX));
-    this.cropHeightPx.set(Math.round(clampedH * scaleY));
   }
 
   protected confirmCrop(): void {
@@ -239,21 +259,26 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    try {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
-    this.confirming.set(true);
-    canvas.toBlob((blob) => {
-      if (blob) {
-        this.ngZone.run(() => {
-          this.cropped.emit({ blob, cropRect });
-        });
-      } else {
-        this.ngZone.run(() => {
-          this.confirming.set(false);
-        });
-      }
-    }, 'image/png');
+      this.confirming.set(true);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          this.ngZone.run(() => {
+            this.cropped.emit({ blob, cropRect });
+          });
+        } else {
+          this.ngZone.run(() => {
+            this.confirming.set(false);
+          });
+        }
+      }, 'image/png');
+    } catch (err) {
+      console.error('Failed to crop canvas image:', err);
+      this.confirming.set(false);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, computed, inject, signal } from '@angular/core';
 import { ImageProcessorService } from '../services/image-processor.service';
 import { CropRect, CropResult, ImageCropperModalComponent } from './image-cropper-modal.component';
 
@@ -34,6 +34,7 @@ export class CoverInputComponent {
   protected readonly cropperOpen = signal(false);
   protected readonly lastCrop = signal<CropRect | null>(null);
   protected readonly _existingCoverUrl = signal<string | null>(null);
+  protected readonly cropperSource = computed<Blob | string | null>(() => this.rawBlob() ?? this._existingCoverUrl());
   @ViewChild('coverFile') private coverFile?: ElementRef<HTMLInputElement>;
 
   constructor() {
@@ -122,7 +123,7 @@ export class CoverInputComponent {
   }
 
   protected openCropper(): void {
-    if (this.rawBlob()) {
+    if (this.cropperSource()) {
       this.cropperOpen.set(true);
     }
   }
@@ -131,11 +132,16 @@ export class CoverInputComponent {
     this.cropperOpen.set(false);
   }
 
+  protected onCropperLoadFailed(): void {
+    this.closeCropper();
+    this.error.set('ไม่สามารถโหลดรูปภาพเดิมเพื่อครอบตัดได้ กรุณาเลือกไฟล์ใหม่เพื่อครอบตัดแทน');
+  }
+
   protected async onCropped(result: CropResult): Promise<void> {
     this.lastCrop.set(result.cropRect);
     this.isCropped.set(true);
     try {
-      await this.process(result.blob, false);
+      await this.process(result.blob, false, 0.95);
     } finally {
       this.closeCropper();
       this.cdr.markForCheck();
@@ -147,13 +153,15 @@ export class CoverInputComponent {
     if (raw) {
       this.lastCrop.set(null);
       await this.process(raw, true);
+    } else if (this._existingCoverUrl()) {
+      this.revertToExisting();
     }
   }
 
-  protected async process(source: Blob, isNewRaw = true): Promise<void> {
+  protected async process(source: Blob, isNewRaw = true, quality?: number): Promise<void> {
     this.error.set(null);
     try {
-      const result = await this.processor.process(source);
+      const result = await this.processor.process(source, quality);
       if (isNewRaw) {
         this.rawBlob.set(result.cleanRawBlob ?? source);
         this.isCropped.set(false);

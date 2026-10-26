@@ -14,7 +14,16 @@
       <div #stageRef class="crop-stage" (pointerdown)="onStagePointerDown($event)">
         @if (imageUrl()) {
           <img #stageImg class="crop-img" [src]="imageUrl()" alt="Source image for cropping"
-            (load)="onImageLoaded()" />
+            crossorigin="anonymous"
+            (load)="onImageLoaded()"
+            (error)="onImageError()" />
+        }
+
+        @if (loadError()) {
+          <div class="p-4 text-center text-[var(--color-brand)]">
+            <i class="fa-solid fa-triangle-exclamation mr-1" aria-hidden="true"></i>
+            ไม่สามารถโหลดรูปภาพสำหรับครอบตัดได้ กรุณาลองใหม่อีกครั้งหรือเลือกไฟล์ใหม่
+          </div>
         }
 
         <div class="crop-box" [style.left.px]="box().x" [style.top.px]="box().y"
@@ -39,10 +48,6 @@
           <div class="crop-handle handle-w" (pointerdown)="onPointerDown($event, 'w')"></div>
           <div class="crop-handle handle-e" (pointerdown)="onPointerDown($event, 'e')"></div>
         </div>
-
-        @if (cropWidthPx() > 0 && cropHeightPx() > 0) {
-          <div class="size-badge">{{ cropWidthPx() }} x {{ cropHeightPx() }} px</div>
-        }
       </div>
     </div>
 
@@ -54,7 +59,7 @@
         <button class="button px-3 py-2 font-bold" type="button" [disabled]="confirming()" (click)="cancelled.emit()">
           <i class="fa-solid fa-xmark mr-1" aria-hidden="true"></i>ยกเลิก
         </button>
-        <button class="button button--accent px-3 py-2 font-bold" type="button" [disabled]="confirming()" (click)="confirmCrop()">
+        <button class="button button--accent px-3 py-2 font-bold" type="button" [disabled]="confirming() || loadError()" (click)="confirmCrop()">
           @if (confirming()) {
             <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>กำลังครอบตัด…
           } @else {

@@ -20,6 +20,16 @@ describe('ImageCropperModalComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('accepts string URL as imageSource and sets imageUrl with cors parameter', () => {
+    const urlFixture = TestBed.createComponent(ImageCropperModalComponent);
+    const urlComp = urlFixture.componentInstance;
+    urlComp.imageSource = 'https://example.com/cover.png';
+    urlFixture.detectChanges();
+
+    expect(urlComp['imageUrl']()).toBe('https://example.com/cover.png?cors=1');
+    expect(urlComp['createdObjectUrl']).toBeNull();
+  });
+
   it('emits cancelled when escape key is pressed', () => {
     const cancelSpy = spyOn(component.cancelled, 'emit');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -44,8 +54,6 @@ describe('ImageCropperModalComponent', () => {
     };
     component['resetSelection']();
     expect(component['box']()).toEqual({ x: 0, y: 0, w: 300, h: 200 });
-    expect(component['cropWidthPx']()).toBe(600);
-    expect(component['cropHeightPx']()).toBe(400);
   });
 
   it('restores selection from initialCrop correctly', () => {
@@ -62,8 +70,6 @@ describe('ImageCropperModalComponent', () => {
     component['restoreSelection']({ x: 40, y: 60, w: 200, h: 300 });
 
     expect(component['box']()).toEqual({ x: 20, y: 30, w: 100, h: 150 });
-    expect(component['cropWidthPx']()).toBe(200);
-    expect(component['cropHeightPx']()).toBe(300);
   });
 
   it('resizes box via edge handle when dragged', () => {
@@ -87,7 +93,7 @@ describe('ImageCropperModalComponent', () => {
     component['onPointerDown'](fakeEventDown, 'e');
 
     const fakeEventMove = { clientX: 250, clientY: 100 } as unknown as PointerEvent;
-    component['onWindowPointerMove'](fakeEventMove);
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 250, clientY: 100 }));
 
     expect(component['box']().w).toBe(250);
     expect(component['box']().h).toBe(200);
@@ -113,8 +119,7 @@ describe('ImageCropperModalComponent', () => {
     const fakeEventDown = { stopPropagation: () => {}, preventDefault: () => {}, clientX: 50, clientY: 50 } as unknown as PointerEvent;
     component['onPointerDown'](fakeEventDown, 'move');
 
-    const fakeEventMove = { clientX: 80, clientY: 70 } as unknown as PointerEvent;
-    component['onWindowPointerMove'](fakeEventMove);
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 80, clientY: 70 }));
 
     expect(component['box']().x).toBe(30);
     expect(component['box']().y).toBe(20);

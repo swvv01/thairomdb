@@ -54,6 +54,15 @@ describe('CoverInputComponent', () => {
     expect(component['cropperOpen']()).toBeFalse();
   });
 
+  it('opens cropper modal when only existingCoverUrl is present', () => {
+    component.existingCoverUrl = 'https://example.com/cover.webp';
+    fixture.detectChanges();
+
+    expect(component['cropperSource']()).toBe('https://example.com/cover.webp');
+    component['openCropper']();
+    expect(component['cropperOpen']()).toBeTrue();
+  });
+
   it('handles cropped image, keeps original rawBlob, and remembers lastCrop', async () => {
     const originalBlob = new Blob(['original'], { type: 'image/png' });
     const croppedBlob = new Blob(['cropped'], { type: 'image/png' });
@@ -68,7 +77,7 @@ describe('CoverInputComponent', () => {
     expect(component['isCropped']()).toBeTrue();
     expect(component['lastCrop']()).toEqual(cropRect);
     expect(component['rawBlob']()).toBe(originalBlob);
-    expect(mockProcessor.process).toHaveBeenCalledWith(croppedBlob);
+    expect(mockProcessor.process).toHaveBeenCalledWith(croppedBlob, 0.95);
   });
 
   it('resets to original raw image and clears lastCrop on resetToOriginal()', async () => {
@@ -81,7 +90,7 @@ describe('CoverInputComponent', () => {
 
     expect(component['isCropped']()).toBeFalse();
     expect(component['lastCrop']()).toBeNull();
-    expect(mockProcessor.process).toHaveBeenCalledWith(originalBlob);
+    expect(mockProcessor.process).toHaveBeenCalledWith(originalBlob, undefined);
   });
 
   it('clears preview, rawBlob, isCropped, cropperOpen, and lastCrop on clear()', () => {
