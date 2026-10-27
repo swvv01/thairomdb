@@ -611,4 +611,28 @@ describe('AppComponent', () => {
     expect(gridModeService.isGridMode()).toBeFalse();
     expect(toggleBtn.classList.contains('grid-mode-toggle--active')).toBeFalse();
   });
+
+  it('should render support section before game systems section in the sidebar with retro-rail-links', () => {
+    (app as any).patchesLoaded.set(false);
+    (app as any).platforms.set([
+      { id: 'sfc', name: 'Super Famicom', shortName: 'SFC' }
+    ]);
+    fixture.detectChanges();
+
+    const sidebar = fixture.nativeElement.querySelector('#system-sidebar');
+    expect(sidebar).toBeTruthy();
+
+    const sections = Array.from(sidebar.querySelectorAll('.retro-sidebar-section'));
+    const supportIndex = sections.findIndex((sec: any) => sec.textContent?.includes('การสนับสนุน'));
+    const systemsIndex = sections.findIndex((sec: any) => sec.textContent?.includes('ระบบเกม'));
+
+    expect(supportIndex).toBeGreaterThan(-1);
+    expect(systemsIndex).toBeGreaterThan(-1);
+    expect(supportIndex).toBeLessThan(systemsIndex);
+
+    const supportSection = sections[supportIndex] as HTMLElement;
+    const links = Array.from(supportSection.querySelectorAll('a.retro-rail-link'));
+    const linkTexts = links.map((a: any) => a.textContent?.trim());
+    expect(linkTexts).toEqual(['บริจาค', 'ข้อมูลการบริจาค', 'แลก VIP']);
+  });
 });

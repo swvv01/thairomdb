@@ -21,6 +21,17 @@ export class DonationRepository {
     }
   }
 
+  async getDonation(id: string): Promise<Donation | null> {
+    if (!id) return null;
+    try {
+      const snapshot = await get(ref(this.database, `donations/${id}`));
+      if (!snapshot.exists()) return null;
+      return { id: snapshot.key!, ...snapshot.val() } as Donation;
+    } catch {
+      throw new RepositoryError('ไม่สามารถดึงข้อมูลการบริจาคได้', 'read');
+    }
+  }
+
   async updateDonorProfile(donationId: string, donorName: string, imageUrl: string, uid: string, isAdmin = false): Promise<void> {
     if (!donationId) throw new RepositoryError('ไม่พบรหัสการบริจาค', 'update');
     const name = donorName.trim();

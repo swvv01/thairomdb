@@ -188,6 +188,18 @@
     </div>
     }
 
+    <div class="retro-sidebar-section">
+      <p class="retro-rail-heading">การสนับสนุน</p>
+      <nav aria-label="เมนูการสนับสนุน">
+        <a class="retro-rail-link" routerLink="/donate" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">บริจาค</a>
+        <a class="retro-rail-link" routerLink="/donations" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">ข้อมูลการบริจาค</a>
+        <a class="retro-rail-link" routerLink="/redeem" routerLinkActive="retro-rail-link--active"
+          (click)="closeSidebar()">แลก VIP</a>
+      </nav>
+    </div>
+
     @if (sidebarPlatforms().length > 0 || sidebarLinksFor('systems').length > 0) {
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">ระบบเกม</p>
@@ -334,16 +346,6 @@
       </div>
     </div>
     }
-
-    <div class="retro-sidebar-section">
-      <p class="retro-rail-heading">การสนับสนุน</p>
-      <a class="retro-system-button" routerLink="/donate" routerLinkActive="retro-system-button--active"
-        (click)="closeSidebar()">บริจาค</a>
-      <a class="retro-system-button" routerLink="/donations" routerLinkActive="retro-system-button--active"
-        (click)="closeSidebar()">ข้อมูลการบริจาค</a>
-      <a class="retro-rail-link" routerLink="/redeem" routerLinkActive="retro-rail-link--active"
-        (click)="closeSidebar()">แลก VIP</a>
-    </div>
 
     <div class="retro-sidebar-section">
       <p class="retro-rail-heading">อื่นๆ</p>

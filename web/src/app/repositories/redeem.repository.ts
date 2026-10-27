@@ -46,9 +46,66 @@ export class RedeemRepository {
 
       await update(ref(this.database, `redeemCodes/${codeStr}`), updates);
 
-      if (data.donationId) {
+      let donationId = data.donationId;
+
+      if (!donationId) {
         try {
-          await update(ref(this.database, `donations/${data.donationId}`), {
+          const donSnap = await get(ref(this.database, 'donations'));
+          if (donSnap.exists()) {
+            let matchedId: string | null = null;
+            donSnap.forEach((child) => {
+              if (matchedId) return;
+              const val = child.val();
+              if (!val.redeemedBy) {
+                if (data.donatedAt && val.donatedAt === data.donatedAt && val.amount === data.amount) {
+                  matchedId = child.key;
+                }
+              }
+            });
+            if (!matchedId && data.amount !== undefined) {
+              donSnap.forEach((child) => {
+                if (matchedId) return;
+                const val = child.val();
+                if (!val.redeemedBy && val.amount === data.amount) {
+                  matchedId = child.key;
+                }
+              });
+            }
+            if (!matchedId) {
+              donSnap.forEach((child) => {
+                if (matchedId) return;
+                const val = child.val();
+                if (!val.redeemedBy) {
+                  matchedId = child.key;
+                }
+              });
+            }
+            if (matchedId) {
+              donationId = matchedId;
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to find matching unredeemed donation:', e);
+        }
+
+        if (!donationId) {
+          const newDonId = 'don_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
+          try {
+            await update(ref(this.database, `donations/${newDonId}`), {
+              amount: data.amount || 0,
+              donatedAt: data.donatedAt || data.createdAt || new Date().toISOString(),
+              redeemedBy: uid
+            });
+            donationId = newDonId;
+          } catch (e) {
+            console.warn('Cannot auto-create donation without admin privileges:', e);
+          }
+        }
+      }
+
+      if (donationId) {
+        try {
+          await update(ref(this.database, `donations/${donationId}`), {
             redeemedBy: uid
           });
         } catch (e) {
@@ -56,7 +113,7 @@ export class RedeemRepository {
         }
       }
 
-      return { donationId: data.donationId };
+      return { donationId };
     } catch (error) {
       if (error instanceof RepositoryError) throw error;
       throw new RepositoryError('ไม่สามารถใช้งานโค้ดนี้ได้ (ข้อมูลอาจไม่ถูกต้องหรือถูกใช้ไปแล้ว)', 'update');
@@ -90,7 +147,7 @@ export class RedeemRepository {
         const codeStr = child.key;
         const data = child.val();
         
-        if (data.amount > 0 && !data.donationId) {
+        if (data.amount >= 0 && !data.donationId) {
           const donationId = 'don_' + Date.now().toString(36) + Math.random().toString(36).substring(2) + syncCount;
           
           updates["donations/" + donationId] = { amount: data.amount, donatedAt: data.donatedAt || data.createdAt };
@@ -132,7 +189,7 @@ export class RedeemRepository {
       }
 
       const updates: any = {};
-      if (amount > 0) {
+      if (amount >= 0) {
         const donationId = 'don_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
         data.donationId = donationId;
         updates[`donations/${donationId}`] = { amount, donatedAt: donatedAt || createdAt };

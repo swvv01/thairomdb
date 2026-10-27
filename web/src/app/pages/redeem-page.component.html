@@ -67,11 +67,11 @@
             <p class="text-xs sm:text-sm text-[var(--color-text-muted)] mb-3">
               คุณสามารถเพิ่มชื่อและรูปภาพของคุณลงบนการ์ดผู้สนับสนุนในหน้า รายการสนับสนุน ได้เลย (สามารถทำได้ 1 ครั้ง)
             </p>
-            <a [routerLink]="['/donations']" [queryParams]="{ edit: redeemedDonationId() }"
+            <button type="button" (click)="openCustomizeModal()"
               class="btn-primary-action inline-flex items-center">
               <i class="fa-solid fa-palette mr-2" aria-hidden="true"></i>
               <span>ไปแก้ไขการ์ดของคุณเลย</span>
-            </a>
+            </button>
           </div>
           }
           <div class="flex flex-wrap gap-3 justify-center">
@@ -174,4 +174,12 @@
       </div>
     </article>
   </div>
+
+  @if (isCustomizeModalOpen() && currentDonation()) {
+  <app-donation-customize-modal
+    [donation]="currentDonation()!"
+    (saved)="onDonationSaved($event)"
+    (closed)="closeCustomizeModal()">
+  </app-donation-customize-modal>
+  }
 </main>
