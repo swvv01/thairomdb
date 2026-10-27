@@ -141,4 +141,23 @@ describe('RedeemPageComponent', () => {
     expect(mockStatusMessage.show).toHaveBeenCalledWith('บันทึกข้อมูลผู้สนับสนุนเรียบร้อยแล้ว', 'success');
     expect(router.navigate).toHaveBeenCalledWith(['/donations']);
   });
+
+  it('should allow user who is already VIP to redeem another code', async () => {
+    mockAuthService.isVip.set(true);
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form');
+    expect(form).toBeTruthy();
+
+    mockRedeemRepo.redeemCode.and.returnValue(Promise.resolve({ donationId: 'don_456' }));
+    mockDonationRepo.getDonation.and.returnValue(Promise.resolve({ ...mockDonation, id: 'don_456' }));
+    (component as any).code.set('ANOTHERCODE');
+
+    await (component as any).submit();
+
+    expect(mockRedeemRepo.redeemCode).toHaveBeenCalledWith('ANOTHERCODE', 'user_1', 'user@example.com');
+    expect(mockStatusMessage.show).toHaveBeenCalledWith('Redeem สำเร็จ! ขอบคุณสำหรับการสนับสนุน THAI ROM DB', 'success');
+    expect((component as any).redeemedDonationId()).toBe('don_456');
+    expect((component as any).isCustomizeModalOpen()).toBeTrue();
+  });
 });

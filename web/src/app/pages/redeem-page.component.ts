@@ -56,7 +56,7 @@ export class RedeemPageComponent {
     try {
       const res = await this.redeemRepo.redeemCode(codeVal, user.uid, user.email ?? '');
 
-      this.statusMessage.show('Redeem สำเร็จ! คุณได้รับสถานะ VIP แล้ว', 'success');
+      this.statusMessage.show('Redeem สำเร็จ! ขอบคุณสำหรับการสนับสนุน THAI ROM DB', 'success');
       this.code.set('');
       this.authService.isVip.set(true);
 

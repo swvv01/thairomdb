@@ -41,52 +41,42 @@
             </p>
           </div>
         </div>
-        } @else if (authService.isVip()) {
-        <div class="text-center py-4">
-          <div
-            class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-[var(--color-highlight)] bg-[color-mix(in_srgb,var(--color-highlight)_15%,var(--color-surface))] flex items-center justify-center text-yellow-400">
-            <i class="fa-solid fa-crown text-3xl" aria-hidden="true"></i>
-          </div>
-          <h2 class="card-heading">คุณเป็นสมาชิก VIP แล้ว</h2>
-          <p class="card-subtext">
-            บัญชีของคุณเปิดใช้งานสิทธิพิเศษ VIP เรียบร้อยแล้ว ขอบคุณอย่างยิ่งที่ร่วมเป็นส่วนหนึ่งในการสนับสนุน THAI ROM
-            DB
-          </p>
-          <div
-            class="inline-flex items-center gap-2 bg-[color-mix(in_srgb,var(--color-status-success)_20%,transparent)] border border-[var(--color-status-success)] text-[var(--color-text)] text-sm font-bold px-3 py-1.5 mb-6">
-            <span class="w-2 h-2 rounded-full bg-[var(--color-status-success)]"></span>
-            <span>สถานะ VIP พร้อมใช้งาน</span>
-          </div>
-          @if (redeemedDonationId()) {
-          <div
-            class="mt-4 mb-4 p-4 rounded-lg bg-[var(--color-surface)] border-2 border-[var(--color-highlight)] text-center">
-            <p class="font-extrabold text-[var(--color-highlight)] text-base mb-1">
-              <i class="fa-solid fa-wand-magic-sparkles mr-1.5" aria-hidden="true"></i>
-              แก้ไขการ์ดผู้สนับสนุนของคุณ
+        } @else {
+          @if (authService.isVip()) {
+          <div class="text-center py-4 mb-6 border-b border-[var(--color-border)]">
+            <div
+              class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-[var(--color-highlight)] bg-[color-mix(in_srgb,var(--color-highlight)_15%,var(--color-surface))] flex items-center justify-center text-yellow-400">
+              <i class="fa-solid fa-crown text-3xl" aria-hidden="true"></i>
+            </div>
+            <h2 class="card-heading">คุณเป็นสมาชิก VIP แล้ว</h2>
+            <p class="card-subtext">
+              บัญชีของคุณเปิดใช้งานสิทธิพิเศษ VIP เรียบร้อยแล้ว ขอบคุณอย่างยิ่งที่ร่วมเป็นส่วนหนึ่งในการสนับสนุน THAI ROM
+              DB
             </p>
-            <p class="text-xs sm:text-sm text-[var(--color-text-muted)] mb-3">
-              คุณสามารถเพิ่มชื่อและรูปภาพของคุณลงบนการ์ดผู้สนับสนุนในหน้า รายการสนับสนุน ได้เลย (สามารถทำได้ 1 ครั้ง)
-            </p>
-            <button type="button" (click)="openCustomizeModal()"
-              class="btn-primary-action inline-flex items-center">
-              <i class="fa-solid fa-palette mr-2" aria-hidden="true"></i>
-              <span>ไปแก้ไขการ์ดของคุณเลย</span>
-            </button>
+            <div
+              class="inline-flex items-center gap-2 bg-[color-mix(in_srgb,var(--color-status-success)_20%,transparent)] border border-[var(--color-status-success)] text-[var(--color-text)] text-sm font-bold px-3 py-1.5 mb-2">
+              <span class="w-2 h-2 rounded-full bg-[var(--color-status-success)]"></span>
+              <span>สถานะ VIP พร้อมใช้งาน</span>
+            </div>
+            @if (redeemedDonationId()) {
+            <div
+              class="mt-4 mb-2 p-4 rounded-lg bg-[var(--color-surface)] border-2 border-[var(--color-highlight)] text-center">
+              <p class="font-extrabold text-[var(--color-highlight)] text-base mb-1">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1.5" aria-hidden="true"></i>
+                แก้ไขการ์ดผู้สนับสนุนของคุณ
+              </p>
+              <p class="text-xs sm:text-sm text-[var(--color-text-muted)] mb-3">
+                คุณสามารถเพิ่มชื่อและรูปภาพของคุณลงบนการ์ดผู้สนับสนุนในหน้า รายการสนับสนุน ได้เลย (สามารถทำได้ 1 ครั้ง)
+              </p>
+              <button type="button" (click)="openCustomizeModal()"
+                class="btn-primary-action inline-flex items-center">
+                <i class="fa-solid fa-palette mr-2" aria-hidden="true"></i>
+                <span>ไปแก้ไขการ์ดของคุณเลย</span>
+              </button>
+            </div>
+            }
           </div>
           }
-          <div class="flex flex-wrap gap-3 justify-center">
-            <a routerLink="/" class="btn-primary-action">
-              <i class="fa-solid fa-gamepad mr-2" aria-hidden="true"></i> สำรวจเกมทั้งหมด
-            </a>
-            <a routerLink="/donations" class="btn-secondary-action">
-              <i class="fa-solid fa-heart mr-2" aria-hidden="true"></i> รายการสนับสนุน
-            </a>
-            <a routerLink="/new" class="btn-secondary-action">
-              <i class="fa-solid fa-sparkles mr-2" aria-hidden="true"></i> เกมใหม่สัปดาห์นี้
-            </a>
-          </div>
-        </div>
-        } @else {
         <div class="form-container">
           <div class="mb-4">
             <h2 class="card-heading">กรอกรหัส Redeem</h2>
@@ -111,7 +101,7 @@
               <span>กำลังตรวจสอบ...</span>
               } @else {
               <i class="fa-solid fa-key mr-2" aria-hidden="true"></i>
-              <span>Redeem รับสถานะ VIP</span>
+              <span>Redeem โค้ด</span>
               }
             </button>
 
@@ -142,6 +132,20 @@
               </div>
             </div>
           </form>
+
+          @if (authService.isVip()) {
+          <div class="flex flex-wrap gap-3 justify-center mt-6 pt-6 border-t border-[var(--color-border)]">
+            <a routerLink="/" class="btn-primary-action">
+              <i class="fa-solid fa-gamepad mr-2" aria-hidden="true"></i> สำรวจเกมทั้งหมด
+            </a>
+            <a routerLink="/donations" class="btn-secondary-action">
+              <i class="fa-solid fa-heart mr-2" aria-hidden="true"></i> รายการสนับสนุน
+            </a>
+            <a routerLink="/new" class="btn-secondary-action">
+              <i class="fa-solid fa-sparkles mr-2" aria-hidden="true"></i> เกมใหม่สัปดาห์นี้
+            </a>
+          </div>
+          }
         </div>
         }
       </div>
