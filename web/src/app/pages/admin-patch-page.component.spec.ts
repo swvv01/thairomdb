@@ -991,9 +991,21 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
             navigateByUrl: jasmine.createSpy('navigateByUrl'),
           },
         },
-        { provide: TranslatorRepository, useValue: { watchAll: () => of([]) } },
+        {
+          provide: TranslatorRepository,
+          useValue: {
+            watchAll: () => of([]),
+            create: jasmine.createSpy('create').and.returnValue(Promise.resolve({ data: { id: 't-1' }, edgeSynced: true })),
+          },
+        },
         { provide: TagRepository, useValue: tagRepoSpy },
-        { provide: SystemRepository, useValue: { watchAll: () => of([]) } },
+        {
+          provide: SystemRepository,
+          useValue: {
+            watchAll: () => of([]),
+            create: jasmine.createSpy('create').and.returnValue(Promise.resolve({ data: { shortName: 'PS1' }, edgeSynced: true })),
+          },
+        },
         { provide: PatchRepository, useValue: { watchAll: () => of([]), getById: () => Promise.resolve(undefined) } },
         { provide: CoverStorageService, useValue: { upload: () => Promise.resolve(''), remove: () => Promise.resolve() } },
         { provide: StatusMessageService, useValue: { show: jasmine.createSpy('show'), clear: jasmine.createSpy('clear') } },
@@ -1086,6 +1098,8 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
   });
 
   it('creates quick translator and triggers edge sync feedback', async () => {
+    const translatorRepo = TestBed.inject(TranslatorRepository) as any;
+    const statusMsg = TestBed.inject(StatusMessageService) as any;
     (comp as any).newTranslatorName = 'Siam Translators';
     (comp as any).newTranslatorShortName = 'Siam';
     (comp as any).newTranslatorLink = 'https://siam.org';
@@ -1093,25 +1107,29 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
 
     await (comp as any).createTranslator();
 
-    expect(translatorRepositoryStub.create).toHaveBeenCalledWith('Siam', 'Siam Translators', 'https://siam.org', 'SiamTool');
-    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มทีมแปลสำเร็จ', 'success');
+    expect(translatorRepo.create).toHaveBeenCalledWith('Siam', 'Siam Translators', 'https://siam.org', 'SiamTool');
+    expect(statusMsg.show).toHaveBeenCalledWith('เพิ่มทีมแปลสำเร็จ', 'success');
   });
 
   it('creates quick tag and triggers edge sync feedback', async () => {
+    const tagRepo = TestBed.inject(TagRepository) as any;
+    const statusMsg = TestBed.inject(StatusMessageService) as any;
     (comp as any).newTagName = 'Adventure';
     await (comp as any).createTag();
 
-    expect(tagRepositoryStub.create).toHaveBeenCalledWith('Adventure');
-    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มหมวดหมู่สำเร็จ', 'success');
+    expect(tagRepo.create).toHaveBeenCalledWith('Adventure');
+    expect(statusMsg.show).toHaveBeenCalledWith('เพิ่มหมวดหมู่สำเร็จ', 'success');
   });
 
   it('creates quick system and triggers edge sync feedback', async () => {
+    const systemRepo = TestBed.inject(SystemRepository) as any;
+    const statusMsg = TestBed.inject(StatusMessageService) as any;
     (comp as any).newSystemShortName = 'PS1';
     (comp as any).newSystemName = 'PlayStation';
     await (comp as any).createSystem();
 
-    expect(systemRepositoryStub.create).toHaveBeenCalledWith('PS1', 'PlayStation');
-    expect(statusMessageStub.show).toHaveBeenCalledWith('เพิ่มเครื่องเกมสำเร็จ', 'success');
+    expect(systemRepo.create).toHaveBeenCalledWith('PS1', 'PlayStation');
+    expect(statusMsg.show).toHaveBeenCalledWith('เพิ่มเครื่องเกมสำเร็จ', 'success');
   });
 });
 

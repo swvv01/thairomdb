@@ -62,34 +62,6 @@ export function calculateSquareGridDimensions(totalItems: number): { cols: numbe
 }
 
 /**
- * Draws a rectangular/square tile at (x, y, w, h) with clipping and image center-crop.
- */
-export function drawTiltedTile(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  drawContent: () => void
-): void {
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-  drawContent();
-  ctx.restore();
-}
-
-/**
- * Calculates optimal rotated grid dimensions (cols and rows) based on total items.
- */
-export function calculateDiagonalGridCols(totalItems: number): number {
-  const needed = totalItems + 1;
-  // A tilted grid covers roughly cols * cols tiles
-  return Math.max(3, Math.ceil(Math.sqrt(needed * 1.25)));
-}
-
-/**
  * Calculates optimal columns for Masonry grid layout based on total items.
  */
 export function calculateMasonryColumnCount(totalItems: number): number {
@@ -181,114 +153,6 @@ export function drawBrandingOverlay(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.fillText('thairomdb.pages.dev', centerX, logoY + targetLogoH + textGap);
-  ctx.restore();
-}
-
-/**
- * Renders cover collage using a 45-degree diagonal rotated grid layout.
- */
-export function renderDiagonalCollage(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  heightOrImages: number | Array<{ patch: Patch; img: HTMLImageElement }>,
-  imagesMaybe?: Array<{ patch: Patch; img: HTMLImageElement }>
-): void {
-  const height = typeof heightOrImages === 'number' ? heightOrImages : width;
-  const validImages = Array.isArray(heightOrImages) ? heightOrImages : (imagesMaybe ?? []);
-
-  ctx.fillStyle = '#35006c';
-  ctx.fillRect(0, 0, width, height);
-
-  const N = calculateDiagonalGridCols(validImages.length);
-  const halfW = width / 2;
-  const halfH = height / 2;
-  const diagonalBound = Math.hypot(width, height);
-  const borderGap = 16;
-  const step = diagonalBound / N;
-  const tileSize = step - borderGap;
-
-  interface RotatedSlot {
-    col: number;
-    row: number;
-    centerX: number;
-    centerY: number;
-  }
-
-  const allSlots: RotatedSlot[] = [];
-  const angle = Math.PI / 4;
-  const cosA = Math.cos(angle);
-  const sinA = Math.sin(angle);
-
-  const maxDimension = Math.max(width, height);
-  const startIdx = -Math.floor(maxDimension / step) - 1;
-  const endIdx = Math.ceil(maxDimension / step) + 1;
-
-  for (let r = startIdx; r <= endIdx; r++) {
-    for (let c = startIdx; c <= endIdx; c++) {
-      const localX = (c + 0.5) * step;
-      const localY = (r + 0.5) * step;
-      const rotX = halfW + (localX * cosA - localY * sinA);
-      const rotY = halfH + (localX * sinA + localY * cosA);
-
-      const margin = step * 0.8;
-      if (rotX >= -margin && rotX <= width + margin && rotY >= -margin && rotY <= height + margin) {
-        allSlots.push({ col: c, row: r, centerX: rotX, centerY: rotY });
-      }
-    }
-  }
-
-  allSlots.sort((a, b) => {
-    const distA = Math.hypot(a.centerX - halfW, a.centerY - halfH);
-    const distB = Math.hypot(b.centerX - halfW, b.centerY - halfH);
-    return distA - distB;
-  });
-
-  const assignedImages: HTMLImageElement[] = [];
-  for (let i = 0; i < allSlots.length; i++) {
-    if (i < validImages.length) {
-      assignedImages.push(validImages[i].img);
-    } else {
-      const randIdx = Math.floor(Math.random() * validImages.length);
-      assignedImages.push(validImages[randIdx].img);
-    }
-  }
-
-  ctx.save();
-  ctx.translate(halfW, halfH);
-  ctx.rotate(angle);
-
-  for (let i = 0; i < allSlots.length; i++) {
-    const slot = allSlots[i];
-    const localX = (slot.col + 0.5) * step - (tileSize / 2);
-    const localY = (slot.row + 0.5) * step - (tileSize / 2);
-    const img = assignedImages[i];
-
-    drawTiltedTile(ctx, localX, localY, tileSize, tileSize, () => {
-      const naturalW = img.naturalWidth || img.width || 250;
-      const naturalH = img.naturalHeight || img.height || 250;
-      const cropSize = Math.min(naturalW, naturalH);
-      const sx = Math.max(0, Math.floor((naturalW - cropSize) / 2));
-      const sy = Math.max(0, Math.floor((naturalH - cropSize) / 2));
-
-      ctx.save();
-      ctx.translate(localX + tileSize / 2, localY + tileSize / 2);
-      ctx.rotate(-angle);
-      const uprightDim = tileSize * Math.SQRT2;
-      ctx.drawImage(
-        img,
-        sx,
-        sy,
-        cropSize,
-        cropSize,
-        -uprightDim / 2,
-        -uprightDim / 2,
-        uprightDim,
-        uprightDim
-      );
-      ctx.restore();
-    });
-  }
-
   ctx.restore();
 }
 
@@ -606,7 +470,6 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
   protected readonly cropperOpen = signal(false);
   protected readonly lastCrop = signal<CropRect | null>(null);
 
-  protected readonly collageMode = signal<'masonry' | 'diagonal'>('masonry');
   protected readonly customColumns = signal<number | null>(null);
   protected readonly masonryStats = signal<MasonryRenderStats | null>(null);
   protected readonly showAffectedGames = signal(false);
@@ -685,7 +548,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
     return `${custom} คอลัมน์`;
   });
 
-  // Default: current time - 24 hours to current time
+  // Default: today (00:00 to 23:59)
   protected readonly fromDate = signal('');
   protected readonly toDate = signal('');
 
@@ -726,28 +589,33 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
   protected resetToDefaultRange(): void {
     const now = new Date();
-    const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    this.toDate.set(toLocalInputString(now));
-    this.fromDate.set(toLocalInputString(past24h));
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+    this.toDate.set(toLocalInputString(endOfToday));
+    this.fromDate.set(toLocalInputString(startOfToday));
     this.clearPreviewAndStats();
   }
 
   protected setPreset(preset: '24h' | 'today' | '3d' | '7d'): void {
     const now = new Date();
-    this.toDate.set(toLocalInputString(now));
 
-    if (preset === '24h') {
-      const past = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      this.fromDate.set(toLocalInputString(past));
-    } else if (preset === 'today') {
-      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      this.fromDate.set(toLocalInputString(midnight));
-    } else if (preset === '3d') {
-      const past = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-      this.fromDate.set(toLocalInputString(past));
-    } else if (preset === '7d') {
-      const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      this.fromDate.set(toLocalInputString(past));
+    if (preset === 'today') {
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+      this.toDate.set(toLocalInputString(endOfToday));
+      this.fromDate.set(toLocalInputString(startOfToday));
+    } else {
+      this.toDate.set(toLocalInputString(now));
+      if (preset === '24h') {
+        const past = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        this.fromDate.set(toLocalInputString(past));
+      } else if (preset === '3d') {
+        const past = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        this.fromDate.set(toLocalInputString(past));
+      } else if (preset === '7d') {
+        const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        this.fromDate.set(toLocalInputString(past));
+      }
     }
 
     this.clearPreviewAndStats();
@@ -767,7 +635,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
     const fromStr = this.fromDate();
     const toStr = this.toDate();
     const fromTime = fromStr ? new Date(fromStr).getTime() : Number.NEGATIVE_INFINITY;
-    const toTime = toStr ? new Date(toStr).getTime() : Number.POSITIVE_INFINITY;
+    const toTime = toStr ? new Date(toStr).getTime() + (toStr.length <= 16 ? 59999 : 0) : Number.POSITIVE_INFINITY;
 
     return this.patches().filter((patch) => {
       const timestamp = Date.parse(patch.updateDate);
@@ -815,13 +683,26 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
   });
 
   protected readonly postSummaryText = computed(() => {
-    const totalGames = this.filteredPatches().length;
+    const patches = this.filteredPatches();
     const allGamesCount = this.patches().length;
     const groups = this.translatorGroups();
 
-    if (groups.length === 0) {
-      return `📢 อัปเดตเกมแปลไทยวันนี้ 0 เกม\n🌐 รวมเกมแปลไทยทั้งหมดในระบบ ${allGamesCount} เกม\n\n(ไม่พบเกมที่อัปเดตในช่วงเวลาดังกล่าว)`;
+    if (patches.length === 0 || groups.length === 0) {
+      return '(ไม่พบเกมที่อัปเดตในช่วงเวลาดังกล่าว)';
     }
+
+    const updateCount = patches.filter((p) => Boolean(p.haveUpdateFlag)).length;
+    const newCount = patches.length - updateCount;
+
+    const headerLines = ['📢 อัปเดตเกมแปลไทยวันนี้'];
+    if (newCount > 0) {
+      headerLines.push(`✨ เกมใหม่ ${newCount} เกม`);
+    }
+    if (updateCount > 0) {
+      headerLines.push(`🔄 เกมอัปเดต ${updateCount} เกม`);
+    }
+    headerLines.push(`🌐 รวมเกมแปลไทยทั้งหมดในระบบ ${allGamesCount} เกม`);
+    const header = headerLines.join('\n');
 
     const body = groups.map((g) => {
       const games = g.games.map((game) => {
@@ -831,7 +712,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
       return `${g.translatorName} (${g.games.length} เกม)\n${games}`;
     }).join('\n\n');
 
-    return `📢 อัปเดตเกมแปลไทยวันนี้ ${totalGames} เกม\n🌐 รวมเกมแปลไทยทั้งหมดในระบบ ${allGamesCount} เกม\n\n${body}\n\n#THAIRomDB #เกมแปลไทย #ไทยรอม #RetroGaming`;
+    return `${header}\n\n${body}\n\n#THAIRomDB #เกมแปลไทย #ไทยรอม #RetroGaming`;
   });
 
   protected async copyText(): Promise<void> {
@@ -882,12 +763,6 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
     } catch {
       this.statusMessageService.show('ไม่สามารถคัดลอกลิงก์ได้', 'error');
     }
-  }
-
-  protected setCollageMode(mode: 'masonry' | 'diagonal'): void {
-    if (this.collageMode() === mode) return;
-    this.collageMode.set(mode);
-    this.clearPreviewAndStats();
   }
 
   protected incrementColumns(): void {
@@ -953,14 +828,8 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
       if (!ctx) throw new Error('ไม่สามารถประมวลผลรูปภาพได้');
 
-      let stats: MasonryRenderStats | null = null;
-      if (this.collageMode() === 'masonry') {
-        stats = renderMasonryCollage(ctx, canvasW, canvasH, validImages, this.effectiveMasonryColumns());
-        this.masonryStats.set(stats);
-      } else {
-        renderDiagonalCollage(ctx, canvasW, canvasH, validImages);
-        this.masonryStats.set(null);
-      }
+      const stats = renderMasonryCollage(ctx, canvasW, canvasH, validImages, this.effectiveMasonryColumns());
+      this.masonryStats.set(stats);
       this.showAffectedGames.set(false);
 
       // Convert canvas to blob without baking logo, allowing crop before download

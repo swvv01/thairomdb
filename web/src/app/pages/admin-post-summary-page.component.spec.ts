@@ -4,17 +4,15 @@ import { Router } from '@angular/router';
 import {
   AdminPostSummaryPageComponent,
   calculateSquareGridDimensions,
-  calculateDiagonalGridCols,
   calculateMasonryColumnCount,
   comparePatchesByNewestAndPriority,
   drawRoundedRect,
   drawBrandingOverlay,
   renderMasonryCollage,
-  renderDiagonalCollage,
-  drawTiltedTile,
   distributeIntoColumns,
   drawGridBackground,
-  drawSynthwaveBackground
+  drawSynthwaveBackground,
+  toLocalInputString
 } from './admin-post-summary-page.component';
 import { PatchRepository } from '../repositories/patch.repository';
 import { TranslatorRepository } from '../repositories/translator.repository';
@@ -32,11 +30,11 @@ describe('AdminPostSummaryPageComponent', () => {
     { id: 't2', shortName: 'TN2', name: 'ทีมแปลที่สอง' }
   ];
 
-  const now = new Date();
+  const baseDate = new Date(2026, 9, 27, 12, 0, 0);
   const mockPatches: Patch[] = [
     {
       id: 'p1',
-      updateDate: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+      updateDate: new Date(2026, 9, 27, 10, 0, 0).toISOString(),
       haveUpdateFlag: false,
       patchVersion: '1.0',
       gameTitle: 'Final Fantasy VII',
@@ -54,7 +52,7 @@ describe('AdminPostSummaryPageComponent', () => {
     },
     {
       id: 'p2',
-      updateDate: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+      updateDate: new Date(2026, 9, 27, 4, 0, 0).toISOString(),
       haveUpdateFlag: true,
       patchVersion: '1.1',
       gameTitle: 'Chrono Trigger',
@@ -72,7 +70,7 @@ describe('AdminPostSummaryPageComponent', () => {
     },
     {
       id: 'p3',
-      updateDate: new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString(), // 48 hours ago
+      updateDate: new Date(2026, 9, 25, 12, 0, 0).toISOString(), // 48 hours before baseDate
       haveUpdateFlag: false,
       patchVersion: '1.0',
       gameTitle: 'Dragon Quest',
@@ -108,6 +106,9 @@ describe('AdminPostSummaryPageComponent', () => {
   };
 
   beforeEach(async () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(baseDate);
+
     mockPatchRepo.watchAll.and.returnValue(of(mockPatches));
     mockTranslatorRepo.watchAll.and.returnValue(of(mockTranslators));
 
@@ -126,6 +127,10 @@ describe('AdminPostSummaryPageComponent', () => {
     component = fixture.componentInstance;
     statusMessageService = TestBed.inject(StatusMessageService);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
   });
 
   it('should create component and load initial patches and translators', () => {
@@ -168,9 +173,16 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(totalCount).toBe(13);
   });
 
-  it('should filter patches to default 24 hour range and format summary with emojis and total count', () => {
+  it('should filter patches to default today range (00:00 - 23:59) and format summary with emojis and total count', () => {
+    const fromVal = (component as unknown as { fromDate: () => string }).fromDate();
+    const toVal = (component as unknown as { toDate: () => string }).toDate();
+    expect(fromVal.endsWith('T00:00')).toBeTrue();
+    expect(toVal.endsWith('T23:59')).toBeTrue();
+
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 2 เกม');
+    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้');
+    expect(text).toContain('✨ เกมใหม่ 1 เกม');
+    expect(text).toContain('🔄 เกมอัปเดต 1 เกม');
     expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
     expect(text).toContain('- Final Fantasy VII [PS1] ✨');
     expect(text).toContain('- Chrono Trigger [SNES] 🔄');
@@ -178,8 +190,16 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(text).not.toContain('เข้าชมและดาวน์โหลด');
   });
 
+  it('should set fromDate to 00:00 and toDate to 23:59 when preset today is clicked', () => {
+    (component as unknown as { setPreset: (p: 'today') => void }).setPreset('today');
+    const fromVal = (component as unknown as { fromDate: () => string }).fromDate();
+    const toVal = (component as unknown as { toDate: () => string }).toDate();
+    expect(fromVal.endsWith('T00:00')).toBeTrue();
+    expect(toVal.endsWith('T23:59')).toBeTrue();
+  });
+
   it('should correctly identify patches with covers', () => {
-    // Only p1 is in 24h range and has cover
+    // Only p1 is in today range and has cover
     const withCovers = (component as unknown as { patchesWithCovers: () => Patch[] }).patchesWithCovers();
     expect(withCovers.length).toBe(1);
     expect(withCovers[0].id).toBe('p1');
@@ -198,7 +218,9 @@ describe('AdminPostSummaryPageComponent', () => {
     fixture.detectChanges();
 
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 3 เกม');
+    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้');
+    expect(text).toContain('✨ เกมใหม่ 2 เกม');
+    expect(text).toContain('🔄 เกมอัปเดต 1 เกม');
     expect(text).toContain('ทีมแปลที่หนึ่ง (2 เกม)');
     expect(text).toContain('ทีมแปลที่สอง (1 เกม)');
     expect(text).toContain('Final Fantasy VII [PS1]');
@@ -218,9 +240,35 @@ describe('AdminPostSummaryPageComponent', () => {
     fixture.detectChanges();
 
     const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
-    expect(text).toContain('📢 อัปเดตเกมแปลไทยวันนี้ 0 เกม');
-    expect(text).toContain('🌐 รวมเกมแปลไทยทั้งหมดในระบบ 3 เกม');
-    expect(text).toContain('(ไม่พบเกมที่อัปเดตในช่วงเวลาดังกล่าว)');
+    expect(text).toBe('(ไม่พบเกมที่อัปเดตในช่วงเวลาดังกล่าว)');
+  });
+
+  it('should omit updateCount line when there are only new games', () => {
+    // Only p1 is in range (10:00 AM). p2 is 04:00 AM, p3 is 2 days ago.
+    const from = new Date(2026, 9, 27, 9, 0, 0);
+    const to = new Date(2026, 9, 27, 11, 0, 0);
+
+    (component as unknown as { onFromDateChange: (d: string) => void }).onFromDateChange(toLocalInputString(from));
+    (component as unknown as { onToDateChange: (d: string) => void }).onToDateChange(toLocalInputString(to));
+    fixture.detectChanges();
+
+    const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
+    expect(text).toContain('✨ เกมใหม่ 1 เกม');
+    expect(text).not.toContain('🔄 เกมอัปเดต');
+  });
+
+  it('should omit newCount line when there are only updated games', () => {
+    // Only p2 is in range (04:00 AM). p1 is 10:00 AM, p3 is 2 days ago.
+    const from = new Date(2026, 9, 27, 3, 0, 0);
+    const to = new Date(2026, 9, 27, 5, 0, 0);
+
+    (component as unknown as { onFromDateChange: (d: string) => void }).onFromDateChange(toLocalInputString(from));
+    (component as unknown as { onToDateChange: (d: string) => void }).onToDateChange(toLocalInputString(to));
+    fixture.detectChanges();
+
+    const text = (component as unknown as { postSummaryText: () => string }).postSummaryText();
+    expect(text).toContain('🔄 เกมอัปเดต 1 เกม');
+    expect(text).not.toContain('✨ เกมใหม่');
   });
 
   it('should render synthwave background onto canvas context without error', () => {
@@ -286,29 +334,6 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(calculateSquareGridDimensions(40)).toEqual({ cols: 7, rows: 6 });
   });
 
-  it('should calculate diagonal grid columns correctly', () => {
-    // 2 items + 1 branding = 3 -> cols >= 3
-    expect(calculateDiagonalGridCols(2)).toBeGreaterThanOrEqual(3);
-    // 15 items + 1 branding = 16 -> cols >= 5
-    expect(calculateDiagonalGridCols(15)).toBe(5);
-  });
-
-  it('should draw tilted tile onto canvas context without error', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 250;
-    canvas.height = 250;
-    const ctx = canvas.getContext('2d');
-    expect(ctx).toBeTruthy();
-
-    if (ctx) {
-      expect(() => {
-        drawTiltedTile(ctx, 10, 10, 100, 100, () => {
-          ctx.fillRect(10, 10, 100, 100);
-        });
-      }).not.toThrow();
-    }
-  });
-
   it('should calculate masonry grid column count based on items', () => {
     expect(calculateMasonryColumnCount(1)).toBe(1);
     expect(calculateMasonryColumnCount(2)).toBe(2);
@@ -352,51 +377,6 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(() => {
       renderMasonryCollage(ctx, 1024, validImages);
     }).not.toThrow();
-  });
-
-  it('should render diagonal collage without error', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d')!;
-    const dummyImg = document.createElement('img');
-    const validImages = [
-      { patch: mockPatches[0], img: dummyImg },
-      { patch: mockPatches[2], img: dummyImg }
-    ];
-    expect(() => {
-      renderDiagonalCollage(ctx, 1024, validImages);
-    }).not.toThrow();
-  });
-
-  it('should default collageMode to masonry and allow switching', () => {
-    expect((component as any).collageMode()).toBe('masonry');
-    (component as any).setCollageMode('diagonal');
-    expect((component as any).collageMode()).toBe('diagonal');
-    expect((component as any).previewImageUrl()).toBeNull();
-
-    // Clicking the same mode should be a no-op
-    (component as any).setCollageMode('diagonal');
-    expect((component as any).collageMode()).toBe('diagonal');
-  });
-
-  it('should render collage mode toggle buttons in template', () => {
-    const modeButtons = fixture.nativeElement.querySelectorAll('.mode-toggle-btn');
-    expect(modeButtons.length).toBe(2);
-    expect(modeButtons[0].textContent).toContain('กริด Masonry');
-    expect(modeButtons[1].textContent).toContain('ลายเอียง 45°');
-
-    // Default active button should be masonry
-    expect(modeButtons[0].classList.contains('mode-toggle-btn--active')).toBeTrue();
-    expect(modeButtons[1].classList.contains('mode-toggle-btn--active')).toBeFalse();
-
-    // Click diagonal button
-    modeButtons[1].click();
-    fixture.detectChanges();
-
-    expect((component as any).collageMode()).toBe('diagonal');
-    expect(modeButtons[0].classList.contains('mode-toggle-btn--active')).toBeFalse();
-    expect(modeButtons[1].classList.contains('mode-toggle-btn--active')).toBeTrue();
   });
 
   it('should render masonry collage with explicit columns and handle overflow clipping', () => {
@@ -482,9 +462,8 @@ describe('AdminPostSummaryPageComponent', () => {
     expect((component as any).columnLabel()).toContain('Auto');
   });
 
-  it('should show column stepper in masonry mode and hide in diagonal mode', () => {
-    // In masonry mode (default), stepper should be rendered
-    let stepper = fixture.nativeElement.querySelector('.column-stepper-group');
+  it('should render column stepper controls in title bar and handle clicks', () => {
+    const stepper = fixture.nativeElement.querySelector('.column-stepper-group');
     expect(stepper).toBeTruthy();
 
     const stepperBtns = fixture.nativeElement.querySelectorAll('.stepper-btn');
@@ -495,12 +474,15 @@ describe('AdminPostSummaryPageComponent', () => {
     fixture.detectChanges();
     expect((component as any).customColumns()).not.toBeNull();
 
-    // Switch to diagonal mode -> stepper should disappear
-    (component as any).setCollageMode('diagonal');
+    // Click decrement once (2 -> 1)
+    stepperBtns[0].click();
     fixture.detectChanges();
+    expect((component as any).customColumns()).toBe(1);
 
-    stepper = fixture.nativeElement.querySelector('.column-stepper-group');
-    expect(stepper).toBeNull();
+    // Click decrement again (1 -> null, returns to Auto)
+    stepperBtns[0].click();
+    fixture.detectChanges();
+    expect((component as any).customColumns()).toBeNull();
   });
 
   it('should compare patches by new game priority, newest date, and title', () => {

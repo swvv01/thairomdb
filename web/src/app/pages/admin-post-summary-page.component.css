@@ -165,41 +165,6 @@
   gap: 0.5rem;
 }
 
-.mode-toggle-group {
-  display: inline-flex;
-  align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: 2px 2px 0 var(--color-shadow);
-  padding: 2px;
-  gap: 2px;
-}
-
-.mode-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.75rem;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.mode-toggle-btn:hover:not(.mode-toggle-btn--active) {
-  background: var(--color-surface-light);
-  color: var(--color-text);
-}
-
-.mode-toggle-btn--active {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  box-shadow: 1px 1px 0 var(--color-shadow);
-}
-
 .column-stepper-group {
   display: inline-flex;
   align-items: center;

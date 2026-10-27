@@ -12,8 +12,8 @@
         <span>เลือกช่วงเวลาที่เพิ่มเกม</span>
       </h2>
       <div class="preset-group" aria-label="ปุ่มเลือกช่วงเวลาสำเร็จรูป">
-        <button type="button" class="preset-btn" (click)="setPreset('24h')">24 ชม. ล่าสุด</button>
         <button type="button" class="preset-btn" (click)="setPreset('today')">วันนี้</button>
+        <button type="button" class="preset-btn" (click)="setPreset('24h')">24 ชม. ล่าสุด</button>
         <button type="button" class="preset-btn" (click)="setPreset('3d')">3 วันล่าสุด</button>
         <button type="button" class="preset-btn" (click)="setPreset('7d')">7 วันล่าสุด</button>
       </div>
@@ -124,54 +124,29 @@
       </div>
 
       <div class="action-group">
-        <div class="mode-toggle-group" role="group" aria-label="เลือกรูปแบบรูปภาพรวมปก">
+        <div class="column-stepper-group" role="group" aria-label="ปรับจำนวนคอลัมน์">
           <button
             type="button"
-            class="mode-toggle-btn"
-            [class.mode-toggle-btn--active]="collageMode() === 'masonry'"
-            (click)="setCollageMode('masonry')"
-            title="กริดแนวตั้งสไตล์ Masonry Pinterest"
+            class="stepper-btn"
+            (click)="decrementColumns()"
+            title="ลดจำนวนคอลัมน์ (ลดต่ำกว่า 1 จะกลับเป็น Auto)"
+            [disabled]="loading() || generatingImage()"
           >
-            <i class="fa-solid fa-table-cells" aria-hidden="true"></i>
-            <span>กริด Masonry</span>
+            <i class="fa-solid fa-minus" aria-hidden="true"></i>
           </button>
+          <span class="stepper-value" [class.stepper-value--auto]="customColumns() === null">
+            {{ columnLabel() }}
+          </span>
           <button
             type="button"
-            class="mode-toggle-btn"
-            [class.mode-toggle-btn--active]="collageMode() === 'diagonal'"
-            (click)="setCollageMode('diagonal')"
-            title="ลายโมเสกเอียง 45 องศา"
+            class="stepper-btn"
+            (click)="incrementColumns()"
+            title="เพิ่มจำนวนคอลัมน์ (สูงสุด 10)"
+            [disabled]="loading() || generatingImage() || customColumns() === 10"
           >
-            <i class="fa-solid fa-shapes" aria-hidden="true"></i>
-            <span>ลายเอียง 45°</span>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
           </button>
         </div>
-
-        @if (collageMode() === 'masonry') {
-          <div class="column-stepper-group" role="group" aria-label="ปรับจำนวนคอลัมน์">
-            <button
-              type="button"
-              class="stepper-btn"
-              (click)="decrementColumns()"
-              title="ลดจำนวนคอลัมน์ (ลดต่ำกว่า 1 จะกลับเป็น Auto)"
-              [disabled]="loading() || generatingImage()"
-            >
-              <i class="fa-solid fa-minus" aria-hidden="true"></i>
-            </button>
-            <span class="stepper-value" [class.stepper-value--auto]="customColumns() === null">
-              {{ columnLabel() }}
-            </span>
-            <button
-              type="button"
-              class="stepper-btn"
-              (click)="incrementColumns()"
-              title="เพิ่มจำนวนคอลัมน์ (สูงสุด 10)"
-              [disabled]="loading() || generatingImage() || customColumns() === 10"
-            >
-              <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            </button>
-          </div>
-        }
 
         <button
           type="button"
@@ -235,7 +210,7 @@
             <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
           </div>
 
-          @if (collageMode() === 'masonry' && masonryStats(); as stats) {
+          @if (masonryStats(); as stats) {
             <div class="masonry-stats-box" aria-label="สรุปผลการจัดวางรูปภาพ">
               <div class="stats-summary-row">
                 <div class="stats-pill stats-pill--full" title="แสดงรูปเต็มใบ">
