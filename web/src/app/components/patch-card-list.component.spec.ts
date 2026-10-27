@@ -486,7 +486,7 @@ describe('PatchCardListComponent', () => {
     expect(dialog.querySelector('.game-badge')).toBeNull();
   });
 
-  it('renders dialog actions (library and edit buttons) inside detail modal', () => {
+  it('renders actions under cover column and topbar close button inside detail modal', () => {
     component.patches = [basePatch];
     component.canEdit = true;
     component.openDetailModal(basePatch);
@@ -495,26 +495,37 @@ describe('PatchCardListComponent', () => {
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
     expect(dialog).not.toBeNull();
 
-    const actions = dialog.querySelector('.patch-card__dialog-actions');
-    expect(actions).not.toBeNull();
+    // Actions under cover column for desktop mode
+    const coverActions = dialog.querySelector('.patch-cover-col .patch-card__desktop-actions');
+    expect(coverActions).not.toBeNull();
 
-    const editBtn = actions.querySelector('a.button.btn-primary.patch-card__action-btn');
-    expect(editBtn).not.toBeNull();
-    expect(editBtn.getAttribute('title')).toBe('แก้ไข');
+    const coverEditBtn = coverActions.querySelector('a.button.btn-primary.patch-card__action-btn');
+    expect(coverEditBtn).not.toBeNull();
+    expect(coverEditBtn.getAttribute('title')).toBe('แก้ไข');
 
-    const libraryBtn = actions.querySelector('button.button.patch-card__action-btn');
-    expect(libraryBtn).not.toBeNull();
-    expect(libraryBtn.getAttribute('title')).toBe('เก็บเข้าคลัง');
+    const coverLibraryBtn = coverActions.querySelector('button.button.patch-card__action-btn');
+    expect(coverLibraryBtn).not.toBeNull();
+    expect(coverLibraryBtn.getAttribute('title')).toBe('เก็บเข้าคลัง');
+
+    // Topbar actions for mobile fallback and close button
+    const topbar = dialog.querySelector('.patch-detail-dialog__topbar');
+    expect(topbar).not.toBeNull();
+
+    const topbarActions = topbar.querySelector('.patch-detail-dialog__actions');
+    expect(topbarActions).not.toBeNull();
+
+    const closeBtn = topbar.querySelector('.patch-detail-dialog__close-btn');
+    expect(closeBtn).not.toBeNull();
   });
 
-  it('renders only library button in dialog actions when canEdit is false', () => {
+  it('renders only library button in dialog topbar actions when canEdit is false', () => {
     component.patches = [basePatch];
     component.canEdit = false;
     component.openDetailModal(basePatch);
     fixture.detectChanges();
 
     const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
-    const actions = dialog.querySelector('.patch-card__dialog-actions');
+    const actions = dialog.querySelector('.patch-detail-dialog__actions');
     expect(actions).not.toBeNull();
 
     const editBtn = actions.querySelector('a.button.btn-primary.patch-card__action-btn');
@@ -524,7 +535,7 @@ describe('PatchCardListComponent', () => {
     expect(libraryBtn).not.toBeNull();
   });
 
-  it('renders actions inside card body for desktop mode', () => {
+  it('renders actions under cover column for desktop mode', () => {
     component.patches = [basePatch];
     component.canEdit = true;
     fixture.detectChanges();
@@ -532,7 +543,7 @@ describe('PatchCardListComponent', () => {
     const card = fixture.nativeElement.querySelector('.patch-card');
     expect(card).not.toBeNull();
 
-    const actions = card.querySelector('.patch-card__body .patch-card__dialog-actions');
+    const actions = card.querySelector('.patch-cover-col .patch-card__desktop-actions');
     expect(actions).not.toBeNull();
 
     const editBtn = actions.querySelector('a.patch-card__action-btn--edit');
@@ -540,6 +551,9 @@ describe('PatchCardListComponent', () => {
 
     const libraryBtn = actions.querySelector('button.patch-card__action-btn--bookmark');
     expect(libraryBtn).not.toBeNull();
+
+    // Verify no actions rendered in card body
+    expect(card.querySelector('.patch-card__body .patch-card__dialog-actions')).toBeNull();
   });
 
   it('stacks version modal on top of detail modal when opened from inside detail modal', () => {

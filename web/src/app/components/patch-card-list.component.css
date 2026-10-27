@@ -273,6 +273,24 @@
   height: auto;
 }
 
+.patch-cover-col {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  min-width: 0;
+  width: min(100%, 250px);
+}
+
+.patch-card__desktop-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
 .patch-cover-wrap {
   align-items: stretch;
   align-self: flex-start;
@@ -574,17 +592,24 @@
   width: min(calc(100vw - 1rem), 640px);
 }
 
+.patch-detail-dialog__topbar {
+  display: contents;
+}
+
+.patch-detail-dialog__actions {
+  display: none;
+}
+
 .patch-detail-dialog__close-btn {
-  background: transparent;
-  border: none;
+  background: var(--color-status-error);
+  border: 1px solid var(--color-border);
+  box-shadow: 2px 2px 0 var(--color-shadow);
   color: var(--color-text);
   cursor: pointer;
-  font-size: 1.25rem;
   line-height: 1;
-  padding: 0.35rem 0.5rem;
   position: absolute;
-  right: 0;
-  top: 3px;
+  right: 0.5rem;
+  top: 0.5rem;
   z-index: 10;
 }
 
@@ -624,20 +649,34 @@
   display: none !important;
 }
 
-.patch-card__dialog-actions {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-start;
-  margin: 0.2rem 0 0.4rem;
-}
 
 @media (max-width: 640px) {
   .patch-card {
     grid-template-columns: 1fr;
   }
 
-  .patch-card:not(.patch-card--dialog) .patch-card__dialog-actions {
+  .patch-detail-dialog__topbar {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    margin-top: -18px;
+  }
+
+  .patch-detail-dialog__actions {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .patch-detail-dialog__close-btn {
+    position: static;
+  }
+
+  .patch-card__desktop-actions {
     display: none;
   }
 
@@ -723,6 +762,7 @@
     width: min(calc(100vw - 1rem), 32rem);
   }
 
+  .patch-detail-dialog .patch-cover-col,
   .patch-detail-dialog .patch-cover-wrap {
     display: none !important;
   }
@@ -788,7 +828,7 @@
 .pinterest-card:hover,
 .pinterest-card:focus-visible {
   border-color: var(--color-highlight);
-  box-shadow: 4px 4px 0 var(--color-shadow);
+  box-shadow: 4px 4px 0 var(--color-highlight);
   outline: none;
   transform: translateY(-2px);
 }
