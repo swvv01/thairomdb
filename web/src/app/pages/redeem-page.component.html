@@ -95,10 +95,13 @@
                 placeholder="เช่น 202609241105" autocomplete="off" spellcheck="false" [disabled]="loading()" />
             </div>
 
-            <button type="submit" class="submit-button" [disabled]="!code().trim() || loading()">
+            <button type="submit" class="submit-button" [disabled]="!code().trim() || loading() || isCooldownActive()">
               @if (loading()) {
               <i class="fa-solid fa-circle-notch fa-spin mr-2" aria-hidden="true"></i>
               <span>กำลังตรวจสอบ...</span>
+              } @else if (isCooldownActive()) {
+              <i class="fa-solid fa-clock mr-2" aria-hidden="true"></i>
+              <span>กรุณารออีก {{ cooldownText() }}</span>
               } @else {
               <i class="fa-solid fa-key mr-2" aria-hidden="true"></i>
               <span>Redeem โค้ด</span>

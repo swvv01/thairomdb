@@ -110,6 +110,12 @@
   border-color: var(--color-accent);
 }
 
+.code-input:disabled {
+  background: color-mix(in srgb, var(--color-surface) 70%, var(--color-border));
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .submit-button {
   display: inline-flex;
   align-items: center;
