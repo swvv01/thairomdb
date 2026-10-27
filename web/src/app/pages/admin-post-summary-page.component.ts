@@ -62,6 +62,21 @@ export function calculateSquareGridDimensions(totalItems: number): { cols: numbe
 }
 
 /**
+ * Calculates Masonry canvas dimensions based on column count (250px column width + padding)
+ * with a 4:5 aspect ratio and a maximum width cap of 2048px.
+ */
+export function calculateMasonryCanvasDimensions(cols: number): { width: number; height: number } {
+  const boundedCols = Math.min(7, Math.max(1, cols));
+  const colWidth = 250;
+  const gap = 14;
+  const margin = 16;
+  const calculatedWidth = (boundedCols * colWidth) + ((boundedCols - 1) * gap) + (2 * margin);
+  const width = Math.min(2048, calculatedWidth);
+  const height = Math.round(width * 5 / 4);
+  return { width, height };
+}
+
+/**
  * Calculates optimal columns for Masonry grid layout based on total items.
  */
 export function calculateMasonryColumnCount(totalItems: number): number {
@@ -69,7 +84,9 @@ export function calculateMasonryColumnCount(totalItems: number): number {
   if (totalItems <= 3) return 2;
   if (totalItems <= 7) return 3;
   if (totalItems <= 14) return 4;
-  return 5;
+  if (totalItems <= 24) return 5;
+  if (totalItems <= 35) return 6;
+  return 7;
 }
 
 /**
@@ -535,7 +552,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
   protected readonly effectiveMasonryColumns = computed(() => {
     const custom = this.customColumns();
-    if (custom !== null) return custom;
+    if (custom !== null) return Math.min(7, Math.max(1, custom));
     return calculateMasonryColumnCount(this.patchesWithCovers().length);
   });
 
@@ -769,10 +786,10 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
     const cur = this.customColumns();
     const autoCols = calculateMasonryColumnCount(this.patchesWithCovers().length);
     if (cur === null) {
-      const next = Math.min(10, autoCols + 1);
+      const next = Math.min(7, autoCols + 1);
       this.customColumns.set(next);
     } else {
-      this.customColumns.set(Math.min(10, cur + 1));
+      this.customColumns.set(Math.min(7, cur + 1));
     }
     this.clearPreviewAndStats();
   }
@@ -819,8 +836,8 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
         throw new Error('ไม่สามารถโหลดรูปปกเกมได้ กรุณาลองใหม่อีกครั้ง');
       }
 
-      const canvasW = 1024;
-      const canvasH = 1200;
+      const cols = this.effectiveMasonryColumns();
+      const { width: canvasW, height: canvasH } = calculateMasonryCanvasDimensions(cols);
       const canvas = document.createElement('canvas');
       canvas.width = canvasW;
       canvas.height = canvasH;
@@ -828,7 +845,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
       if (!ctx) throw new Error('ไม่สามารถประมวลผลรูปภาพได้');
 
-      const stats = renderMasonryCollage(ctx, canvasW, canvasH, validImages, this.effectiveMasonryColumns());
+      const stats = renderMasonryCollage(ctx, canvasW, canvasH, validImages, cols);
       this.masonryStats.set(stats);
       this.showAffectedGames.set(false);
 

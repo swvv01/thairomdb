@@ -141,8 +141,8 @@
             type="button"
             class="stepper-btn"
             (click)="incrementColumns()"
-            title="เพิ่มจำนวนคอลัมน์ (สูงสุด 10)"
-            [disabled]="loading() || generatingImage() || customColumns() === 10"
+            title="เพิ่มจำนวนคอลัมน์ (สูงสุด 7)"
+            [disabled]="loading() || generatingImage() || customColumns() === 7"
           >
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
           </button>
@@ -162,39 +162,6 @@
             <span>สร้างรูปภาพตัวอย่าง</span>
           }
         </button>
-
-        @if (previewImageUrl()) {
-          <button
-            type="button"
-            class="button crop-btn"
-            (click)="openCropper()"
-            title="ครอบตัดรูปภาพ"
-          >
-            <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
-            <span>ครอบตัดรูปภาพ</span>
-          </button>
-
-          @if (isCropped()) {
-            <button
-              type="button"
-              class="button reset-crop-btn"
-              (click)="resetToOriginal()"
-              title="คืนค่ารูปภาพต้นฉบับ"
-            >
-              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-              <span>คืนค่าต้นฉบับ</span>
-            </button>
-          }
-
-          <button
-            type="button"
-            class="button download-btn"
-            (click)="downloadImage()"
-          >
-            <i class="fa-solid fa-download" aria-hidden="true"></i>
-            <span>ดาวน์โหลดรูปภาพ</span>
-          </button>
-        }
       </div>
     </div>
 

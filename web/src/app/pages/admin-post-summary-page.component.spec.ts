@@ -5,6 +5,7 @@ import {
   AdminPostSummaryPageComponent,
   calculateSquareGridDimensions,
   calculateMasonryColumnCount,
+  calculateMasonryCanvasDimensions,
   comparePatchesByNewestAndPriority,
   drawRoundedRect,
   drawBrandingOverlay,
@@ -334,7 +335,7 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(calculateSquareGridDimensions(40)).toEqual({ cols: 7, rows: 6 });
   });
 
-  it('should calculate masonry grid column count based on items', () => {
+  it('should calculate masonry grid column count based on items up to 7 columns', () => {
     expect(calculateMasonryColumnCount(1)).toBe(1);
     expect(calculateMasonryColumnCount(2)).toBe(2);
     expect(calculateMasonryColumnCount(3)).toBe(2);
@@ -343,7 +344,34 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(calculateMasonryColumnCount(8)).toBe(4);
     expect(calculateMasonryColumnCount(14)).toBe(4);
     expect(calculateMasonryColumnCount(15)).toBe(5);
-    expect(calculateMasonryColumnCount(30)).toBe(5);
+    expect(calculateMasonryColumnCount(24)).toBe(5);
+    expect(calculateMasonryColumnCount(25)).toBe(6);
+    expect(calculateMasonryColumnCount(35)).toBe(6);
+    expect(calculateMasonryColumnCount(36)).toBe(7);
+    expect(calculateMasonryColumnCount(50)).toBe(7);
+  });
+
+  it('should calculate masonry canvas dimensions based on 250px column width, padding, 4:5 ratio, and <= 2048px', () => {
+    // 1 col: width = (1 * 250) + (0 * 14) + (2 * 16) = 282px, height = round(282 * 1.25) = 353px
+    const dims1 = calculateMasonryCanvasDimensions(1);
+    expect(dims1).toEqual({ width: 282, height: 353 });
+
+    // 4 cols: width = (4 * 250) + (3 * 14) + (2 * 16) = 1074px, height = round(1074 * 1.25) = 1343px
+    const dims4 = calculateMasonryCanvasDimensions(4);
+    expect(dims4).toEqual({ width: 1074, height: 1343 });
+
+    // 7 cols: width = (7 * 250) + (6 * 14) + (2 * 16) = 1866px, height = round(1866 * 1.25) = 2333px
+    const dims7 = calculateMasonryCanvasDimensions(7);
+    expect(dims7).toEqual({ width: 1866, height: 2333 });
+
+    // 4:5 aspect ratio check
+    expect(Math.abs(dims4.width / dims4.height - 4 / 5)).toBeLessThan(0.01);
+    expect(Math.abs(dims7.width / dims7.height - 4 / 5)).toBeLessThan(0.01);
+
+    // Bounded to at most 7 cols / <= 2048px width
+    const dimsOver = calculateMasonryCanvasDimensions(10);
+    expect(dimsOver.width).toBeLessThanOrEqual(2048);
+    expect(dimsOver).toEqual(dims7);
   });
 
   it('should draw rounded rect fallback correctly', () => {
@@ -444,14 +472,14 @@ describe('AdminPostSummaryPageComponent', () => {
     expect((component as any).customColumns()).toBeGreaterThanOrEqual(1);
     expect((component as any).columnLabel()).toContain('คอลัมน์');
 
-    // Increment up to 10
+    // Increment up to 7 (maximum allowed)
     for (let i = 0; i < 15; i++) {
       (component as any).incrementColumns();
     }
-    expect((component as any).customColumns()).toBe(10);
+    expect((component as any).customColumns()).toBe(7);
 
     // Decrement down to 1
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 6; i++) {
       (component as any).decrementColumns();
     }
     expect((component as any).customColumns()).toBe(1);
@@ -617,8 +645,17 @@ describe('AdminPostSummaryPageComponent', () => {
       const overlay = fixture.nativeElement.querySelector('.preview-branding-overlay');
       expect(overlay).toBeNull();
 
-      const cropBtns = fixture.nativeElement.querySelectorAll('.crop-btn');
-      expect(cropBtns.length).toBeGreaterThan(0);
+      // Top bar action group should NOT have crop or download buttons
+      const topCropBtn = fixture.nativeElement.querySelector('.action-group .crop-btn');
+      expect(topCropBtn).toBeNull();
+      const topDownloadBtn = fixture.nativeElement.querySelector('.action-group .download-btn');
+      expect(topDownloadBtn).toBeNull();
+
+      // Bottom actions should have crop and download buttons
+      const bottomCropBtn = fixture.nativeElement.querySelector('.bottom-actions .crop-btn');
+      expect(bottomCropBtn).toBeTruthy();
+      const bottomDownloadBtn = fixture.nativeElement.querySelector('.bottom-actions .download-btn');
+      expect(bottomDownloadBtn).toBeTruthy();
     });
 
     it('should show reset crop button when isCropped is true', () => {
