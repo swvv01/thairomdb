@@ -195,8 +195,10 @@
 
 .patch-cover-frame {
   align-items: center;
+  background: #000;
   display: flex;
   flex: 1 1 auto;
+  height: 100%;
   justify-content: center;
   min-height: 160px;
   overflow: hidden;
@@ -274,9 +276,10 @@
 }
 
 .patch-cover-col {
-  align-items: flex-start;
+  align-items: stretch;
   display: flex;
   flex-direction: column;
+  height: 100%;
   margin-inline: auto;
   min-width: 0;
   width: min(100%, 250px);
@@ -285,6 +288,7 @@
 .patch-card__desktop-actions {
   align-items: center;
   display: flex;
+  flex-shrink: 0;
   gap: 0.5rem;
   justify-content: flex-start;
   margin-top: 0.5rem;
@@ -293,13 +297,14 @@
 
 .patch-cover-wrap {
   align-items: stretch;
-  align-self: flex-start;
-  background: var(--color-surface);
+  background: #000;
   border: 1px solid var(--color-border);
   box-shadow: 2px 2px 0 var(--color-shadow);
   box-sizing: border-box;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
+  height: 100%;
   justify-content: flex-start;
   margin-inline: auto;
   min-height: 200px;
@@ -331,7 +336,10 @@
 
 @media (min-width: 641px) {
   .patch-cover-image {
+    height: 100%;
     justify-self: center;
+    object-fit: contain;
+    width: 100%;
   }
 }
 
@@ -835,7 +843,6 @@
 
 .pinterest-card__cover-wrap {
   background: var(--color-surface-light);
-  min-height: 200px;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -847,7 +854,6 @@
   background: var(--color-card-loading-bg);
   display: flex;
   justify-content: center;
-  min-height: 200px;
   opacity: 1;
   transition: opacity 0.2s ease, visibility 0.2s ease;
   width: 100%;
@@ -876,6 +882,7 @@
 }
 
 .pinterest-card__placeholder--hidden {
+  display: none !important;
   inset: 0;
   opacity: 0;
   pointer-events: none;
