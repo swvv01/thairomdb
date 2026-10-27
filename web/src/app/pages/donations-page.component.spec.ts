@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { DonationsPageComponent } from './donations-page.component';
 import { DonationRepository } from '../repositories/donation.repository';
@@ -7,6 +8,7 @@ import { RedeemRepository } from '../repositories/redeem.repository';
 import { AuthService } from '../services/auth.service';
 import { StatusMessageService } from '../shared/status-message.service';
 import { CertificateGeneratorService } from '../services/certificate-generator.service';
+import { CoverStorageService } from '../services/cover-storage.service';
 import { Donation } from '../models/donation.models';
 
 describe('DonationsPageComponent', () => {
@@ -60,27 +62,51 @@ describe('DonationsPageComponent', () => {
     downloadBlob: jasmine.createSpy('downloadBlob')
   };
 
+  const mockCoverStorage = {
+    upload: jasmine.createSpy('upload').and.returnValue(Promise.resolve('https://example.com/cover.webp'))
+  };
+
   beforeEach(async () => {
+    mockCertGenerator.generateCertificateBlob.and.returnValue(Promise.resolve(new Blob(['fake'], { type: 'image/png' })));
+    mockCertGenerator.downloadBlob.calls.reset();
+    mockStatusMessage.show.calls.reset();
+
     await TestBed.configureTestingModule({
       imports: [DonationsPageComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         { provide: DonationRepository, useValue: mockDonationRepo },
         { provide: RedeemRepository, useValue: mockRedeemRepo },
         { provide: AuthService, useValue: mockAuthService },
         { provide: StatusMessageService, useValue: mockStatusMessage },
-        { provide: CertificateGeneratorService, useValue: mockCertGenerator }
+        { provide: CertificateGeneratorService, useValue: mockCertGenerator },
+        { provide: CoverStorageService, useValue: mockCoverStorage }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(DonationsPageComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
     await fixture.whenStable();
+    await Promise.resolve();
     fixture.detectChanges();
   });
 
   it('should create donations page component', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render customize card info banner with link to redeem', () => {
+    const banner = fixture.nativeElement.querySelector('.donor-customize-banner');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('เมื่อ');
+    expect(banner.textContent).toContain('Redeem');
+    expect(banner.textContent).toContain('สามารถแก้ไขรูปและชื่อในการ์ดของคุณได้');
+
+    const link = banner.querySelector('.donor-customize-banner-link');
+    expect(link).toBeTruthy();
+    expect(link.getAttribute('href')).toBe('/redeem');
   });
 
   it('should load donations and default to "mine" tab with owned cards', () => {

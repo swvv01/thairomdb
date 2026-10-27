@@ -72,6 +72,15 @@
         <img class="mock-cover patch-cover-image" [class.patch-cover-image--loaded]="loadedImages().has(patch.id)"
           [attr.loading]="priorityImage ? 'eager' : 'lazy'" decoding="async" [src]="imageUrl(patch)"
           [alt]="'ปกเกม ' + patch.gameTitle" (load)="onImageLoad(patch.id)" (error)="onImageError($event)" />
+        @if (!inDialog) {
+        @if (patch.haveUpdateFlag) {
+        <span class="game-badge update-game-badge patch-card__cover-badge" aria-label="แพตช์อัปเดต"><img
+            src="assets/images/update.gif" alt="update" /></span>
+        } @else if (isNewGame(patch.updateDate)) {
+        <span class="game-badge new-game-badge patch-card__cover-badge" aria-label="เกมมาใหม่"><img
+            src="assets/images/new.gif" alt="new" /></span>
+        }
+        }
       </div>
 
       <div class="patch-card__actions-row" (click)="$event.stopPropagation()">
@@ -86,9 +95,6 @@
             <i [class]="libraryService.isInLibrary(patch.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"
               aria-hidden="true"></i>
           </button>
-        </div>
-
-        <div class="patch-card__actions-center">
           @if (canEdit) {
           <a class="button btn-primary patch-card__action-btn patch-card__action-btn--edit" [routerLink]="['/add', patch.id]" target="_blank"
             rel="noopener noreferrer" aria-label="แก้ไข" title="แก้ไข">
@@ -98,11 +104,25 @@
         </div>
 
         <div class="patch-card__actions-right">
-          @if (!inDialog && patch.system.trim()) {
+          @if (!inDialog) {
+          @if (patch.patchVersion.trim()) {
+          @if (hasMultipleVersionLines(patch.patchVersion)) {
+          <button type="button" class="patch-card__cover-version-btn"
+            [attr.aria-label]="'ดูประวัติเวอร์ชัน ' + patch.gameTitle"
+            (click)="openVersionModal(patch)">{{ getFirstVersionLine(patch.patchVersion) }}</button>
+          } @else {
+          <span class="patch-card__cover-version-text">{{ getFirstVersionLine(patch.patchVersion) }}</span>
+          }
+          }
+          @if (patch.patchVersion.trim() && patch.system.trim()) {
+          <span class="patch-card__cover-divider" aria-hidden="true">|</span>
+          }
+          @if (patch.system.trim()) {
           <a routerLink="/system"
             [queryParams]="{ system: patch.system }"
             class="patch-card__cover-system-badge"
             [attr.aria-label]="'ดูเกมระบบ ' + patch.system">{{ patch.system }}</a>
+          }
           }
         </div>
 

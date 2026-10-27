@@ -3,23 +3,29 @@
     <h1 class="text-xl sm:text-2xl font-bold">จัดการโค้ด Redeem</h1>
   </div>
 
-  <!-- Tab Switcher -->
-  <nav class="redeem-tabs" role="tablist" aria-label="เมนูจัดการโค้ด Redeem">
-    <button type="button" role="tab" id="tab-add" aria-controls="panel-add" [attr.aria-selected]="activeTab() === 'add'"
-      class="tab-btn" [class.tab-btn--active]="activeTab() === 'add'" (click)="switchTab('add')">
-      <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
-      <span>เพิ่มโค้ด Redeem</span>
-    </button>
-    <button type="button" role="tab" id="tab-list" aria-controls="panel-list"
-      [attr.aria-selected]="activeTab() === 'list'" class="tab-btn" [class.tab-btn--active]="activeTab() === 'list'"
-      (click)="switchTab('list')">
-      <i class="fa-solid fa-list mr-1" aria-hidden="true"></i>
-      <span>รายการโค้ดล่าสุด</span>
-      @if (codesLoaded()) {
-      <span class="tab-count-badge">{{ codes().length }}</span>
-      }
-    </button>
-  </nav>
+  <!-- Tab Switcher (Segmented Control) -->
+  <div class="segmented-control-wrap" role="tablist" aria-label="เมนูจัดการโค้ด Redeem">
+    <div class="segmented-control-track">
+      <button type="button" role="tab" id="tab-add" aria-controls="panel-add" [attr.aria-selected]="activeTab() === 'add'"
+        class="segmented-btn tab-btn" [class.segmented-btn--active]="activeTab() === 'add'"
+        [class.tab-btn--active]="activeTab() === 'add'" (click)="switchTab('add')">
+        <i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>
+        <span class="segmented-label">เพิ่มโค้ด Redeem</span>
+      </button>
+      <button type="button" role="tab" id="tab-list" aria-controls="panel-list"
+        [attr.aria-selected]="activeTab() === 'list'" class="segmented-btn tab-btn"
+        [class.segmented-btn--active]="activeTab() === 'list'" [class.tab-btn--active]="activeTab() === 'list'"
+        (click)="switchTab('list')">
+        <i class="fa-solid fa-list mr-1" aria-hidden="true"></i>
+        <span class="segmented-label">รายการโค้ดล่าสุด</span>
+        @if (codesLoaded()) {
+        <span class="segmented-badge tab-count-badge" [attr.aria-label]="codes().length + ' รายการ'">
+          {{ codes().length }}
+        </span>
+        }
+      </button>
+    </div>
+  </div>
 
   <!-- Tab 1: เพิ่มโค้ด Redeem -->
   @if (activeTab() === 'add') {

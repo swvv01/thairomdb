@@ -375,6 +375,49 @@ describe('PatchCardListComponent', () => {
     expect(title.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('renders update cover badge inside patch-cover-frame when haveUpdateFlag is true', () => {
+    component.patches = [{
+      ...basePatch,
+      haveUpdateFlag: true
+    }];
+    fixture.detectChanges();
+
+    const frame = fixture.nativeElement.querySelector('.patch-cover-frame');
+    expect(frame).not.toBeNull();
+    const coverBadge = frame.querySelector('.patch-card__cover-badge.update-game-badge');
+    expect(coverBadge).not.toBeNull();
+    expect(coverBadge.querySelector('img[src="assets/images/update.gif"]')).not.toBeNull();
+  });
+
+  it('renders new cover badge inside patch-cover-frame when isNewGame is true', () => {
+    component.patches = [{
+      ...basePatch,
+      haveUpdateFlag: false,
+      updateDate: new Date().toISOString()
+    }];
+    fixture.detectChanges();
+
+    const frame = fixture.nativeElement.querySelector('.patch-cover-frame');
+    expect(frame).not.toBeNull();
+    const coverBadge = frame.querySelector('.patch-card__cover-badge.new-game-badge');
+    expect(coverBadge).not.toBeNull();
+    expect(coverBadge.querySelector('img[src="assets/images/new.gif"]')).not.toBeNull();
+  });
+
+  it('does not render cover badge when game is neither updated nor new', () => {
+    component.patches = [{
+      ...basePatch,
+      haveUpdateFlag: false,
+      updateDate: '2020-01-01T00:00:00.000Z'
+    }];
+    fixture.detectChanges();
+
+    const frame = fixture.nativeElement.querySelector('.patch-cover-frame');
+    expect(frame).not.toBeNull();
+    const coverBadge = frame.querySelector('.patch-card__cover-badge');
+    expect(coverBadge).toBeNull();
+  });
+
   it('opens and closes detail modal via openDetailModal and closeDetailModal', () => {
     component.patches = [basePatch];
     fixture.detectChanges();
@@ -582,7 +625,7 @@ describe('PatchCardListComponent', () => {
     expect(coverWrap.querySelector('.patch-card__cover-system-badge')).toBeNull();
   });
 
-  it('renders actions row under cover with bookmark on left, edit in center, and system on right', () => {
+  it('renders actions row under cover with bookmark and edit on left, and system on right', () => {
     component.canEdit = true;
     component.patches = [{
       ...basePatch,
@@ -593,15 +636,108 @@ describe('PatchCardListComponent', () => {
     const actionsRow = fixture.nativeElement.querySelector('.patch-card__actions-row');
     expect(actionsRow).not.toBeNull();
 
-    const left = actionsRow.querySelector('.patch-card__actions-left .patch-card__action-btn--bookmark');
-    expect(left).not.toBeNull();
+    const bookmark = actionsRow.querySelector('.patch-card__actions-left .patch-card__action-btn--bookmark');
+    expect(bookmark).not.toBeNull();
 
-    const center = actionsRow.querySelector('.patch-card__actions-center .patch-card__action-btn--edit');
-    expect(center).not.toBeNull();
+    const edit = actionsRow.querySelector('.patch-card__actions-left .patch-card__action-btn--edit');
+    expect(edit).not.toBeNull();
+
+    // Verify bookmark is before edit
+    expect(bookmark.compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     const right = actionsRow.querySelector('.patch-card__actions-right .patch-card__cover-system-badge');
     expect(right).not.toBeNull();
     expect(right.textContent.trim()).toBe('SFC');
+  });
+
+  it('renders single-line version before system separated by | in patch-card__actions-right', () => {
+    component.patches = [{
+      ...basePatch,
+      patchVersion: 'v1.0',
+      system: 'GBA'
+    }];
+    fixture.detectChanges();
+
+    const actionsRight = fixture.nativeElement.querySelector('.patch-card__actions-right');
+    expect(actionsRight).not.toBeNull();
+
+    const versionText = actionsRight.querySelector('.patch-card__cover-version-text');
+    expect(versionText).not.toBeNull();
+    expect(versionText.textContent.trim()).toBe('v1.0');
+
+    const divider = actionsRight.querySelector('.patch-card__cover-divider');
+    expect(divider).not.toBeNull();
+    expect(divider.textContent.trim()).toBe('|');
+
+    const systemBadge = actionsRight.querySelector('.patch-card__cover-system-badge');
+    expect(systemBadge).not.toBeNull();
+    expect(systemBadge.textContent.trim()).toBe('GBA');
+
+    // Order: version -> divider -> system
+    expect(versionText.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(divider.compareDocumentPosition(systemBadge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('renders clickable button for multiline version and opens version modal on click', () => {
+    spyOn(component, 'openVersionModal');
+    component.patches = [{
+      ...basePatch,
+      patchVersion: 'v1.0\nv1.1 changelog',
+      system: 'GBA'
+    }];
+    fixture.detectChanges();
+
+    const actionsRight = fixture.nativeElement.querySelector('.patch-card__actions-right');
+    const versionBtn = actionsRight.querySelector('.patch-card__cover-version-btn');
+    expect(versionBtn).not.toBeNull();
+    expect(versionBtn.textContent.trim()).toBe('v1.0');
+
+    versionBtn.click();
+    expect(component.openVersionModal).toHaveBeenCalledWith(component.patches[0]);
+  });
+
+  it('does not render divider when only version or only system exists', () => {
+    // Only version
+    component.patches = [{
+      ...basePatch,
+      patchVersion: 'v1.0',
+      system: ''
+    }];
+    fixture.detectChanges();
+
+    let actionsRight = fixture.nativeElement.querySelector('.patch-card__actions-right');
+    expect(actionsRight.querySelector('.patch-card__cover-version-text')).not.toBeNull();
+    expect(actionsRight.querySelector('.patch-card__cover-divider')).toBeNull();
+    expect(actionsRight.querySelector('.patch-card__cover-system-badge')).toBeNull();
+
+    // Only system
+    component.patches = [{
+      ...basePatch,
+      patchVersion: '',
+      system: 'GBA'
+    }];
+    fixture.detectChanges();
+
+    actionsRight = fixture.nativeElement.querySelector('.patch-card__actions-right');
+    expect(actionsRight.querySelector('.patch-card__cover-version-text')).toBeNull();
+    expect(actionsRight.querySelector('.patch-card__cover-divider')).toBeNull();
+    expect(actionsRight.querySelector('.patch-card__cover-system-badge')).not.toBeNull();
+  });
+
+  it('does not render cover version or divider inside detail modal', () => {
+    component.patches = [{
+      ...basePatch,
+      patchVersion: 'v1.0\nv1.1',
+      system: 'GBA'
+    }];
+    component.openDetailModal(component.patches[0]);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.patch-detail-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.querySelector('.patch-card__cover-version-btn')).toBeNull();
+    expect(dialog.querySelector('.patch-card__cover-version-text')).toBeNull();
+    expect(dialog.querySelector('.patch-card__cover-divider')).toBeNull();
   });
 
   describe('Pinterest Masonry Grid Mode', () => {

@@ -61,9 +61,10 @@ When adding or changing a Firestore document field, update the corresponding val
 
 When adding or changing Realtime Database data, update the JSON import/export functionality in the same change so it supports the updated data shape and remains compatible with the database.
 
-## Font Compatibility
+## Font Compatibility & Minimum Font Size
 
-Do not use the middle dot character `·` in UI text or source content because the project font does not support it. Use a supported separator such as `-` instead.
+- Do not use the middle dot character `·` in UI text or source content because the project font does not support it. Use a supported separator such as `-` instead.
+- The minimum font size across all UI text and components is `1rem` (equivalent to `16px` / `text-base`). Do not use sub-rem font sizes below `1rem` (such as `0.875rem`, `0.85rem`, `0.75rem`, `text-xs`, or `text-sm`) to ensure Thai typography legibility with `RD Chulajaruek`.
 
 ## Full-Space Pages
 

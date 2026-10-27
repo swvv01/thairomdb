@@ -62,6 +62,53 @@
   margin: 0;
 }
 
+/* Customize Donor Card Info Banner */
+.donor-customize-banner {
+  align-items: center;
+  background: var(--color-surface-light, rgba(255, 255, 255, 0.03));
+  border: 1px dashed var(--color-border);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+  box-sizing: border-box;
+  display: flex;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1.15rem;
+  width: 100%;
+}
+
+.donor-customize-banner-icon {
+  align-items: center;
+  color: var(--color-highlight);
+  display: flex;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.donor-customize-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.donor-customize-banner-text {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.donor-customize-banner-link {
+  color: var(--color-highlight);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.donor-customize-banner-link:hover {
+  color: var(--color-text);
+}
+
 /* Segmented Control / Pill Switch Section */
 .donations-tab-section {
   display: flex;
@@ -73,16 +120,11 @@
 .segmented-control-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.75rem;
   width: 100%;
 }
 
 .segmented-control-track {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 9999px;
-  box-shadow: 1px 1px 0 var(--color-shadow);
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.35rem;
@@ -93,8 +135,8 @@
 
 .segmented-btn {
   align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -530,8 +572,17 @@
     padding: 1rem;
   }
 
+  .donor-customize-banner {
+    padding: 0.75rem 0.85rem;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .donor-customize-banner-text {
+    font-size: 0.875rem;
+  }
+
   .segmented-control-track {
-    border-radius: 20px;
     padding: 0.4rem;
     gap: 0.4rem;
   }
