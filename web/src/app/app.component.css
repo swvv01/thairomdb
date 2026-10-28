@@ -86,7 +86,17 @@
 }
 
 #last-update {
-  display: none !important;
+  color: var(--color-highlight);
+  flex: 0 1 auto;
+  line-height: 1.2;
+  margin-left: 0.5rem;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  #last-update {
+    max-width: 9rem;
+  }
 }
 
 .marquee {
@@ -563,6 +573,8 @@
 @media (max-width: 900px) {
   .mobile-menu-button {
     display: inline-block;
+    position: relative;
+    z-index: 2;
   }
 
   .retro-rail {
@@ -650,27 +662,3 @@ a i {
   text-decoration: none;
 }
 
-@media (max-width: 640px) {
-  .app-topbar {
-    position: relative;
-  }
-
-  .site-branding {
-    left: 50%;
-    position: absolute;
-    transform: translateX(-50%);
-  }
-
-  .vip-badge-gif {
-    left: 100%;
-    margin-left: 0.25rem;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .mobile-menu-button {
-    position: relative;
-    z-index: 2;
-  }
-}

@@ -53,7 +53,7 @@
 - [`web/src/app/app.component.ts`](file:///d:/me/rom_collector/web/src/app/app.component.ts)
 
 ### 3.1 ปุ่ม Toggle สลับโหมดบน Header
-- ติดตั้งปุ่ม Retro Toggle ที่มุมขวาของ Header (ซ่อน `#last-update`)
+- ติดตั้งปุ่ม Retro Toggle ที่มุมขวาของ Header วางเคียงข้าง `#last-update`
 - จัดวางแบบ 2 บรรทัด (Vertical Stack): บรรทัดบนเป็น Label `Grid` (ขนาด 1rem) และบรรทัดล่างเป็นสวิตช์ **3D Beveled Retro Slider** (`.retro-slider`, สูง 1rem กว้าง 2rem)
 - โครงสร้างและมิติของสวิตช์:
   - รางสไลด์ยุบตัว 3D Inset Bevel (`#808080 #ffffff #ffffff #808080`) ขนาด 1rem x 2rem

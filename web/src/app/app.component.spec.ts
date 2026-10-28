@@ -612,6 +612,20 @@ describe('AppComponent', () => {
     expect(toggleBtn.classList.contains('grid-mode-toggle--active')).toBeFalse();
   });
 
+  it('should render #last-update in topbar header', () => {
+    const lastUpdateEl = fixture.nativeElement.querySelector('#last-update');
+    expect(lastUpdateEl).toBeTruthy();
+    expect(lastUpdateEl.textContent).toContain('อัปเดต');
+    expect(lastUpdateEl.textContent).toContain('ยังไม่มีข้อมูล cache');
+  });
+
+  it('should render .app-topbar__start containing menu button and site branding', () => {
+    const topbarStart = fixture.nativeElement.querySelector('.app-topbar__start');
+    expect(topbarStart).toBeTruthy();
+    expect(topbarStart.querySelector('.mobile-menu-button')).toBeTruthy();
+    expect(topbarStart.querySelector('.site-branding')).toBeTruthy();
+  });
+
   it('should render support section before game systems section in the sidebar with retro-rail-links', () => {
     (app as any).patchesLoaded.set(false);
     (app as any).platforms.set([

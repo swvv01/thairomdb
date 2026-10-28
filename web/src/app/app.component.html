@@ -1,6 +1,6 @@
 <header class="app-header">
   <div class="app-topbar no-radius flex min-h-10 items-center justify-between border-b-2 border-slate-300 px-1">
-    <div class="flex items-center">
+    <div class="app-topbar__start flex items-center gap-1">
       <button class="mobile-menu-button" [class.mobile-menu-button--grid]="gridModeService.activeGridMode()"
         type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()" aria-controls="system-sidebar"
         aria-label="Toggle navigation menu">☰</button>

@@ -39,35 +39,11 @@
 ```
 - **ผลลัพธ์:** ทั้ง Topbar และ Marquee จะไหลต่อกันตาม Flow ธรรมชาติ (Normal Document Flow) ภายใน `.app-header` ทำให้ติดกันสนิท 100% เสมอ ไม่ว่าฟอนต์หรือหน้าจอจะเปลี่ยนไปอย่างไร
 
-### 1.3 Mobile Centered Logo Pattern (max-width: 640px)
-บนหน้าจอมือถือขนาดเล็ก ($\le$ 640px):
-- จัดวางโลโก้ให้อยู่กึ่งกลางหน้าจอแท้จริง (True Center) โดยขนาดของ `.site-branding` จะคิดจากเฉพาะตัวโลโก้เท่านั้น
-- ไอคอน VIP Balloon (`.vip-badge-gif`) จะถูกจัดวางแบบ `position: absolute; left: 100%; top: 50%; transform: translateY(-50%);` ลอยอยู่ด้านหลังโลโก้ทางขวา เพื่อไม่ให้ส่งผลต่อการคำนวณจุดกึ่งกลางของโลโก้:
-  ```css
-  @media (max-width: 640px) {
-    .app-topbar {
-      position: relative;
-    }
-    .site-branding {
-      left: 50%;
-      position: absolute;
-      transform: translateX(-50%);
-    }
-    .vip-badge-gif {
-      left: 100%;
-      margin-left: 0.25rem;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    .mobile-menu-button {
-      position: relative;
-      z-index: 2;
-    }
-  }
-  ```
-- ปุ่มเมนู `☰` (`.mobile-menu-button`) ยังคงตรึงอยู่ชิดซ้ายสุดและมี `z-index: 2` เพื่อให้สามารถแตะเปิด Drawer ได้ตลอดเวลาโดยไม่ถูกทับ
-- หน้าจอขนาดใหญ่กว่า 640px และ Desktop จะแสดงผลแบบชิดซ้ายตามปกติตามเดิม
+### 1.3 Mobile Left-Aligned Header Pattern (max-width: 900px)
+บนหน้าจอมือถือและแท็บเล็ต ($\le$ 900px):
+- จัดวางกลุ่มปุ่มเมนู `☰` (`.mobile-menu-button`) และโลโก้พร้อม VIP Badge (`.site-branding`) ไว้ชิดซ้ายด้วยกันอย่างเป็นระเบียบผ่าน `.app-topbar__start` (`display: flex; align-items: center; gap: 0.5rem;`)
+- ข้อมูลแคช `#last-update` ถูกจัดวางไว้ที่มุมขวาสุดอย่างเป็นอิสระผ่าน `justify-content: space-between` ของแถบ Topbar
+- รูปแบบนี้ช่วยให้ Layout สอดคล้องกันทั้งบน Mobile และ Desktop Grid Mode โดยโลโก้ไม่ชนกับปุ่มเมนูหรือ `#last-update` และคงความสูงโลโก้ไว้ที่ `2rem` อย่างคงที่
 
 ---
 
