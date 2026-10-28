@@ -7,7 +7,8 @@
       <div class="site-branding flex items-center">
         <a class="site-title" routerLink="/"><img src="assets/images/logo.png" alt="THAI ROM DB"></a>
         @if (authService.isAdmin() || authService.isVip()) {
-        <img class="vip-badge-gif" src="https://blob.gifcities.org/gifcities/2XDEMOQU7I6GA66JGL6GBR4PKL3BYUSY.gif" alt="VIP" />
+        <img class="vip-badge-gif" src="https://blob.gifcities.org/gifcities/2XDEMOQU7I6GA66JGL6GBR4PKL3BYUSY.gif"
+          alt="VIP" />
         }
       </div>
     </div>
@@ -63,8 +64,7 @@
 </header>
 
 <div class="app-shell min-h-[calc(100vh-5rem)]" [class.is-vip]="authService.isVip()"
-  [class.is-grid-mode]="gridModeService.activeGridMode()"
-  [class.has-right-sidebar]="hasRightSidebar()">
+  [class.is-grid-mode]="gridModeService.activeGridMode()" [class.has-right-sidebar]="hasRightSidebar()">
   <aside id="system-sidebar" class="retro-rail" [class.mobile-sidebar-open]="sidebarOpen()"
     [class.is-vip]="authService.isVip()" (click)="$event.stopPropagation()" aria-label="Main navigation">
 
@@ -89,7 +89,7 @@
           [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">Port Master @if (patchesLoaded())
           {<span class="sidebar-count">({{ patchCounts().port }})</span>}</a>
         <a class="retro-rail-link" routerLink="/walkthrough" routerLinkActive="retro-rail-link--active"
-          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">บทสรุป @if (patchesLoaded()) {<span
+          [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters()">มีบทสรุป @if (patchesLoaded()) {<span
             class="sidebar-count">({{ patchCounts().walkthrough }})</span>}</a>
         <a class="retro-rail-link" routerLink="/library" routerLinkActive="retro-rail-link--active"
           [routerLinkActiveOptions]="{ exact: true }" (click)="clearAllFilters(); closeSidebar()">คลังเกมของฉัน @if

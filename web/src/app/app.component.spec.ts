@@ -251,7 +251,7 @@ describe('AppComponent', () => {
     expect(text).toContain('เกมทั้งหมด (2)');
     expect(text).toContain('Port Master (2)');
     expect(text).toContain('รอมแปลไทย (1)');
-    expect(text).toContain('บทสรุป (1)');
+    expect(text).toContain('มีบทสรุป (1)');
 
     const platforms = (app as unknown as { sidebarPlatforms: () => Array<{ shortName: string }> }).sidebarPlatforms();
     expect(platforms.map((p) => p.shortName)).toEqual(['SFC']);

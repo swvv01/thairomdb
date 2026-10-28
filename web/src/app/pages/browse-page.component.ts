@@ -231,7 +231,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (kind === 'library') return this.joinRouteLabels('คลังเกมของฉัน', ...selectedLabels);
     if (kind === 'rom') return this.joinRouteLabels('รอมแปลไทย', ...selectedLabels);
     if (kind === 'port') return this.joinRouteLabels('Port Master', ...selectedLabels);
-    if (kind === 'walkthrough') return this.joinRouteLabels('บทสรุป', ...selectedLabels);
+    if (kind === 'walkthrough') return this.joinRouteLabels('มีบทสรุป', ...selectedLabels);
     if (kind === 'today') return this.joinRouteLabels('เกมใหม่วันนี้', ...selectedLabels);
     if (kind === 'week') return this.joinRouteLabels('เกมใหม่สัปดาห์นี้', ...selectedLabels);
     if (kind === 'tag') {

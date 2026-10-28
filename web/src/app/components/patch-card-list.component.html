@@ -239,11 +239,11 @@
         <div class="patch-card__tags-row">
           <span class="patch-card__label patch-card__tags-label">แท็ก:</span>
           <ul class="patch-card__tags">@for (tag of cardTags(patch); track tag.id) { @if (tag.name.trim() &&
-            (!patch.walkthroughUrl.trim() || tag.name.trim() !== 'บทสรุป')) { <li>
+            (!patch.walkthroughUrl.trim() || tag.name.trim() !== 'มีบทสรุป')) { <li>
               <a [routerLink]="browseRoute('tag', tag.slug)" (click)="inDialog ? closeDetailModal() : null">{{ tag.name
                 }}</a>
             </li> } }@if (patch.walkthroughUrl.trim()) { <li>
-              <a [routerLink]="browseRoute('walkthrough')" (click)="inDialog ? closeDetailModal() : null">บทสรุป</a>
+              <a [routerLink]="browseRoute('walkthrough')" (click)="inDialog ? closeDetailModal() : null">มีบทสรุป</a>
             </li> }</ul>
         </div>
         }
