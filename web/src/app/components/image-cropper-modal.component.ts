@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, ViewChild, computed, inject, signal } from '@angular/core';
 
 export interface CropRect {
   x: number;
@@ -33,6 +33,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     }
   }
   @Input() initialCrop?: CropRect | null;
+  @Input() showLogoGuide = false;
   @Output() readonly cropped = new EventEmitter<CropResult>();
   @Output() readonly cancelled = new EventEmitter<void>();
   @Output() readonly loadFailed = new EventEmitter<void>();
@@ -46,6 +47,18 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
   protected readonly box = signal<CropBox>({ x: 0, y: 0, w: 0, h: 0 });
   protected readonly confirming = signal(false);
   protected readonly loadError = signal(false);
+  protected readonly stageScale = signal<{ scaleX: number; scaleY: number }>({ scaleX: 1, scaleY: 1 });
+
+  protected readonly logoGuide = computed(() => {
+    if (!this.showLogoGuide) return null;
+    const { scaleX, scaleY } = this.stageScale();
+    return {
+      boxW: Math.round(260 * scaleX),
+      boxH: Math.round(74 * scaleY),
+      logoW: Math.round(210 * scaleX),
+      logoH: Math.round(58 * scaleY)
+    };
+  });
 
   private dragMode: string | null = null;
   private startPointer = { x: 0, y: 0 };
@@ -78,8 +91,14 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     this.cancelled.emit();
   }
 
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    this.updateStageScale();
+  }
+
   protected onImageLoaded(): void {
     this.loadError.set(false);
+    this.updateStageScale();
     requestAnimationFrame(() => {
       if (this.initialCrop) {
         this.restoreSelection(this.initialCrop);
@@ -94,10 +113,21 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     this.loadFailed.emit();
   }
 
+  private updateStageScale(): void {
+    const img = this.stageImgRef?.nativeElement;
+    if (img && img.clientWidth > 0 && img.naturalWidth > 0 && img.clientHeight > 0 && img.naturalHeight > 0) {
+      this.stageScale.set({
+        scaleX: img.clientWidth / img.naturalWidth,
+        scaleY: img.clientHeight / img.naturalHeight
+      });
+    }
+  }
+
   protected resetSelection(): void {
     const img = this.stageImgRef?.nativeElement;
     if (!img || img.clientWidth <= 0 || img.clientHeight <= 0) return;
 
+    this.updateStageScale();
     const w = img.clientWidth;
     const h = img.clientHeight;
     this.updateBox({ x: 0, y: 0, w, h });
@@ -107,6 +137,7 @@ export class ImageCropperModalComponent implements OnInit, OnDestroy {
     const img = this.stageImgRef?.nativeElement;
     if (!img || img.clientWidth <= 0 || img.clientHeight <= 0) return;
 
+    this.updateStageScale();
     const scaleX = img.naturalWidth / img.clientWidth;
     const scaleY = img.naturalHeight / img.clientHeight;
 

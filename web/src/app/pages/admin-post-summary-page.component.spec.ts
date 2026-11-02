@@ -382,14 +382,69 @@ describe('AdminPostSummaryPageComponent', () => {
     }).not.toThrow();
   });
 
-  it('should draw branding overlay onto canvas without error', () => {
+  it('should draw branding overlay onto canvas across full width and centered in last column', () => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
+    canvas.width = 1338;
+    canvas.height = 1000;
     const ctx = canvas.getContext('2d')!;
-    expect(() => {
-      drawBrandingOverlay(ctx, 1024, null);
-    }).not.toThrow();
+
+    const fillRectSpy = spyOn(ctx, 'fillRect').and.callThrough();
+    const fillTextSpy = spyOn(ctx, 'fillText').and.callThrough();
+
+    // 5 columns on 1338px width:
+    // margin = 16, gap = 14, colWidth = 250
+    // Last column left = 1072, center = 1072 + 125 = 1197
+    drawBrandingOverlay(ctx, 1338, 1000, null, 5);
+
+    // Verify background box spans full width (starts at 0, width = 1338)
+    const fullWidthBarCall = fillRectSpy.calls.all().find(c => c.args[0] === 0 && c.args[2] === 1338);
+    expect(fullWidthBarCall).toBeDefined();
+
+    // Verify text is centered at last column center (1197)
+    const centerTextCall = fillTextSpy.calls.all().find(c => c.args[1] === 1197);
+    expect(centerTextCall).toBeDefined();
+  });
+
+  it('should draw branding overlay starting at specified fadeStartCol without covering earlier columns', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1338;
+    canvas.height = 1000;
+    const ctx = canvas.getContext('2d')!;
+
+    const fillRectSpy = spyOn(ctx, 'fillRect').and.callThrough();
+
+    // 5 columns on 1338px width, starting fade at column 4 (colLeft = 16 + 3*264 = 808):
+    drawBrandingOverlay(ctx, 1338, 1000, null, 5, 4);
+
+    // Box should start at 808, width = 1338 - 808 = 530
+    const col4FadeCall = fillRectSpy.calls.all().find(c => c.args[0] === 808 && c.args[2] === 530);
+    expect(col4FadeCall).toBeDefined();
+  });
+
+  it('manages fadeStartColumn, stepping, and label formatting correctly', () => {
+    (component as any).customColumns.set(5);
+    expect(component['fadeStartColumn']()).toBe(1);
+    expect(component['fadeStartLabel']()).toContain('คอลัมน์ 1 (เต็มภาพ)');
+
+    // Step up
+    component['incrementFadeStart']();
+    expect(component['fadeStartColumn']()).toBe(2);
+
+    // Step down
+    component['decrementFadeStart']();
+    expect(component['fadeStartColumn']()).toBe(1);
+
+    // Cannot step below 1
+    component['decrementFadeStart']();
+    expect(component['fadeStartColumn']()).toBe(1);
+
+    // Cannot step beyond max columns
+    const maxCols = component['effectiveMasonryColumns']();
+    for (let i = 0; i < maxCols + 5; i++) {
+      component['incrementFadeStart']();
+    }
+    expect(component['fadeStartColumn']()).toBe(maxCols);
+    expect(component['fadeStartLabel']()).toContain('(สุดท้าย)');
   });
 
   it('should render masonry collage without error', () => {
@@ -426,6 +481,58 @@ describe('AdminPostSummaryPageComponent', () => {
     const stats = renderMasonryCollage(ctx, 1024, validImages, 2);
     expect(stats.fullCount + stats.partialGames.length + stats.omittedGames.length).toBe(4);
     expect(stats.partialGames.length + stats.omittedGames.length).toBeGreaterThan(0);
+  });
+
+  it('should auto-sort columns descending by height so the shortest column is on the far right', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000;
+    canvas.height = 1000;
+    const ctx = canvas.getContext('2d')!;
+
+    // Create 3 images with different heights
+    const imgTall = document.createElement('img');
+    imgTall.width = 100;
+    imgTall.height = 300;
+
+    const imgShort = document.createElement('img');
+    imgShort.width = 100;
+    imgShort.height = 100;
+
+    const imgMedium = document.createElement('img');
+    imgMedium.width = 100;
+    imgMedium.height = 200;
+
+    // Distribution into 3 cols:
+    // imgTall -> Col 0
+    // imgShort -> Col 1 (middle)
+    // imgMedium -> Col 2 (right)
+    // After descending sort:
+    // Col 0: imgTall (highest)
+    // Col 1: imgMedium (medium)
+    // Col 2: imgShort (shortest - now rightmost!)
+    const drawnXCoords: number[] = [];
+    spyOn(ctx, 'drawImage').and.callFake((img: CanvasImageSource, ...args: number[]) => {
+      // In drawImage(img, itemX, curY, colWidth, itemH), args[0] is itemX
+      drawnXCoords.push(args[0]);
+    });
+
+    renderMasonryCollage(ctx, 1000, [
+      { patch: mockPatches[0], img: imgTall },
+      { patch: mockPatches[1], img: imgShort },
+      { patch: mockPatches[2], img: imgMedium }
+    ], 3);
+
+    // 3 images drawn, X coords should be in strictly increasing order (Col 0 < Col 1 < Col 2)
+    expect(drawnXCoords.length).toBe(3);
+    expect(drawnXCoords[0]).toBeLessThan(drawnXCoords[1]);
+    expect(drawnXCoords[1]).toBeLessThan(drawnXCoords[2]);
+
+    // And verify the shortest image (imgShort, mockPatches[1]) was drawn at the largest X (Col 2)
+    // The spy calls receive (img, x, y, w, h)
+    const drawCalls = (ctx.drawImage as jasmine.Spy).calls.all();
+    const shortCall = drawCalls.find(c => c.args[0] === imgShort);
+    expect(shortCall).toBeDefined();
+    expect(shortCall!.args[1]).toBe(drawnXCoords[2]); // Far right column
   });
 
   it('should display masonry stats and allow toggling affected games', () => {
@@ -691,6 +798,33 @@ describe('AdminPostSummaryPageComponent', () => {
       expect(() => {
         drawBrandingOverlay(ctx, 1024, 1200, null);
       }).not.toThrow();
+    });
+
+    it('should clear statusMessageService instead of showing success toast when generateImage completes', async () => {
+      spyOn(statusMessageService, 'show');
+      spyOn(statusMessageService, 'clear');
+
+      spyOn(HTMLCanvasElement.prototype, 'toBlob').and.callFake((callback: any) => {
+        callback(new Blob(['fake-img'], { type: 'image/jpeg' }));
+      });
+
+      const mockPatch = {
+        id: 'p-cover',
+        gameTitle: 'Cover Game',
+        system: 'SFC',
+        coverUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        updateDate: '2026-03-30T10:00:00Z',
+        translatorId: 't1'
+      } as Patch;
+      (component as any).patches.set([mockPatch]);
+      (component as any).fromDate.set('2026-03-01T00:00');
+      (component as any).toDate.set('2026-03-31T23:59');
+
+      await (component as any).generateImage();
+
+      expect(statusMessageService.show).toHaveBeenCalledWith('กำลังสร้างรูปภาพตัวอย่าง...');
+      expect(statusMessageService.clear).toHaveBeenCalled();
+      expect(statusMessageService.show).not.toHaveBeenCalledWith(jasmine.stringMatching(/สร้างรูปภาพตัวอย่างสำเร็จ/), 'success');
     });
   });
 });

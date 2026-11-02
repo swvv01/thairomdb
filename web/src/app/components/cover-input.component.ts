@@ -29,6 +29,7 @@ export class CoverInputComponent {
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly preview = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly loading = signal(false);
   protected readonly rawBlob = signal<Blob | null>(null);
   protected readonly isCropped = signal(false);
   protected readonly cropperOpen = signal(false);
@@ -52,6 +53,7 @@ export class CoverInputComponent {
     this.revokePreviewBlob();
     this.preview.set(null);
     this.error.set(null);
+    this.loading.set(false);
     this.rawBlob.set(null);
     this.isCropped.set(false);
     this.cropperOpen.set(false);
@@ -64,6 +66,7 @@ export class CoverInputComponent {
   protected revertToExisting(): void {
     this.revokePreviewBlob();
     this.error.set(null);
+    this.loading.set(false);
     this.rawBlob.set(null);
     this.isCropped.set(false);
     this.cropperOpen.set(false);
@@ -74,12 +77,15 @@ export class CoverInputComponent {
   }
 
   protected async select(event: Event): Promise<void> {
+    if (this.loading()) return;
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) await this.process(file);
   }
 
   protected async readFromClipboard(): Promise<void> {
+    if (this.loading()) return;
     this.error.set(null);
+    this.loading.set(true);
 
     try {
       if (!navigator.clipboard?.read) {
@@ -98,6 +104,9 @@ export class CoverInputComponent {
       throw new Error('ไม่พบรูปภาพใน Clipboard');
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'ไม่สามารถอ่านรูปจาก Clipboard ได้');
+    } finally {
+      this.loading.set(false);
+      this.cdr.markForCheck();
     }
   }
 
@@ -114,6 +123,7 @@ export class CoverInputComponent {
 
   @HostListener('document:paste', ['$event'])
   protected async paste(event: ClipboardEvent): Promise<void> {
+    if (this.loading()) return;
     const image = Array.from(event.clipboardData?.items ?? [])
       .find((item) => item.type.startsWith('image/'))?.getAsFile();
     if (image) {
@@ -160,6 +170,7 @@ export class CoverInputComponent {
 
   protected async process(source: Blob, isNewRaw = true, quality?: number): Promise<void> {
     this.error.set(null);
+    this.loading.set(true);
     try {
       const result = await this.processor.process(source, quality);
       if (isNewRaw) {
@@ -174,6 +185,9 @@ export class CoverInputComponent {
     } catch (error) {
       this.preview.set(null);
       this.error.set(error instanceof Error ? error.message : 'ไม่สามารถประมวลผลรูปภาพได้');
+      this.cdr.markForCheck();
+    } finally {
+      this.loading.set(false);
       this.cdr.markForCheck();
     }
   }

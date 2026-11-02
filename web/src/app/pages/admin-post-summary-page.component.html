@@ -1,7 +1,8 @@
 <main class="post-summary-container">
   <header class="page-header">
     <h1 class="page-title">สรุปโพสต์เกมใหม่</h1>
-    <p class="page-description">กรองรายชื่อเกมที่อัปเดตตามช่วงเวลา และคัดลอกข้อความสำเร็จรูปนำไปโพสต์ลง Facebook Page</p>
+    <p class="page-description">กรองรายชื่อเกมที่อัปเดตตามช่วงเวลา และคัดลอกข้อความสำเร็จรูปนำไปโพสต์ลง Facebook Page
+    </p>
   </header>
 
   <!-- Section 1: ตัวกรองช่วงเวลา -->
@@ -23,23 +24,13 @@
       <div class="filter-grid">
         <div class="input-field">
           <label for="from-date" class="input-label">ตั้งแต่ (From):</label>
-          <input
-            id="from-date"
-            class="admin-input"
-            type="datetime-local"
-            [ngModel]="fromDate()"
-            (ngModelChange)="onFromDateChange($event)"
-          />
+          <input id="from-date" class="admin-input" type="datetime-local" [ngModel]="fromDate()"
+            (ngModelChange)="onFromDateChange($event)" />
         </div>
         <div class="input-field">
           <label for="to-date" class="input-label">ถึง (To):</label>
-          <input
-            id="to-date"
-            class="admin-input"
-            type="datetime-local"
-            [ngModel]="toDate()"
-            (ngModelChange)="onToDateChange($event)"
-          />
+          <input id="to-date" class="admin-input" type="datetime-local" [ngModel]="toDate()"
+            (ngModelChange)="onToDateChange($event)" />
         </div>
       </div>
     </div>
@@ -54,58 +45,42 @@
           <span>ข้อความสำหรับโพสต์ Facebook</span>
         </h2>
         @if (!loading()) {
-          <span class="count-badge">พบ {{ stats().gameCount }} เกม ({{ stats().translatorCount }} ทีมแปล)</span>
+        <span class="count-badge">พบ {{ stats().gameCount }} เกม ({{ stats().translatorCount }} ทีมแปล)</span>
         }
       </div>
     </div>
 
     <div class="summary-body">
       @if (loading()) {
-        <div class="loading-state">
-          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
-          <span>กำลังโหลดข้อมูลเกม...</span>
-        </div>
+      <div class="loading-state">
+        <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+        <span>กำลังโหลดข้อมูลเกม...</span>
+      </div>
       } @else {
-        <textarea
-          #summaryTextarea
-          class="admin-input summary-textarea"
-          readonly
-          [value]="postSummaryText()"
-          rows="14"
-          aria-label="ข้อความสรุปสำหรับโพสต์ Facebook"
-        ></textarea>
+      <textarea #summaryTextarea class="admin-input summary-textarea" readonly [value]="postSummaryText()" rows="14"
+        aria-label="ข้อความสรุปสำหรับโพสต์ Facebook"></textarea>
 
-        <div class="bottom-actions">
-          <button
-            type="button"
-            class="button comment-btn mr-2"
-            [class.comment-btn--success]="copiedCommentLink()"
-            (click)="copyCommentLink()"
-            title="คัดลอกลิงก์ https://thairomdb.pages.dev ไปวางในคอมเมนต์แรก"
-          >
-            @if (copiedCommentLink()) {
-              <i class="fa-solid fa-check" aria-hidden="true"></i>
-              <span>คัดลอกลิงก์แล้ว!</span>
-            } @else {
-              <i class="fa-solid fa-link" aria-hidden="true"></i>
-              <span>คัดลอกลิงก์คอมเมนต์</span>
-            }
-          </button>
-          <button
-            type="button"
-            class="button copy-btn"
-            [class.copy-btn--success]="copied()"
-            (click)="copyText()"
-          >
-            @if (copied()) {
-              <i class="fa-solid fa-check" aria-hidden="true"></i>
-              <span>คัดลอกเรียบร้อย!</span>
-            } @else {
-              <i class="fa-regular fa-copy" aria-hidden="true"></i>
-              <span>คัดลอกข้อความ</span>
-            }
-          </button>
-        </div>
+      <div class="bottom-actions">
+        <button type="button" class="button comment-btn mr-2" [class.comment-btn--success]="copiedCommentLink()"
+          (click)="copyCommentLink()" title="คัดลอกลิงก์ https://thairomdb.pages.dev ไปวางในคอมเมนต์แรก">
+          @if (copiedCommentLink()) {
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          <span>คัดลอกลิงก์แล้ว!</span>
+          } @else {
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <span>คัดลอกลิงก์คอมเมนต์</span>
+          }
+        </button>
+        <button type="button" class="button copy-btn" [class.copy-btn--success]="copied()" (click)="copyText()">
+          @if (copied()) {
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          <span>คัดลอกเรียบร้อย!</span>
+          } @else {
+          <i class="fa-regular fa-copy" aria-hidden="true"></i>
+          <span>คัดลอกข้อความ</span>
+          }
+        </button>
+      </div>
       }
     </div>
   </section>
@@ -119,47 +94,33 @@
           <span>รูปภาพรวมปกเกม</span>
         </h2>
         @if (!loading()) {
-          <span class="count-badge">มีรูปปก {{ patchesWithCovers().length }} จาก {{ filteredPatches().length }} เกม</span>
+        <span class="count-badge">มีรูปปก {{ patchesWithCovers().length }} จาก {{ filteredPatches().length }} เกม</span>
         }
       </div>
 
       <div class="action-group">
         <div class="column-stepper-group" role="group" aria-label="ปรับจำนวนคอลัมน์">
-          <button
-            type="button"
-            class="stepper-btn"
-            (click)="decrementColumns()"
-            title="ลดจำนวนคอลัมน์ (ลดต่ำกว่า 1 จะกลับเป็น Auto)"
-            [disabled]="loading() || generatingImage()"
-          >
+          <button type="button" class="stepper-btn" (click)="decrementColumns()"
+            title="ลดจำนวนคอลัมน์ (ลดต่ำกว่า 1 จะกลับเป็น Auto)" [disabled]="loading() || generatingImage()">
             <i class="fa-solid fa-minus" aria-hidden="true"></i>
           </button>
           <span class="stepper-value" [class.stepper-value--auto]="customColumns() === null">
             {{ columnLabel() }}
           </span>
-          <button
-            type="button"
-            class="stepper-btn"
-            (click)="incrementColumns()"
-            title="เพิ่มจำนวนคอลัมน์ (สูงสุด 7)"
-            [disabled]="loading() || generatingImage() || customColumns() === 7"
-          >
+          <button type="button" class="stepper-btn" (click)="incrementColumns()" title="เพิ่มจำนวนคอลัมน์ (สูงสุด 7)"
+            [disabled]="loading() || generatingImage() || customColumns() === 7">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
           </button>
         </div>
 
-        <button
-          type="button"
-          class="button generate-btn"
-          (click)="generateImage()"
-          [disabled]="loading() || generatingImage() || patchesWithCovers().length === 0"
-        >
+        <button type="button" class="button generate-btn" (click)="generateImage()"
+          [disabled]="loading() || generatingImage() || patchesWithCovers().length === 0">
           @if (generatingImage()) {
-            <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
-            <span>กำลังสร้างรูปภาพ...</span>
+          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+          <span>กำลังสร้างรูปภาพ...</span>
           } @else {
-            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-            <span>สร้างรูปภาพตัวอย่าง</span>
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          <span>สร้างรูปภาพตัวอย่าง</span>
           }
         </button>
       </div>
@@ -167,132 +128,133 @@
 
     <div class="image-body">
       @if (generatingImage()) {
-        <div class="loading-state">
-          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
-          <span>กำลังประมวลผลรูปภาพรวมปก...</span>
-        </div>
+      <div class="loading-state">
+        <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+        <span>กำลังประมวลผลรูปภาพรวมปก...</span>
+      </div>
       } @else {
-        @if (previewImageUrl(); as imgUrl) {
-          <div class="preview-wrapper">
-            <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
+      @if (previewImageUrl(); as imgUrl) {
+      <div class="preview-wrapper">
+        <img [src]="imgUrl" alt="ภาพตัวอย่างรวมปกเกม" class="collage-preview-img" />
+      </div>
+
+      @if (masonryStats(); as stats) {
+      <div class="masonry-stats-box" aria-label="สรุปผลการจัดวางรูปภาพ">
+        <div class="stats-summary-row">
+          <div class="stats-pill stats-pill--full" title="แสดงรูปเต็มใบ">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <span>แสดงเต็ม: <strong>{{ stats.fullCount }}</strong></span>
+          </div>
+          <div class="stats-pill stats-pill--partial" title="รูปที่ส่วนล่างถูกครอปตัดออก">
+            <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+            <span>ตัดบางส่วน: <strong>{{ stats.partialGames.length }}</strong></span>
+          </div>
+          <div class="stats-pill stats-pill--omitted" title="รูปที่ล้นเกินกรอบ Canvas ทั้งใบ">
+            <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+            <span>ไม่ได้แสดงเลย: <strong>{{ stats.omittedGames.length }}</strong></span>
           </div>
 
-          @if (masonryStats(); as stats) {
-            <div class="masonry-stats-box" aria-label="สรุปผลการจัดวางรูปภาพ">
-              <div class="stats-summary-row">
-                <div class="stats-pill stats-pill--full" title="แสดงรูปเต็มใบ">
-                  <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                  <span>แสดงเต็ม: <strong>{{ stats.fullCount }}</strong></span>
-                </div>
-                <div class="stats-pill stats-pill--partial" title="รูปที่ส่วนล่างถูกครอปตัดออก">
-                  <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
-                  <span>ตัดบางส่วน: <strong>{{ stats.partialGames.length }}</strong></span>
-                </div>
-                <div class="stats-pill stats-pill--omitted" title="รูปที่ล้นเกินกรอบ Canvas ทั้งใบ">
-                  <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                  <span>ไม่ได้แสดงเลย: <strong>{{ stats.omittedGames.length }}</strong></span>
-                </div>
-
-                @if (stats.partialGames.length > 0 || stats.omittedGames.length > 0) {
-                  <button
-                    type="button"
-                    class="affected-toggle-btn"
-                    (click)="toggleAffectedGames()"
-                    [attr.aria-expanded]="showAffectedGames()"
-                  >
-                    <i class="fa-solid" [class.fa-chevron-down]="!showAffectedGames()" [class.fa-chevron-up]="showAffectedGames()" aria-hidden="true"></i>
-                    <span>{{ showAffectedGames() ? 'ซ่อนรายชื่อเกม' : 'ดูรายชื่อเกมที่ถูกตัด' }}</span>
-                  </button>
-                }
-              </div>
-
-              @if (showAffectedGames() && (stats.partialGames.length > 0 || stats.omittedGames.length > 0)) {
-                <div class="affected-lists">
-                  @if (stats.partialGames.length > 0) {
-                    <div class="affected-group">
-                      <h4 class="affected-title affected-title--partial">
-                        <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
-                        <span>เกมที่รูปถูกตัดบางส่วน ({{ stats.partialGames.length }} เกม):</span>
-                      </h4>
-                      <ul class="affected-items">
-                        @for (game of stats.partialGames; track game.id) {
-                          <li class="affected-item">
-                            {{ game.gameTitle }} [{{ game.system }}]
-                            <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' : '✨' }}</span>
-                          </li>
-                        }
-                      </ul>
-                    </div>
-                  }
-
-                  @if (stats.omittedGames.length > 0) {
-                    <div class="affected-group">
-                      <h4 class="affected-title affected-title--omitted">
-                        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                        <span>เกมที่ไม่ได้แสดงเลย ({{ stats.omittedGames.length }} เกม):</span>
-                      </h4>
-                      <ul class="affected-items">
-                        @for (game of stats.omittedGames; track game.id) {
-                          <li class="affected-item">
-                            {{ game.gameTitle }} [{{ game.system }}]
-                            <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' : '✨' }}</span>
-                          </li>
-                        }
-                      </ul>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
+          @if (stats.partialGames.length > 0 || stats.omittedGames.length > 0) {
+          <button type="button" class="affected-toggle-btn" (click)="toggleAffectedGames()"
+            [attr.aria-expanded]="showAffectedGames()">
+            <i class="fa-solid" [class.fa-chevron-down]="!showAffectedGames()"
+              [class.fa-chevron-up]="showAffectedGames()" aria-hidden="true"></i>
+            <span>{{ showAffectedGames() ? 'ซ่อนรายชื่อเกม' : 'ดูรายชื่อเกมที่ถูกตัด' }}</span>
+          </button>
           }
-          <div class="bottom-actions">
-            <button
-              type="button"
-              class="button crop-btn"
-              (click)="openCropper()"
-              title="ครอบตัดรูปภาพ"
-            >
-              <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
-              <span>ครอบตัดรูปภาพ</span>
-            </button>
+        </div>
 
-            @if (isCropped()) {
-              <button
-                type="button"
-                class="button reset-crop-btn"
-                (click)="resetToOriginal()"
-                title="คืนค่ารูปภาพต้นฉบับ"
-              >
-                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-                <span>คืนค่าต้นฉบับ</span>
-              </button>
-            }
+        @if (showAffectedGames() && (stats.partialGames.length > 0 || stats.omittedGames.length > 0)) {
+        <div class="affected-lists">
+          @if (stats.partialGames.length > 0) {
+          <div class="affected-group">
+            <h4 class="affected-title affected-title--partial">
+              <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+              <span>เกมที่รูปถูกตัดบางส่วน ({{ stats.partialGames.length }} เกม):</span>
+            </h4>
+            <ul class="affected-items">
+              @for (game of stats.partialGames; track game.id) {
+              <li class="affected-item">
+                {{ game.gameTitle }} [{{ game.system }}]
+                <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' :
+                  '✨' }}</span>
+              </li>
+              }
+            </ul>
+          </div>
+          }
 
-            <button
-              type="button"
-              class="button download-btn"
-              (click)="downloadImage()"
-            >
-              <i class="fa-solid fa-download" aria-hidden="true"></i>
-              <span>ดาวน์โหลดรูปภาพ</span>
-            </button>
+          @if (stats.omittedGames.length > 0) {
+          <div class="affected-group">
+            <h4 class="affected-title affected-title--omitted">
+              <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+              <span>เกมที่ไม่ได้แสดงเลย ({{ stats.omittedGames.length }} เกม):</span>
+            </h4>
+            <ul class="affected-items">
+              @for (game of stats.omittedGames; track game.id) {
+              <li class="affected-item">
+                {{ game.gameTitle }} [{{ game.system }}]
+                <span [title]="game.haveUpdateFlag ? 'เกมแพตช์อัปเดต' : 'เกมเพิ่มใหม่'">{{ game.haveUpdateFlag ? '🔄' :
+                  '✨' }}</span>
+              </li>
+              }
+            </ul>
           </div>
-        } @else {
-          <div class="empty-preview-placeholder">
-            <i class="fa-regular fa-image placeholder-icon" aria-hidden="true"></i>
-            <p class="placeholder-text">กดปุ่ม "สร้างรูปภาพตัวอย่าง" เพื่อดูรูปภาพรวมปกก่อนดาวน์โหลด</p>
-          </div>
+          }
+        </div>
         }
+      </div>
+      }
+      <div class="bottom-actions">
+        <button type="button" class="button crop-btn" (click)="openCropper()" title="ครอบตัดรูปภาพ">
+          <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
+          <span>ครอบตัดรูปภาพ</span>
+        </button>
+
+        @if (isCropped()) {
+        <button type="button" class="button reset-crop-btn" (click)="resetToOriginal()" title="คืนค่ารูปภาพต้นฉบับ">
+          <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+          <span>คืนค่าต้นฉบับ</span>
+        </button>
+        }
+
+        <div class="fade-start-control"
+          title="เลือกคอลัมน์ที่ต้องการให้เริ่มไล่เฉดสี Fade เพื่อไม่ให้ทับคอลัมน์ด้านซ้าย">
+          <span class="fade-start-label">
+            <span>เริ่ม Fade:</span>
+          </span>
+          <div class="column-stepper-group" role="group" aria-label="เลือกคอลัมน์เริ่มต้นที่เริ่ม Fade">
+            <button type="button" class="stepper-btn" (click)="decrementFadeStart()" title="ลดคอลัมน์ที่เริ่ม Fade"
+              [disabled]="fadeStartColumn() <= 1">
+              <i class="fa-solid fa-minus" aria-hidden="true"></i>
+            </button>
+            <span class="stepper-value">
+              {{ fadeStartLabel() }}
+            </span>
+            <button type="button" class="stepper-btn" (click)="incrementFadeStart()" title="เพิ่มคอลัมน์ที่เริ่ม Fade"
+              [disabled]="fadeStartColumn() >= effectiveMasonryColumns()">
+              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="button download-btn" (click)="downloadImage()">
+          <i class="fa-solid fa-download" aria-hidden="true"></i>
+          <span>ดาวน์โหลดรูปภาพ</span>
+        </button>
+      </div>
+      } @else {
+      <div class="empty-preview-placeholder">
+        <i class="fa-regular fa-image placeholder-icon" aria-hidden="true"></i>
+        <p class="placeholder-text">กดปุ่ม "สร้างรูปภาพตัวอย่าง" เพื่อดูรูปภาพรวมปกก่อนดาวน์โหลด</p>
+      </div>
+      }
       }
     </div>
   </section>
 </main>
 
 @if (cropperOpen() && rawBlob()) {
-  <app-image-cropper-modal
-    [imageBlob]="rawBlob()!"
-    [initialCrop]="lastCrop()"
-    (cropped)="onCropped($event)"
-    (cancelled)="closeCropper()"
-  />
+<app-image-cropper-modal [imageBlob]="rawBlob()!" [initialCrop]="lastCrop()" [showLogoGuide]="true"
+  (cropped)="onCropped($event)" (cancelled)="closeCropper()" />
 }

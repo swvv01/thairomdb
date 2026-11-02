@@ -135,4 +135,69 @@ describe('CoverInputComponent', () => {
     expect(component['isCropped']()).toBeFalse();
     expect(selectSpy).toHaveBeenCalledWith(undefined);
   });
+
+  it('shows loading message and disables buttons while processing image', async () => {
+    let resolveProcessing!: (value: any) => void;
+    mockProcessor.process.and.returnValue(new Promise((resolve) => {
+      resolveProcessing = resolve;
+    }));
+
+    const rawBlob = new Blob(['raw image'], { type: 'image/png' });
+    const processPromise = component['process'](rawBlob, true);
+
+    fixture.detectChanges();
+
+    expect(component['loading']()).toBeTrue();
+    const loadingEl = fixture.nativeElement.querySelector('[role="status"]');
+    expect(loadingEl).toBeTruthy();
+    expect(loadingEl.textContent).toContain('กำลังประมวลผลรูปภาพ...');
+
+    const buttons = fixture.nativeElement.querySelectorAll('button');
+    const clipboardBtn = Array.from(buttons).find((b: any) => b.textContent?.includes('Clipboard')) as HTMLButtonElement;
+    expect(clipboardBtn?.disabled).toBeTrue();
+
+    resolveProcessing({
+      blob: new Blob(['processed image'], { type: 'image/png' }),
+      width: 200,
+      height: 300,
+      filename: 'cover.png'
+    });
+    await processPromise;
+    fixture.detectChanges();
+
+    expect(component['loading']()).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+    expect(clipboardBtn?.disabled).toBeFalse();
+  });
+
+  it('resets loading to false and displays error when processing fails', async () => {
+    mockProcessor.process.and.rejectWith(new Error('Process error'));
+    const rawBlob = new Blob(['bad image'], { type: 'image/png' });
+
+    await component['process'](rawBlob, true);
+    fixture.detectChanges();
+
+    expect(component['loading']()).toBeFalse();
+    expect(component['error']()).toBe('Process error');
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+  });
+
+  it('ignores paste while loading is true', async () => {
+    component['loading'].set(true);
+    spyOn(component as any, 'process');
+
+    const fakeItem = {
+      type: 'image/png',
+      getAsFile: () => new File([''], 'test.png', { type: 'image/png' })
+    };
+    const fakeEvent = {
+      clipboardData: { items: [fakeItem] },
+      preventDefault: jasmine.createSpy('preventDefault')
+    } as unknown as ClipboardEvent;
+
+    await component['paste'](fakeEvent);
+
+    expect(fakeEvent.preventDefault).not.toHaveBeenCalled();
+    expect((component as any).process).not.toHaveBeenCalled();
+  });
 });

@@ -114,7 +114,9 @@ export function drawBrandingOverlay(
   ctx: CanvasRenderingContext2D,
   width: number,
   heightOrLogo: number | HTMLImageElement | null,
-  logoImgMaybe?: HTMLImageElement | null
+  logoImgMaybe?: HTMLImageElement | null,
+  explicitCols?: number,
+  fadeStartCol = 1
 ): void {
   const height = typeof heightOrLogo === 'number' ? heightOrLogo : width;
   const logoImg = typeof heightOrLogo === 'number' ? (logoImgMaybe ?? null) : heightOrLogo;
@@ -122,31 +124,54 @@ export function drawBrandingOverlay(
   const targetLogoW = 210;
   const targetLogoH = logoImg ? Math.round(targetLogoW * ((logoImg.naturalHeight || 114) / (logoImg.naturalWidth || 750))) : 32;
 
-  const padRight = 8;
   const padBottom = 8;
   const padTop = padBottom;
   const textGap = 8;
   const textH = 18;
   const totalBlockH = targetLogoH + textGap + textH;
 
-  const logoX = width - targetLogoW - padRight;
-  const logoY = height - totalBlockH - padBottom;
-  const centerX = logoX + (targetLogoW / 2);
+  const gap = 14;
+  const margin = 16;
+  let boxX = 0;
+  let centerX: number;
 
+  if (explicitCols && explicitCols >= 2) {
+    const cols = Math.min(10, Math.max(1, explicitCols));
+    const availableWidth = width - 2 * margin;
+    const colWidth = (availableWidth - (cols - 1) * gap) / cols;
+
+    // คำนวณจุดเริ่มต้นของแถบตามคอลัมน์ที่เลือกเริ่ม Fade (fadeStartCol เป็น 1-based)
+    const clampedStartCol = Math.max(1, Math.min(cols, fadeStartCol));
+    if (clampedStartCol === 1) {
+      boxX = 0;
+    } else {
+      const colLeft = margin + (clampedStartCol - 1) * (colWidth + gap);
+      boxX = Math.max(0, Math.round(colLeft));
+    }
+
+    // จัดกึ่งกลางตรงกับคอลัมน์สุดท้าย
+    const lastColLeft = margin + (cols - 1) * (colWidth + gap);
+    centerX = lastColLeft + (colWidth / 2);
+  } else {
+    boxX = 0;
+    const fallbackColW = 250;
+    const lastColLeft = width - margin - fallbackColW;
+    centerX = lastColLeft + (fallbackColW / 2);
+  }
+
+  const boxW = width - boxX;
+  const boxH = totalBlockH + padTop + padBottom;
+  const boxY = height - boxH;
+  const logoX = centerX - (targetLogoW / 2);
+  const logoY = boxY + padTop;
+
+  // Linear Gradient Fade จากโปร่งใส (0%) ไปจนถึงความทึบที่กำหนด (50%)
   ctx.save();
-  const fadeWidth = Math.min(width, 520);
-  const fadeStartX = width - fadeWidth;
-  const fadeTopY = logoY - padTop;
-  const fadeHeight = height - fadeTopY;
-
-  const hGrad = ctx.createLinearGradient(fadeStartX, 0, width, 0);
-  hGrad.addColorStop(0, 'rgba(20, 0, 45, 0)');
-  hGrad.addColorStop(0.25, 'rgba(20, 0, 45, 0.45)');
-  hGrad.addColorStop(0.55, 'rgba(24, 0, 52, 0.78)');
-  hGrad.addColorStop(1, 'rgba(26, 0, 56, 0.94)');
-
+  const hGrad = ctx.createLinearGradient(boxX, 0, width, 0);
+  hGrad.addColorStop(0, 'rgba(26, 0, 56, 0)');
+  hGrad.addColorStop(1, 'rgba(26, 0, 56, 0.5)');
   ctx.fillStyle = hGrad;
-  ctx.fillRect(fadeStartX, fadeTopY, fadeWidth, fadeHeight);
+  ctx.fillRect(boxX, boxY, boxW, boxH);
   ctx.restore();
 
   ctx.save();
@@ -210,10 +235,23 @@ export function renderMasonryCollage(
   const colWidth = (availableWidth - (cols - 1) * gap) / cols;
   const maxAllowedY = height - margin;
 
-  const colHeights = new Array(cols).fill(0);
-  let fullCount = 0;
-  const partialGames: Patch[] = [];
-  const omittedGames: Patch[] = [];
+  interface ColumnItem {
+    patch: Patch;
+    img: HTMLImageElement;
+    nw: number;
+    nh: number;
+    itemH: number;
+  }
+
+  interface ColumnBucket {
+    items: ColumnItem[];
+    totalHeight: number;
+  }
+
+  const columns: ColumnBucket[] = Array.from({ length: cols }, () => ({
+    items: [],
+    totalHeight: 0
+  }));
 
   for (const entry of validImages) {
     const nw = entry.img.naturalWidth || entry.img.width || 250;
@@ -223,43 +261,64 @@ export function renderMasonryCollage(
     // Find column with minimal current height
     let minCol = 0;
     for (let c = 1; c < cols; c++) {
-      if (colHeights[c] < colHeights[minCol]) {
+      if (columns[c].totalHeight < columns[minCol].totalHeight) {
         minCol = c;
       }
     }
 
-    const itemX = margin + minCol * (colWidth + gap);
-    const itemY = margin + colHeights[minCol];
+    columns[minCol].items.push({
+      patch: entry.patch,
+      img: entry.img,
+      nw,
+      nh,
+      itemH
+    });
+    columns[minCol].totalHeight += itemH + gap;
+  }
 
-    // If item starts at or past maxAllowedY, skip completely
-    if (itemY >= maxAllowedY) {
-      omittedGames.push(entry.patch);
-      continue;
-    }
+  // เรียงลำดับคอลัมน์จากสูงไปต่ำ (ซ้ายสุดสูงที่สุด -> ขวาสุดสั้นที่สุด)
+  // เพื่อให้คอลัมน์ที่มีพื้นที่ว่างด้านล่างมากที่สุด อยู่ขวาสุดเสมอ สำหรับวางโลโก้เว็บ
+  columns.sort((a, b) => b.totalHeight - a.totalHeight);
 
-    if (itemY + itemH > maxAllowedY) {
-      partialGames.push(entry.patch);
-      const visibleH = maxAllowedY - itemY;
-      const sourceCropH = Math.max(1, Math.round(nh * (visibleH / itemH)));
+  let fullCount = 0;
+  const partialGames: Patch[] = [];
+  const omittedGames: Patch[] = [];
 
-      ctx.save();
-      ctx.beginPath();
-      drawRoundedRect(ctx, itemX, itemY, colWidth, visibleH, 6);
-      ctx.clip();
-      ctx.drawImage(entry.img, 0, 0, nw, sourceCropH, itemX, itemY, colWidth, visibleH);
-      ctx.restore();
+  for (let c = 0; c < columns.length; c++) {
+    const col = columns[c];
+    const itemX = margin + c * (colWidth + gap);
+    let curY = margin;
 
-      colHeights[minCol] += itemH + gap;
-    } else {
-      fullCount++;
-      ctx.save();
-      ctx.beginPath();
-      drawRoundedRect(ctx, itemX, itemY, colWidth, itemH, 6);
-      ctx.clip();
-      ctx.drawImage(entry.img, itemX, itemY, colWidth, itemH);
-      ctx.restore();
+    for (const item of col.items) {
+      if (curY >= maxAllowedY) {
+        omittedGames.push(item.patch);
+        continue;
+      }
 
-      colHeights[minCol] += itemH + gap;
+      if (curY + item.itemH > maxAllowedY) {
+        partialGames.push(item.patch);
+        const visibleH = maxAllowedY - curY;
+        const sourceCropH = Math.max(1, Math.round(item.nh * (visibleH / item.itemH)));
+
+        ctx.save();
+        ctx.beginPath();
+        drawRoundedRect(ctx, itemX, curY, colWidth, visibleH, 6);
+        ctx.clip();
+        ctx.drawImage(item.img, 0, 0, item.nw, sourceCropH, itemX, curY, colWidth, visibleH);
+        ctx.restore();
+
+        curY += item.itemH + gap;
+      } else {
+        fullCount++;
+        ctx.save();
+        ctx.beginPath();
+        drawRoundedRect(ctx, itemX, curY, colWidth, item.itemH, 6);
+        ctx.clip();
+        ctx.drawImage(item.img, itemX, curY, colWidth, item.itemH);
+        ctx.restore();
+
+        curY += item.itemH + gap;
+      }
     }
   }
 
@@ -488,8 +547,46 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
   protected readonly lastCrop = signal<CropRect | null>(null);
 
   protected readonly customColumns = signal<number | null>(null);
+  protected readonly fadeStartColumn = signal<number>(1);
   protected readonly masonryStats = signal<MasonryRenderStats | null>(null);
   protected readonly showAffectedGames = signal(false);
+
+  protected readonly fadeStartLabel = computed(() => {
+    const cur = this.fadeStartColumn();
+    const total = this.effectiveMasonryColumns();
+    if (cur === 1) {
+      return 'คอลัมน์ 1 (เต็มภาพ)';
+    }
+    if (cur === total) {
+      return `คอลัมน์ ${cur} (สุดท้าย)`;
+    }
+    return `คอลัมน์ ${cur}`;
+  });
+
+  protected incrementFadeStart(): void {
+    const maxCols = this.effectiveMasonryColumns();
+    this.fadeStartColumn.update((v) => Math.min(maxCols, v + 1));
+  }
+
+  protected decrementFadeStart(): void {
+    this.fadeStartColumn.update((v) => Math.max(1, v - 1));
+  }
+
+  protected readonly columnOptions = computed(() => {
+    const total = this.effectiveMasonryColumns();
+    const options: number[] = [];
+    for (let i = 1; i <= total; i++) {
+      options.push(i);
+    }
+    return options;
+  });
+
+  protected onFadeStartColumnChange(value: number | string): void {
+    const num = typeof value === 'string' ? parseInt(value, 10) : value;
+    if (!isNaN(num) && num >= 1) {
+      this.fadeStartColumn.set(num);
+    }
+  }
 
   protected toggleAffectedGames(): void {
     this.showAffectedGames.update((v) => !v);
@@ -864,18 +961,8 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
       this.isCropped.set(false);
       this.lastCrop.set(null);
 
-      if (stats) {
-        if (stats.partialGames.length === 0 && stats.omittedGames.length === 0) {
-          this.statusMessageService.show(`สร้างรูปภาพตัวอย่างสำเร็จ (แสดงรูปครบทั้ง ${stats.fullCount} รูป)`, 'success');
-        } else {
-          this.statusMessageService.show(
-            `สร้างรูปภาพตัวอย่างสำเร็จ (แสดงเต็ม ${stats.fullCount} รูป, ตัดบางส่วน ${stats.partialGames.length} รูป, ไม่ได้แสดง ${stats.omittedGames.length} รูป)`,
-            'success'
-          );
-        }
-      } else {
-        this.statusMessageService.show('สร้างรูปภาพตัวอย่างสำเร็จ', 'success');
-      }
+      // Clear the "กำลังสร้างรูปภาพตัวอย่าง..." message without showing a success banner that covers bottom action buttons
+      this.statusMessageService.clear();
     } catch (error) {
       this.statusMessageService.show(error instanceof Error ? error.message : 'ไม่สามารถสร้างรูปภาพได้', 'error');
     } finally {
@@ -906,7 +993,9 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
 
       // Bake branding overlay with logo onto the final image before downloading
       const logoImg = await loadImage('assets/images/logo.png');
-      drawBrandingOverlay(outCtx, w, h, logoImg);
+      const cols = this.effectiveMasonryColumns();
+      const startCol = this.fadeStartColumn();
+      drawBrandingOverlay(outCtx, w, h, logoImg, cols, startCol);
 
       const finalDataUrl = outCanvas.toDataURL('image/jpeg', 0.85);
       const link = document.createElement('a');

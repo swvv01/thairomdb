@@ -30,6 +30,22 @@
           [style.width.px]="box().w" [style.height.px]="box().h"
           (pointerdown)="onPointerDown($event, 'move')">
 
+          @if (showLogoGuide && logoGuide(); as guide) {
+            <!-- Docked Uniform Semi-transparent Branding Box -->
+            <div class="crop-logo-docked-box"
+              [style.width.px]="guide.boxW"
+              [style.height.px]="guide.boxH"
+              aria-label="ตำแหน่งแสดงโลโก้">
+              <div class="crop-logo-inner"
+                [style.width.px]="guide.logoW"
+                [style.height.px]="guide.logoH">
+                <span class="crop-logo-badge">
+                  <i class="fa-solid fa-stamp mr-1" aria-hidden="true"></i>Logo & URL
+                </span>
+              </div>
+            </div>
+          }
+
           <!-- Edge Drag Hitboxes -->
           <div class="edge-zone edge-n" (pointerdown)="onPointerDown($event, 'n')"></div>
           <div class="edge-zone edge-s" (pointerdown)="onPointerDown($event, 's')"></div>

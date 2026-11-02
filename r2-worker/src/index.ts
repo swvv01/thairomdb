@@ -191,6 +191,77 @@ export default {
       }
     }
 
+    // Endpoint: Backfill Cache-Control สำหรับรูปภาพใน R2 ทั้งหมด (Batching ด้วย cursor)
+    if (request.method === 'POST' && url.pathname === '/api/admin/backfill-covers-cache') {
+      const purgeKey = request.headers.get('X-Purge-Key');
+      const expectedKey = (env as unknown as { PURGE_KEY?: string }).PURGE_KEY || 'thairomdb-cache-key-2026';
+      if (purgeKey !== expectedKey) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+      }
+
+      if (!env.COVERS_BUCKET) {
+        return new Response(JSON.stringify({ error: 'COVERS_BUCKET not configured' }), { status: 500, headers: corsHeaders });
+      }
+
+      try {
+        const limitParam = url.searchParams.get('limit');
+        const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || 100, 1), 200) : 100;
+        const cursor = url.searchParams.get('cursor') || undefined;
+
+        const listOptions: R2ListOptions = {
+          prefix: 'covers/',
+          limit,
+        };
+        (listOptions as unknown as { include?: string[] }).include = ['httpMetadata', 'customMetadata'];
+        if (cursor) {
+          listOptions.cursor = cursor;
+        }
+
+        const listed = await env.COVERS_BUCKET.list(listOptions);
+        const targetCacheControl = 'public, max-age=31536000, immutable';
+        let updated = 0;
+        let skipped = 0;
+
+        for (const obj of listed.objects) {
+          // ถ้ามี Cache-Control เป้าหมายอยู่แล้ว ให้ข้ามเพื่อประหยัด R2 operation
+          if (obj.httpMetadata?.cacheControl === targetCacheControl) {
+            skipped++;
+            continue;
+          }
+
+          const r2Obj = await env.COVERS_BUCKET.get(obj.key);
+          if (r2Obj) {
+            await env.COVERS_BUCKET.put(obj.key, r2Obj.body, {
+              httpMetadata: {
+                contentType: r2Obj.httpMetadata?.contentType || 'image/webp',
+                cacheControl: targetCacheControl,
+              },
+              customMetadata: r2Obj.customMetadata,
+            });
+            updated++;
+          }
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          processed: listed.objects.length,
+          updated,
+          skipped,
+          nextCursor: listed.truncated ? listed.cursor : null,
+          hasMore: listed.truncated,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        console.error('Backfill cache control failed:', err);
+        return new Response(JSON.stringify({ error: 'Failed to backfill cache control' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // ตรวจสอบสิทธิ์ สำหรับ POST (/upload) และ DELETE (/delete)
     if (['POST', 'DELETE'].includes(request.method)) {
       const authHeader = request.headers.get('Authorization');
@@ -236,9 +307,12 @@ export default {
         const filename = patchId ? `${patchId}.${extension}` : `${crypto.randomUUID()}.${extension}`;
         const objectName = `covers/${filename}`;
 
-        // บันทึกไฟล์ลง R2 Bucket
+        // บันทึกไฟล์ลง R2 Bucket พร้อม Cache-Control 1 ปี (immutable)
         await env.COVERS_BUCKET.put(objectName, file.stream(), {
-          httpMetadata: { contentType: file.type },
+          httpMetadata: { 
+            contentType: file.type,
+            cacheControl: 'public, max-age=31536000, immutable',
+          },
         });
 
         const publicUrl = `${env.PUBLIC_URL_BASE}/${objectName}`;

@@ -148,4 +148,60 @@ describe('ImageCropperModalComponent', () => {
     component['confirmCrop']();
     expect(component['confirming']()).toBeTrue();
   });
+
+  it('does not render logo watermark guide when showLogoGuide is false', () => {
+    component.showLogoGuide = false;
+    fixture.detectChanges();
+
+    const logoDockedBox = fixture.nativeElement.querySelector('.crop-logo-docked-box');
+    expect(logoDockedBox).toBeNull();
+  });
+
+  it('renders scaled logo watermark guide when showLogoGuide is true', () => {
+    component.showLogoGuide = true;
+    const imgElement = new Image(1000, 800);
+    Object.defineProperty(imgElement, 'clientWidth', { value: 500 });
+    Object.defineProperty(imgElement, 'clientHeight', { value: 400 });
+    Object.defineProperty(imgElement, 'naturalWidth', { value: 1000 });
+    Object.defineProperty(imgElement, 'naturalHeight', { value: 800 });
+
+    component['stageImgRef'] = { nativeElement: imgElement };
+    component['resetSelection']();
+    fixture.detectChanges();
+
+    const logoDockedBox = fixture.nativeElement.querySelector('.crop-logo-docked-box') as HTMLElement;
+    const logoInner = fixture.nativeElement.querySelector('.crop-logo-inner') as HTMLElement;
+    expect(logoDockedBox).toBeTruthy();
+    expect(logoInner).toBeTruthy();
+
+    // Scale is 500/1000 = 0.5, 400/800 = 0.5
+    // Box: 260 * 0.5 = 130px, 74 * 0.5 = 37px
+    // Logo: 210 * 0.5 = 105px, 58 * 0.5 = 29px
+    const guide = component['logoGuide']();
+    expect(guide).toEqual({
+      boxW: 130,
+      boxH: 37,
+      logoW: 105,
+      logoH: 29
+    });
+
+    const badge = fixture.nativeElement.querySelector('.crop-logo-badge');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain('Logo & URL');
+  });
+
+  it('updates stageScale on window resize', () => {
+    component.showLogoGuide = true;
+    const imgElement = new Image(1000, 800);
+    Object.defineProperty(imgElement, 'clientWidth', { value: 400 });
+    Object.defineProperty(imgElement, 'clientHeight', { value: 320 });
+    Object.defineProperty(imgElement, 'naturalWidth', { value: 1000 });
+    Object.defineProperty(imgElement, 'naturalHeight', { value: 800 });
+
+    component['stageImgRef'] = { nativeElement: imgElement };
+    window.dispatchEvent(new Event('resize'));
+    fixture.detectChanges();
+
+    expect(component['stageScale']()).toEqual({ scaleX: 0.4, scaleY: 0.4 });
+  });
 });
