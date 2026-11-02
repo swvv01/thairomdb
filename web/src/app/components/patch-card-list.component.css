@@ -69,7 +69,6 @@
 
 .patch-card__actions-row {
   align-items: center;
-  border-top: 1px solid var(--color-border);
   box-sizing: border-box;
   display: flex;
   font-family: 'Courier New', monospace !important;
@@ -299,7 +298,6 @@
   align-items: stretch;
   background: #000;
   border: 1px solid var(--color-border);
-  box-shadow: 2px 2px 0 var(--color-shadow);
   box-sizing: border-box;
   display: flex;
   flex: 1 1 auto;

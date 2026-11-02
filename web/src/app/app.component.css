@@ -88,7 +88,7 @@
 #last-update {
   color: var(--color-highlight);
   flex: 0 1 auto;
-  line-height: 1.2;
+  line-height: 1;
   margin-left: 0.5rem;
   text-align: right;
 }
@@ -661,4 +661,3 @@
 a i {
   text-decoration: none;
 }
-
