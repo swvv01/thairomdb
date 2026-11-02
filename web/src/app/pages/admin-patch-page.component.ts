@@ -359,6 +359,49 @@ export class AdminPatchPageComponent implements OnInit {
     this.form.controls.playTimeFull.setValue(playTimeValue ?? null);
   }
 
+  protected onPlayTimeKeyDown(event: KeyboardEvent, controlName: 'playTime' | 'playTimeFull'): void {
+    if (event.key !== '.' && event.key !== 'Decimal') {
+      return;
+    }
+    event.preventDefault();
+
+    const control = this.form.controls[controlName];
+    const currentValue = control.value;
+    const target = event.target as HTMLInputElement | null;
+
+    let isAllSelected = false;
+    if (target) {
+      try {
+        if (target.selectionStart === 0 && target.selectionEnd === target.value.length && target.value.length > 0) {
+          isAllSelected = true;
+        }
+      } catch {
+        // selectionStart/End may throw on input[type="number"] in some environments
+      }
+    }
+
+    const rawVal = target && target.value !== '' ? target.value : (currentValue != null ? String(currentValue) : '');
+
+    if (!rawVal || isAllSelected) {
+      control.setValue(0.5);
+      control.markAsDirty();
+      return;
+    }
+
+    if (rawVal.includes('.')) {
+      return;
+    }
+
+    const parsed = Number(rawVal);
+    if (!Number.isNaN(parsed) && parsed >= 0) {
+      control.setValue(Number(`${Math.floor(parsed)}.5`));
+      control.markAsDirty();
+    } else {
+      control.setValue(0.5);
+      control.markAsDirty();
+    }
+  }
+
   protected setNoPlayTime(): void {
     this.form.controls.playTime.setValue(0);
     this.form.controls.playTimeFull.setValue(0);

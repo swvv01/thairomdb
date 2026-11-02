@@ -739,6 +739,90 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     expect(input.select).toHaveBeenCalled();
   });
 
+  describe('playTime dot autocomplete', () => {
+    it('sets 0.5 when typing dot on empty playTime and playTimeFull', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(null);
+      const event1 = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      spyOn(event1, 'preventDefault');
+      c.onPlayTimeKeyDown(event1, 'playTime');
+      expect(event1.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(0.5);
+      expect(c.form.controls.playTime.dirty).toBeTrue();
+
+      c.form.controls.playTimeFull.setValue(null);
+      const event2 = new KeyboardEvent('keydown', { key: 'Decimal', cancelable: true });
+      spyOn(event2, 'preventDefault');
+      c.onPlayTimeKeyDown(event2, 'playTimeFull');
+      expect(event2.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTimeFull.value).toBe(0.5);
+      expect(c.form.controls.playTimeFull.dirty).toBeTrue();
+    });
+
+    it('appends .5 when typing dot after whole number', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6);
+      const event = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeKeyDown(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6.5);
+    });
+
+    it('ignores dot when decimal already exists in playTime', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6.5);
+      const event = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeKeyDown(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6.5);
+    });
+
+    it('does not prevent default for non-dot keys', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6);
+      const event = new KeyboardEvent('keydown', { key: '5', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeKeyDown(event, 'playTime');
+      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6);
+    });
+
+    it('replaces all selected text with 0.5 when typing dot', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(15);
+      const fakeInput = {
+        value: '15',
+        selectionStart: 0,
+        selectionEnd: 2
+      };
+      const event = {
+        key: '.',
+        target: fakeInput,
+        preventDefault: jasmine.createSpy('preventDefault')
+      } as unknown as KeyboardEvent;
+      c.onPlayTimeKeyDown(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(0.5);
+    });
+
+    it('triggers onPlayTimeKeyDown from template input elements', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      spyOn(c, 'onPlayTimeKeyDown');
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTime"]');
+      const event = new KeyboardEvent('keydown', { key: '.' });
+      input.dispatchEvent(event);
+      expect(c.onPlayTimeKeyDown).toHaveBeenCalledWith(jasmine.any(KeyboardEvent), 'playTime');
+    });
+  });
+
   it('cancelSave resets saving state and clears status toast', () => {
     fixture.detectChanges();
     const c = component as any;
@@ -975,7 +1059,7 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
       { id: 'tag-1', name: 'romhack', slug: 'romhack' },
       { id: 'tag-2', name: 'พากย์ไทย', slug: 'thai-dub' },
     ]));
-    tagRepoSpy.create.and.returnValue(Promise.resolve({ id: 'tag-3', name: 'action', slug: 'action' }));
+    tagRepoSpy.create.and.returnValue(Promise.resolve({ data: { id: 'tag-3', name: 'action', slug: 'action' }, edgeSynced: true }));
 
     await TestBed.configureTestingModule({
       imports: [AdminPatchPageComponent, ReactiveFormsModule],

@@ -693,7 +693,7 @@ describe('PatchCardListComponent', () => {
   });
 
   it('renders clickable button for multiline version and opens version modal on click', () => {
-    spyOn(component, 'openVersionModal');
+    spyOn(component as any, 'openVersionModal');
     component.patches = [{
       ...basePatch,
       patchVersion: 'v1.0\nv1.1 changelog',
@@ -707,7 +707,7 @@ describe('PatchCardListComponent', () => {
     expect(versionBtn.textContent.trim()).toBe('v1.0');
 
     versionBtn.click();
-    expect(component.openVersionModal).toHaveBeenCalledWith(component.patches[0]);
+    expect((component as any).openVersionModal).toHaveBeenCalledWith(component.patches[0]);
   });
 
   it('does not render divider when only version or only system exists', () => {
