@@ -116,7 +116,7 @@ body[data-theme='pocket-pet'] main {
 body[data-theme='classic-blue'] {
   --color-surface: #c0c0c0;
   --color-surface-text: #000000;
-  --color-surface-light: #004e98;
+  --color-surface-light: #c0c0c0;
   --color-border: #808080;
   --color-text: #000000;
   --color-text-muted: #4a4a4a;
@@ -532,7 +532,9 @@ body[data-theme='classic-blue'] .sort-field--sort>button {
 body[data-theme='classic-blue'] .app-select,
 body[data-theme='classic-blue'] input[type="text"],
 body[data-theme='classic-blue'] input[type="search"],
+body[data-theme='classic-blue'] input[type="url"],
 body[data-theme='classic-blue'] .admin-search-field,
+body[data-theme='classic-blue'] .admin-input-group,
 body[data-theme='classic-blue'] .control-autocomplete__input {
   background-color: #ffffff;
   color: #000000;
@@ -541,10 +543,25 @@ body[data-theme='classic-blue'] .control-autocomplete__input {
   box-shadow: inset 1px 1px 0px #000000;
 }
 
-body[data-theme='classic-blue'] .admin-search-field input {
+body[data-theme='classic-blue'] .admin-search-field input,
+body[data-theme='classic-blue'] .admin-input-group input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #000000;
+  margin-top: 0 !important;
+}
+
+body[data-theme='classic-blue'] .admin-input-group .admin-input-clear-btn {
   background: transparent;
   border: none;
+  border-left: 1px solid #808080;
   box-shadow: none;
+  color: #000000;
+}
+
+body[data-theme='classic-blue'] .admin-input-group .admin-input-clear-btn:hover {
+  background: #c0c0c0;
   color: #000000;
 }
 
@@ -642,7 +659,7 @@ body[data-theme='classic-blue'] .patch-card__label {
 body[data-theme='classic-blue'] .button,
 body[data-theme='classic-blue'] .btn-primary,
 body[data-theme='classic-blue'] .btn-accent,
-body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(.sort-toggle) {
+body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(.sort-toggle):not(.admin-input-clear-btn):not(.search-clear-btn) {
   border: 2px solid;
   border-color: #ffffff #000000 #000000 #ffffff;
   box-shadow: inset 1px 1px 0px #dfdfdf, inset -1px -1px 0px #808080;
@@ -651,7 +668,7 @@ body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(
 
 body[data-theme='classic-blue'] .button:active,
 body[data-theme='classic-blue'] .btn-primary:active,
-body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(.sort-toggle):active {
+body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(.sort-toggle):not(.admin-input-clear-btn):not(.search-clear-btn):active {
   border-color: #000000 #ffffff #ffffff #000000;
   box-shadow: inset 1px 1px 0px #808080;
 }
