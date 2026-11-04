@@ -3,9 +3,13 @@ import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import {
   AdminPostSummaryPageComponent,
+  FILLER_IMAGE_OPACITY,
+  LOGO_BG_OPACITY,
+  DEFAULT_FADE_START_COLUMN,
   calculateSquareGridDimensions,
   calculateMasonryColumnCount,
   calculateMasonryCanvasDimensions,
+  calculateMasonryContentHeight,
   comparePatchesByNewestAndPriority,
   drawRoundedRect,
   drawBrandingOverlay,
@@ -483,7 +487,23 @@ describe('AdminPostSummaryPageComponent', () => {
     expect(stats.partialGames.length + stats.omittedGames.length).toBeGreaterThan(0);
   });
 
-  it('should auto-sort columns descending by height so the shortest column is on the far right', () => {
+  it('should calculate masonry content height correctly', () => {
+    expect(calculateMasonryContentHeight(1000, 3, [])).toBe(0);
+
+    const dummyImg = document.createElement('img');
+    dummyImg.width = 100;
+    dummyImg.height = 200;
+    const h = calculateMasonryContentHeight(1000, 3, [{ img: dummyImg }]);
+    expect(h).toBeGreaterThan(0);
+  });
+
+  it('should expose customizable constants with expected default values', () => {
+    expect(FILLER_IMAGE_OPACITY).toBe(0.8);
+    expect(LOGO_BG_OPACITY).toBe(0.5);
+    expect(DEFAULT_FADE_START_COLUMN).toBe(1);
+  });
+
+  it('should sort columns descending by height and fill shorter columns with sequential images at 0.8 opacity', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
     canvas.height = 1000;
@@ -502,37 +522,52 @@ describe('AdminPostSummaryPageComponent', () => {
     imgMedium.width = 100;
     imgMedium.height = 200;
 
-    // Distribution into 3 cols:
-    // imgTall -> Col 0
-    // imgShort -> Col 1 (middle)
-    // imgMedium -> Col 2 (right)
-    // After descending sort:
+    // Initial distribution into 3 cols:
+    // imgTall -> Col 0 (highest, 300)
+    // imgShort -> Col 1 (shortest, 100)
+    // imgMedium -> Col 2 (medium, 200)
+    // After descending sort by height:
     // Col 0: imgTall (highest)
     // Col 1: imgMedium (medium)
-    // Col 2: imgShort (shortest - now rightmost!)
-    const drawnXCoords: number[] = [];
+    // Col 2: imgShort (shortest on the far right)
+    const drawCalls: Array<{ img: CanvasImageSource; alpha: number; x: number; y: number }> = [];
     spyOn(ctx, 'drawImage').and.callFake((img: CanvasImageSource, ...args: number[]) => {
-      // In drawImage(img, itemX, curY, colWidth, itemH), args[0] is itemX
-      drawnXCoords.push(args[0]);
+      // In 5-arg drawImage(img, itemX, curY, colWidth, itemH), args[0]=x, args[1]=y
+      // In 9-arg drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh), args[4]=dx, args[5]=dy
+      const x = args.length === 8 ? args[4] : args[0];
+      const y = args.length === 8 ? args[5] : args[1];
+      drawCalls.push({
+        img,
+        alpha: ctx.globalAlpha,
+        x,
+        y
+      });
     });
 
-    renderMasonryCollage(ctx, 1000, [
+    const stats = renderMasonryCollage(ctx, 1000, [
       { patch: mockPatches[0], img: imgTall },
       { patch: mockPatches[1], img: imgShort },
       { patch: mockPatches[2], img: imgMedium }
     ], 3);
 
-    // 3 images drawn, X coords should be in strictly increasing order (Col 0 < Col 1 < Col 2)
-    expect(drawnXCoords.length).toBe(3);
-    expect(drawnXCoords[0]).toBeLessThan(drawnXCoords[1]);
-    expect(drawnXCoords[1]).toBeLessThan(drawnXCoords[2]);
+    // Primary images drawn with alpha = 1.0
+    const primaryCalls = drawCalls.filter((c) => c.alpha === 1.0);
+    expect(primaryCalls.length).toBe(3);
+    // Col 0 has imgTall (tallest), Col 1 has imgMedium, Col 2 has imgShort (shortest on the far right)
+    expect(primaryCalls[0].img).toBe(imgTall);
+    expect(primaryCalls[1].img).toBe(imgMedium);
+    expect(primaryCalls[2].img).toBe(imgShort);
+    expect(primaryCalls[0].x).toBeLessThan(primaryCalls[1].x);
+    expect(primaryCalls[1].x).toBeLessThan(primaryCalls[2].x);
 
-    // And verify the shortest image (imgShort, mockPatches[1]) was drawn at the largest X (Col 2)
-    // The spy calls receive (img, x, y, w, h)
-    const drawCalls = (ctx.drawImage as jasmine.Spy).calls.all();
-    const shortCall = drawCalls.find(c => c.args[0] === imgShort);
-    expect(shortCall).toBeDefined();
-    expect(shortCall!.args[1]).toBe(drawnXCoords[2]); // Far right column
+    // Shorter columns (Col 1 and Col 2) receive filler images with FILLER_IMAGE_OPACITY
+    const fillerCalls = drawCalls.filter((c) => Math.abs(c.alpha - FILLER_IMAGE_OPACITY) < 0.01);
+    expect(fillerCalls.length).toBeGreaterThan(0);
+
+    // Stats should only count original 3 games
+    expect(stats.fullCount).toBe(3);
+    expect(stats.partialGames.length).toBe(0);
+    expect(stats.omittedGames.length).toBe(0);
   });
 
   it('should display masonry stats and allow toggling affected games', () => {

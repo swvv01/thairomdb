@@ -10,6 +10,15 @@ import { StatusMessageService } from '../shared/status-message.service';
 import { AuthService } from '../services/auth.service';
 import { CropRect, CropResult, ImageCropperModalComponent } from '../components/image-cropper-modal.component';
 
+/** ความโปร่งแสงของภาพซ้ำที่นำมาเติมในพื้นที่ว่าง (0.0 ถึง 1.0) */
+export const FILLER_IMAGE_OPACITY = 0.7;
+
+/** ความทึบแสงสูงสุดของพื้นหลังแถบโลโก้และชื่อเว็บ (0.0 ถึง 1.0) */
+export const LOGO_BG_OPACITY = 0.8;
+
+/** คอลัมน์เริ่มต้นที่เริ่มไล่เฉดสี Fade ของพื้นหลังโลโก้ (1-based index) */
+export const DEFAULT_FADE_START_COLUMN = 2;
+
 interface TranslatorGroup {
   translatorName: string;
   games: Patch[];
@@ -100,8 +109,9 @@ export function drawRoundedRect(
   h: number,
   r: number
 ): void {
+  const radius = Math.min(r, Math.floor(w / 2), Math.floor(h / 2));
   if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(x, y, w, h, Math.max(0, r));
+    ctx.roundRect(x, y, w, h, Math.max(0, radius));
   } else {
     ctx.rect(x, y, w, h);
   }
@@ -116,7 +126,7 @@ export function drawBrandingOverlay(
   heightOrLogo: number | HTMLImageElement | null,
   logoImgMaybe?: HTMLImageElement | null,
   explicitCols?: number,
-  fadeStartCol = 1
+  fadeStartCol = DEFAULT_FADE_START_COLUMN
 ): void {
   const height = typeof heightOrLogo === 'number' ? heightOrLogo : width;
   const logoImg = typeof heightOrLogo === 'number' ? (logoImgMaybe ?? null) : heightOrLogo;
@@ -165,11 +175,11 @@ export function drawBrandingOverlay(
   const logoX = centerX - (targetLogoW / 2);
   const logoY = boxY + padTop;
 
-  // Linear Gradient Fade จากโปร่งใส (0%) ไปจนถึงความทึบที่กำหนด (50%)
+  // Linear Gradient Fade จากโปร่งใส (0%) ไปจนถึงความทึบที่กำหนด (LOGO_BG_OPACITY)
   ctx.save();
   const hGrad = ctx.createLinearGradient(boxX, 0, width, 0);
   hGrad.addColorStop(0, 'rgba(26, 0, 56, 0)');
-  hGrad.addColorStop(1, 'rgba(26, 0, 56, 0.5)');
+  hGrad.addColorStop(1, `rgba(26, 0, 56, ${LOGO_BG_OPACITY})`);
   ctx.fillStyle = hGrad;
   ctx.fillRect(boxX, boxY, boxW, boxH);
   ctx.restore();
@@ -202,6 +212,40 @@ export interface MasonryRenderStats {
   fullCount: number;
   partialGames: Patch[];
   omittedGames: Patch[];
+}
+
+/**
+ * Calculates the content height of the Masonry collage (the tallest column's bottom edge).
+ */
+export function calculateMasonryContentHeight(
+  width: number,
+  cols: number,
+  images: Array<{ img: HTMLImageElement }>
+): number {
+  if (images.length === 0) return 0;
+  const boundedCols = Math.min(10, Math.max(1, cols));
+  const gap = 14;
+  const margin = 16;
+  const availableWidth = width - 2 * margin;
+  const colWidth = (availableWidth - (boundedCols - 1) * gap) / boundedCols;
+  const colHeights = new Array(boundedCols).fill(0);
+
+  for (const entry of images) {
+    const nw = entry.img.naturalWidth || entry.img.width || 250;
+    const nh = entry.img.naturalHeight || entry.img.height || 350;
+    const itemH = Math.round(nh * (colWidth / nw));
+
+    let minCol = 0;
+    for (let c = 1; c < boundedCols; c++) {
+      if (colHeights[c] < colHeights[minCol]) {
+        minCol = c;
+      }
+    }
+    colHeights[minCol] += itemH + gap;
+  }
+
+  const maxH = Math.max(...colHeights);
+  return maxH > 0 ? maxH - gap : 0;
 }
 
 /**
@@ -277,40 +321,65 @@ export function renderMasonryCollage(
   }
 
   // เรียงลำดับคอลัมน์จากสูงไปต่ำ (ซ้ายสุดสูงที่สุด -> ขวาสุดสั้นที่สุด)
-  // เพื่อให้คอลัมน์ที่มีพื้นที่ว่างด้านล่างมากที่สุด อยู่ขวาสุดเสมอ สำหรับวางโลโก้เว็บ
+  // เพื่อให้คอลัมน์ที่สั้นที่สุดอยู่ขวาสุด สำหรับวางรูปเติมความทึบ 80% และโลโก้เว็บ
   columns.sort((a, b) => b.totalHeight - a.totalHeight);
+
+  let maxColumnBottom = margin;
+  for (const col of columns) {
+    let colY = margin;
+    for (let i = 0; i < col.items.length; i++) {
+      const item = col.items[i];
+      if (colY >= maxAllowedY) break;
+      if (colY + item.itemH >= maxAllowedY) {
+        colY = maxAllowedY;
+        break;
+      }
+      colY += item.itemH;
+      if (i < col.items.length - 1) {
+        colY += gap;
+      }
+    }
+    if (colY > maxColumnBottom) {
+      maxColumnBottom = colY;
+    }
+  }
+  const targetBottomY = Math.min(maxAllowedY, maxColumnBottom);
 
   let fullCount = 0;
   const partialGames: Patch[] = [];
   const omittedGames: Patch[] = [];
+  let fillImageIdx = 0;
 
   for (let c = 0; c < columns.length; c++) {
     const col = columns[c];
     const itemX = margin + c * (colWidth + gap);
     let curY = margin;
 
+    // 1. วาดรูปเกมต้นฉบับจริง (100% opacity)
     for (const item of col.items) {
-      if (curY >= maxAllowedY) {
+      if (curY >= targetBottomY) {
         omittedGames.push(item.patch);
         continue;
       }
 
-      if (curY + item.itemH > maxAllowedY) {
+      if (curY + item.itemH > targetBottomY) {
         partialGames.push(item.patch);
-        const visibleH = maxAllowedY - curY;
+        const visibleH = targetBottomY - curY;
         const sourceCropH = Math.max(1, Math.round(item.nh * (visibleH / item.itemH)));
 
         ctx.save();
+        ctx.globalAlpha = 1.0;
         ctx.beginPath();
         drawRoundedRect(ctx, itemX, curY, colWidth, visibleH, 6);
         ctx.clip();
         ctx.drawImage(item.img, 0, 0, item.nw, sourceCropH, itemX, curY, colWidth, visibleH);
         ctx.restore();
 
-        curY += item.itemH + gap;
+        curY += visibleH + gap;
       } else {
         fullCount++;
         ctx.save();
+        ctx.globalAlpha = 1.0;
         ctx.beginPath();
         drawRoundedRect(ctx, itemX, curY, colWidth, item.itemH, 6);
         ctx.clip();
@@ -318,6 +387,42 @@ export function renderMasonryCollage(
         ctx.restore();
 
         curY += item.itemH + gap;
+      }
+    }
+
+    // 2. เติมพื้นที่ที่เหลือจนถึง targetBottomY ด้วยรูปเดิมวนลูปซ้ำ ความทึบ FILLER_IMAGE_OPACITY (opacity)
+    // รูปที่นำมาเติมซ้ำจะไม่ถูกนับรวมใน fullCount / partialGames / omittedGames
+    while (curY < targetBottomY && validImages.length > 0) {
+      const fillEntry = validImages[fillImageIdx % validImages.length];
+      fillImageIdx++;
+
+      const fnw = fillEntry.img.naturalWidth || fillEntry.img.width || 250;
+      const fnh = fillEntry.img.naturalHeight || fillEntry.img.height || 350;
+      const fItemH = Math.round(fnh * (colWidth / fnw));
+
+      if (curY + fItemH > targetBottomY) {
+        const visibleH = targetBottomY - curY;
+        const sourceCropH = Math.max(1, Math.round(fnh * (visibleH / fItemH)));
+
+        ctx.save();
+        ctx.globalAlpha = FILLER_IMAGE_OPACITY;
+        ctx.beginPath();
+        drawRoundedRect(ctx, itemX, curY, colWidth, visibleH, 6);
+        ctx.clip();
+        ctx.drawImage(fillEntry.img, 0, 0, fnw, sourceCropH, itemX, curY, colWidth, visibleH);
+        ctx.restore();
+
+        curY = targetBottomY;
+      } else {
+        ctx.save();
+        ctx.globalAlpha = FILLER_IMAGE_OPACITY;
+        ctx.beginPath();
+        drawRoundedRect(ctx, itemX, curY, colWidth, fItemH, 6);
+        ctx.clip();
+        ctx.drawImage(fillEntry.img, itemX, curY, colWidth, fItemH);
+        ctx.restore();
+
+        curY += fItemH + gap;
       }
     }
   }
@@ -547,7 +652,7 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
   protected readonly lastCrop = signal<CropRect | null>(null);
 
   protected readonly customColumns = signal<number | null>(null);
-  protected readonly fadeStartColumn = signal<number>(1);
+  protected readonly fadeStartColumn = signal<number>(DEFAULT_FADE_START_COLUMN);
   protected readonly masonryStats = signal<MasonryRenderStats | null>(null);
   protected readonly showAffectedGames = signal(false);
 
@@ -934,7 +1039,13 @@ export class AdminPostSummaryPageComponent implements OnInit, OnDestroy {
       }
 
       const cols = this.effectiveMasonryColumns();
-      const { width: canvasW, height: canvasH } = calculateMasonryCanvasDimensions(cols);
+      const standardDims = calculateMasonryCanvasDimensions(cols);
+      const canvasW = standardDims.width;
+      const contentH = calculateMasonryContentHeight(canvasW, cols, validImages);
+      const canvasH = contentH > 0
+        ? Math.min(standardDims.height, 16 + contentH + 16)
+        : standardDims.height;
+
       const canvas = document.createElement('canvas');
       canvas.width = canvasW;
       canvas.height = canvasH;
