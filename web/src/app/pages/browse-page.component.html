@@ -105,9 +105,9 @@
 
   <div class="browse-floating-actions" [class.browse-floating-actions--elevated]="hasBottomBanner()">
     @if (auth.isAdmin()) {
-    <button class="floating-action button btn-primary" type="button" (click)="openAddGame()" aria-label="เพิ่มเกม">
+    <a class="floating-action button btn-primary" routerLink="/add" target="_blank" rel="noopener noreferrer" aria-label="เพิ่มเกม">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
-    </button>
+    </a>
     }
 
     <button class="floating-action button btn-primary" type="button" (click)="focusSearch()" aria-label="ค้นหาเกม">

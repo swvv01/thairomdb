@@ -574,12 +574,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.currentSentinel = undefined;
   }
 
-  protected openAddGame(): void {
-    if (typeof window !== 'undefined') {
-      window.open('/add', '_blank', 'noopener,noreferrer');
-    }
-  }
-
   protected focusSearch(): void {
     if (typeof document === 'undefined') return;
     const searchInput = document.getElementById('game-search') as HTMLInputElement | null;
