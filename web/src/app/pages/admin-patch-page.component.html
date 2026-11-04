@@ -92,15 +92,20 @@
           <div class="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
               <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0.5" min="0"
+                inputmode="decimal"
                 aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง (ชั่วโมง)"
                 placeholder="เช่น 15 (จบเนื้อเรื่อง)" (focus)="playTimeInput.select()"
-                (keydown)="onPlayTimeKeyDown($event, 'playTime')" />
+                (keydown)="onPlayTimeKeyDown($event, 'playTime')"
+                (beforeinput)="onPlayTimeBeforeInput($event, 'playTime')"
+                (input)="onPlayTimeInput($event, 'playTime')" />
             </div>
             <div>
               <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0.5"
-                min="0" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)"
+                min="0" inputmode="decimal" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)"
                 placeholder="เช่น 25 (จบพิเศษ)" (focus)="playTimeFullInput.select()"
-                (keydown)="onPlayTimeKeyDown($event, 'playTimeFull')" />
+                (keydown)="onPlayTimeKeyDown($event, 'playTimeFull')"
+                (beforeinput)="onPlayTimeBeforeInput($event, 'playTimeFull')"
+                (input)="onPlayTimeInput($event, 'playTimeFull')" />
             </div>
           </div>
           <div class="mt-2 flex flex-wrap gap-2">

@@ -821,6 +821,81 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
       input.dispatchEvent(event);
       expect(c.onPlayTimeKeyDown).toHaveBeenCalledWith(jasmine.any(KeyboardEvent), 'playTime');
     });
+
+    it('appends .5 when typing dot on mobile beforeinput after whole number', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6);
+      const event = new InputEvent('beforeinput', { data: '.', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeBeforeInput(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6.5);
+    });
+
+    it('sets 0.5 on mobile beforeinput when input is empty', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(null);
+      const event = new InputEvent('beforeinput', { data: '.', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeBeforeInput(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(0.5);
+    });
+
+    it('ignores dot on mobile beforeinput when decimal already exists in playTime', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6.5);
+      const event = new InputEvent('beforeinput', { data: '.', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeBeforeInput(event, 'playTime');
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6.5);
+    });
+
+    it('does not prevent default on mobile beforeinput for non-dot data', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(6);
+      const event = new InputEvent('beforeinput', { data: '5', cancelable: true });
+      spyOn(event, 'preventDefault');
+      c.onPlayTimeBeforeInput(event, 'playTime');
+      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(c.form.controls.playTime.value).toBe(6);
+    });
+
+    it('appends .5 on onPlayTimeInput fallback when inputEvent data is dot', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.playTime.setValue(10);
+      const fakeInput = { value: '10' };
+      const event = { data: '.', target: fakeInput } as unknown as InputEvent;
+      c.onPlayTimeInput(event, 'playTime');
+      expect(c.form.controls.playTime.value).toBe(10.5);
+    });
+
+    it('triggers onPlayTimeBeforeInput, onPlayTimeInput and has inputmode="decimal" on playtime inputs', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      spyOn(c, 'onPlayTimeBeforeInput');
+      spyOn(c, 'onPlayTimeInput');
+
+      const playTimeInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTime"]');
+      const playTimeFullInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+
+      expect(playTimeInput.getAttribute('inputmode')).toBe('decimal');
+      expect(playTimeFullInput.getAttribute('inputmode')).toBe('decimal');
+
+      const beforeInputEvent = new InputEvent('beforeinput', { data: '.' });
+      playTimeInput.dispatchEvent(beforeInputEvent);
+      expect(c.onPlayTimeBeforeInput).toHaveBeenCalledWith(jasmine.any(InputEvent), 'playTime');
+
+      const inputEvent = new Event('input');
+      playTimeInput.dispatchEvent(inputEvent);
+      expect(c.onPlayTimeInput).toHaveBeenCalledWith(jasmine.any(Event), 'playTime');
+    });
   });
 
   it('cancelSave resets saving state and clears status toast', () => {

@@ -364,10 +364,34 @@ export class AdminPatchPageComponent implements OnInit {
       return;
     }
     event.preventDefault();
+    this.applyPlayTimeDot(controlName, event.target as HTMLInputElement | null);
+  }
 
+  protected onPlayTimeBeforeInput(event: InputEvent, controlName: 'playTime' | 'playTimeFull'): void {
+    if (event.data !== '.') {
+      return;
+    }
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    this.applyPlayTimeDot(controlName, event.target as HTMLInputElement | null);
+  }
+
+  protected onPlayTimeInput(event: Event, controlName: 'playTime' | 'playTimeFull'): void {
+    const inputEvent = event as InputEvent;
+    const target = event.target as HTMLInputElement | null;
+    if (inputEvent?.data === '.') {
+      this.applyPlayTimeDot(controlName, target);
+      return;
+    }
+    if (target?.value && target.value.endsWith('.')) {
+      this.applyPlayTimeDot(controlName, target);
+    }
+  }
+
+  private applyPlayTimeDot(controlName: 'playTime' | 'playTimeFull', target: HTMLInputElement | null): void {
     const control = this.form.controls[controlName];
     const currentValue = control.value;
-    const target = event.target as HTMLInputElement | null;
 
     let isAllSelected = false;
     if (target) {
@@ -385,6 +409,9 @@ export class AdminPatchPageComponent implements OnInit {
     if (!rawVal || isAllSelected) {
       control.setValue(0.5);
       control.markAsDirty();
+      if (target) {
+        target.value = '0.5';
+      }
       return;
     }
 
@@ -394,11 +421,18 @@ export class AdminPatchPageComponent implements OnInit {
 
     const parsed = Number(rawVal);
     if (!Number.isNaN(parsed) && parsed >= 0) {
-      control.setValue(Number(`${Math.floor(parsed)}.5`));
+      const nextVal = Number(`${Math.floor(parsed)}.5`);
+      control.setValue(nextVal);
       control.markAsDirty();
+      if (target) {
+        target.value = String(nextVal);
+      }
     } else {
       control.setValue(0.5);
       control.markAsDirty();
+      if (target) {
+        target.value = '0.5';
+      }
     }
   }
 
