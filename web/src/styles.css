@@ -693,8 +693,8 @@ body[data-theme='classic-blue'] .patch-card--dialog .win98-card-titlebar {
 
 body[data-theme='classic-blue'] .patch-cover-wrap {
   border: 2px solid;
-  border-color: #808080 #dfdfdf #dfdfdf #808080;
-  box-shadow: inset 1px 1px 0px #000000;
+  border-color: #dfdfdf #808080 #808080 #dfdfdf;
+  box-shadow: 1px 1px 0px #000000;
   background: #ffffff;
   padding: 2px;
 }
@@ -716,7 +716,7 @@ body[data-theme='classic-blue'] .button,
 body[data-theme='classic-blue'] .btn-primary,
 body[data-theme='classic-blue'] .btn-accent,
 body[data-theme='classic-blue'] button:not(.no-button):not(.win98-ctrl-btn):not(.sort-toggle):not(.admin-input-clear-btn):not(.search-clear-btn) {
-  border: 2px solid;
+  border: 1px solid;
   border-color: #ffffff #000000 #000000 #ffffff;
   box-shadow: inset 1px 1px 0px #dfdfdf, inset -1px -1px 0px #808080;
   text-shadow: none;
