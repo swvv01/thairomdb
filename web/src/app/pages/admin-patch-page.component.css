@@ -368,3 +368,14 @@ label.required::before {
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;
 }
+
+#section-playtime input[type="number"]::-webkit-inner-spin-button,
+#section-playtime input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#section-playtime input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

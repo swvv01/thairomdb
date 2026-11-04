@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, Subject } from 'rxjs';
@@ -895,6 +895,83 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
       const inputEvent = new Event('input');
       playTimeInput.dispatchEvent(inputEvent);
       expect(c.onPlayTimeInput).toHaveBeenCalledWith(jasmine.any(Event), 'playTime');
+    });
+
+    it('focuses and selects playTimeFull when typing dot in playTime', fakeAsync(() => {
+      fixture.detectChanges();
+      const c = component as any;
+      const playTimeFullInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+      spyOn(playTimeFullInput, 'focus');
+      spyOn(playTimeFullInput, 'select');
+
+      c.form.controls.playTime.setValue(null);
+      const event = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      c.onPlayTimeKeyDown(event, 'playTime');
+      tick();
+
+      expect(playTimeFullInput.focus).toHaveBeenCalled();
+      expect(playTimeFullInput.select).toHaveBeenCalled();
+    }));
+
+    it('does not focus playTimeFull when typing dot in playTimeFull', fakeAsync(() => {
+      fixture.detectChanges();
+      const c = component as any;
+      const playTimeFullInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+      spyOn(playTimeFullInput, 'focus');
+      spyOn(playTimeFullInput, 'select');
+
+      c.form.controls.playTimeFull.setValue(null);
+      const event = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      c.onPlayTimeKeyDown(event, 'playTimeFull');
+      tick();
+
+      expect(playTimeFullInput.focus).not.toHaveBeenCalled();
+      expect(playTimeFullInput.select).not.toHaveBeenCalled();
+    }));
+
+    it('does not focus playTimeFull when playTime already contains a decimal', fakeAsync(() => {
+      fixture.detectChanges();
+      const c = component as any;
+      const playTimeFullInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+      spyOn(playTimeFullInput, 'focus');
+      spyOn(playTimeFullInput, 'select');
+
+      c.form.controls.playTime.setValue(6.5);
+      const event = new KeyboardEvent('keydown', { key: '.', cancelable: true });
+      c.onPlayTimeKeyDown(event, 'playTime');
+      tick();
+
+      expect(playTimeFullInput.focus).not.toHaveBeenCalled();
+      expect(playTimeFullInput.select).not.toHaveBeenCalled();
+    }));
+
+    it('blurs target element on playTime wheel event', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      const fakeInput = jasmine.createSpyObj<HTMLInputElement>('HTMLInputElement', ['blur']);
+      const wheelEvent = new WheelEvent('wheel');
+      Object.defineProperty(wheelEvent, 'target', { value: fakeInput });
+
+      c.onPlayTimeWheel(wheelEvent);
+
+      expect(fakeInput.blur).toHaveBeenCalled();
+    });
+
+    it('triggers onPlayTimeWheel when wheel event is dispatched from playTime and playTimeFull inputs', () => {
+      fixture.detectChanges();
+      const c = component as any;
+      spyOn(c, 'onPlayTimeWheel');
+
+      const playTimeInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTime"]');
+      const playTimeFullInput: HTMLInputElement = fixture.nativeElement.querySelector('input[formControlName="playTimeFull"]');
+
+      const wheelEvent1 = new WheelEvent('wheel');
+      playTimeInput.dispatchEvent(wheelEvent1);
+      expect(c.onPlayTimeWheel).toHaveBeenCalledWith(jasmine.any(WheelEvent));
+
+      const wheelEvent2 = new WheelEvent('wheel');
+      playTimeFullInput.dispatchEvent(wheelEvent2);
+      expect(c.onPlayTimeWheel).toHaveBeenCalledWith(jasmine.any(WheelEvent));
     });
   });
 

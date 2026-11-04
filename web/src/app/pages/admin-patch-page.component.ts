@@ -39,6 +39,7 @@ export class AdminPatchPageComponent implements OnInit {
   @ViewChild(CoverInputComponent) private coverInput?: CoverInputComponent;
   @ViewChild('tagInput') private tagInput?: ElementRef<HTMLInputElement>;
   @ViewChild('playTimeInput') private playTimeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('playTimeFullInput') private playTimeFullInput?: ElementRef<HTMLInputElement>;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -502,6 +503,10 @@ export class AdminPatchPageComponent implements OnInit {
     }
   }
 
+  protected onPlayTimeWheel(event: WheelEvent): void {
+    (event.target as HTMLElement)?.blur();
+  }
+
   private applyPlayTimeDot(controlName: 'playTime' | 'playTimeFull', target: HTMLInputElement | null): void {
     const control = this.form.controls[controlName];
     const currentValue = control.value;
@@ -525,6 +530,9 @@ export class AdminPatchPageComponent implements OnInit {
       if (target) {
         target.value = '0.5';
       }
+      if (controlName === 'playTime') {
+        this.focusPlayTimeFull();
+      }
       return;
     }
 
@@ -540,13 +548,27 @@ export class AdminPatchPageComponent implements OnInit {
       if (target) {
         target.value = String(nextVal);
       }
+      if (controlName === 'playTime') {
+        this.focusPlayTimeFull();
+      }
     } else {
       control.setValue(0.5);
       control.markAsDirty();
       if (target) {
         target.value = '0.5';
       }
+      if (controlName === 'playTime') {
+        this.focusPlayTimeFull();
+      }
     }
+  }
+
+  private focusPlayTimeFull(): void {
+    setTimeout(() => {
+      const inputEl = this.playTimeFullInput?.nativeElement ?? document.querySelector<HTMLInputElement>('input[formControlName="playTimeFull"]');
+      inputEl?.focus();
+      inputEl?.select();
+    }, 0);
   }
 
   protected setNoPlayTime(): void {
