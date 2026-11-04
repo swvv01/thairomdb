@@ -1387,5 +1387,41 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
       expect(window.localStorage.getItem(AdminPatchPageComponent.navRailStorageKey)).toBe('true');
     });
   });
+
+  describe('Clear Field Buttons', () => {
+    it('clears control value, marks as dirty, and focuses element when clearField is called', () => {
+      comp.form.controls.gameTitle.setValue('Final Fantasy VII');
+      expect(comp.form.controls.gameTitle.value).toBe('Final Fantasy VII');
+
+      const fakeInput = document.createElement('input');
+      spyOn(fakeInput, 'focus');
+
+      comp.clearField('gameTitle', fakeInput);
+      expect(comp.form.controls.gameTitle.value).toBe('');
+      expect(comp.form.controls.gameTitle.dirty).toBeTrue();
+      expect(fakeInput.focus).toHaveBeenCalled();
+    });
+
+    it('shows clear buttons in template when text exists and clears on click', () => {
+      fixture.detectChanges();
+      comp.form.controls.gameTitle.setValue('Dragon Quest');
+      comp.form.controls.patchVersion.setValue('1.0.0');
+      fixture.detectChanges();
+
+      const clearBtns = fixture.nativeElement.querySelectorAll('.admin-input-clear-btn');
+      expect(clearBtns.length).toBeGreaterThan(0);
+
+      spyOn(comp, 'clearField').and.callThrough();
+      clearBtns[0].click();
+      expect(comp.clearField).toHaveBeenCalled();
+      expect(comp.form.controls.gameTitle.value).toBe('');
+
+      const versionSection = fixture.nativeElement.querySelector('#section-version');
+      const versionClearBtn = Array.from(versionSection.querySelectorAll('button')).find((b: any) => b.textContent.includes('Clear')) as HTMLButtonElement;
+      expect(versionClearBtn).toBeTruthy();
+      versionClearBtn.click();
+      expect(comp.form.controls.patchVersion.value).toBe('');
+    });
+  });
 });
 

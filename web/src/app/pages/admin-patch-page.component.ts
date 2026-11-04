@@ -192,6 +192,20 @@ export class AdminPatchPageComponent implements OnInit {
     }
   }
 
+  protected clearField(
+    controlName: 'gameTitle' | 'patchTool' | 'patchFileUrl' | 'patchedRomUrl' | 'referenceUrl' | 'referenceText' | 'walkthroughUrl' | 'patchVersion',
+    inputEl?: HTMLElement
+  ): void {
+    const control = this.form.controls[controlName];
+    if (control) {
+      control.setValue('');
+      control.markAsDirty();
+    }
+    if (inputEl) {
+      inputEl.focus();
+    }
+  }
+
   ngOnInit(): void {
     if (typeof window !== 'undefined' && window.history) {
       window.history.pushState({ appExitGuard: true }, '', window.location.href);
