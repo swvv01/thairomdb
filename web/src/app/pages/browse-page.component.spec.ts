@@ -159,16 +159,29 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     const authService = TestBed.inject(AuthService);
     spyOn(authService, 'isAdmin').and.returnValue(false);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('a.floating-action[routerLink="/add"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button.floating-action[aria-label="เพิ่มเกม"]')).toBeNull();
   });
 
   it('renders floating add game button when user is admin regardless of scroll position', () => {
     const authService = TestBed.inject(AuthService);
     spyOn(authService, 'isAdmin').and.returnValue(true);
     fixture.detectChanges();
-    const floatingBtn = fixture.nativeElement.querySelector('a.floating-action[routerLink="/add"]');
+    const floatingBtn = fixture.nativeElement.querySelector('button.floating-action[aria-label="เพิ่มเกม"]');
     expect(floatingBtn).toBeTruthy();
-    expect(floatingBtn?.getAttribute('routerLink')).toBe('/add');
+    expect(floatingBtn?.querySelector('i.fa-plus')).toBeTruthy();
+  });
+
+  it('opens add game page in a new window when floating add game button is clicked', () => {
+    const authService = TestBed.inject(AuthService);
+    spyOn(authService, 'isAdmin').and.returnValue(true);
+    spyOn(window, 'open');
+    fixture.detectChanges();
+
+    const floatingBtn: HTMLButtonElement | null = fixture.nativeElement.querySelector('button.floating-action[aria-label="เพิ่มเกม"]');
+    expect(floatingBtn).toBeTruthy();
+    floatingBtn?.click();
+
+    expect(window.open).toHaveBeenCalledWith('/add', '_blank', 'noopener,noreferrer');
   });
 
   it('renders floating search button inside browse-floating-actions regardless of admin or scroll position', () => {
@@ -211,7 +224,7 @@ describe('BrowsePageComponent - Load More Functionality', () => {
     const children = actionsContainer.children;
     expect(children.length).toBe(3);
     expect(children[0].classList.contains('floating-action')).toBeTrue();
-    expect(children[0].getAttribute('routerLink')).toBe('/add');
+    expect(children[0].getAttribute('aria-label')).toBe('เพิ่มเกม');
     expect(children[1].classList.contains('floating-action')).toBeTrue();
     expect(children[1].getAttribute('aria-label')).toBe('ค้นหาเกม');
     expect(children[2].classList.contains('back-to-top')).toBeTrue();
