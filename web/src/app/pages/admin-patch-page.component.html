@@ -72,7 +72,7 @@
           <button class="mt-2 border  px-3 py-2 font-bold button" type="button" (click)="openSystemDialog()"
             [disabled]="loadingData"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>เพิ่มเครื่องเกม</button>
         </div>
-        <div>
+        <div id="section-game-info">
           <label class="required"><i class="fa-solid fa-gamepad mr-1" aria-hidden="true"></i>ชื่อเกม<input
               class="admin-input" formControlName="gameTitle" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('gameTitle')"
@@ -80,13 +80,13 @@
               aria-hidden="true"></i>{{ pastingField === 'gameTitle' ? 'กำลังวาง…' :
             'Clipboard' }}</button>
         </div>
-        <div [class.pointer-events-none]="loadingData" [class.opacity-50]="loadingData">
+        <div id="section-cover" [class.pointer-events-none]="loadingData" [class.opacity-50]="loadingData">
           <label><i class="fa-solid fa-image mr-1" aria-hidden="true"></i>ภาพปก</label>
           <app-cover-input class="block" [gameTitle]="form.controls.gameTitle.value"
             [system]="form.controls.system.value" [existingCoverUrl]="existingCoverUrl" (selected)="cover = $event" />
         </div>
 
-        <div>
+        <div id="section-playtime">
           <label id="playtime-group-label"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาในการเล่น
             (ชั่วโมง)</label>
           <div class="grid grid-cols-2 gap-2 sm:gap-4">
@@ -133,7 +133,7 @@
 
           </div>
         </div>
-        <div>
+        <div id="section-patch">
           <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch<input class="admin-input"
               formControlName="patchFileUrl" type="url" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
@@ -161,7 +161,7 @@
           <i class="fa-solid fa-quote-left mr-1" aria-hidden="true"></i>Reference Text
           <input class="admin-input" formControlName="referenceText" type="text" />
         </label>
-        <div>
+        <div id="section-walkthrough">
           <label><i class="fa-solid fa-book-open mr-1" aria-hidden="true"></i>บทสรุป<input class="admin-input"
               formControlName="walkthroughUrl" type="url" /></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('walkthroughUrl')"
@@ -169,7 +169,7 @@
               aria-hidden="true"></i>{{ pastingField === 'walkthroughUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
 
-        <fieldset class="border border-slate-600 p-3 relative">
+        <fieldset id="section-tags" class="border border-slate-600 p-3 relative">
           <legend><i class="fa-solid fa-tags mr-1" aria-hidden="true"></i>หมวดหมู่</legend>
           <div class="quick-tags-container">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="createTag()"
@@ -214,7 +214,7 @@
 
 
         </fieldset>
-        <div>
+        <div id="section-version">
           <label><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>Patch Version<textarea
               class="admin-input" formControlName="patchVersion" rows="3"></textarea></label>
           <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchVersion')"
@@ -312,6 +312,27 @@
   <app-confirm-dialog title="ต้องการออกจากหน้านี้หรือไม่?" message="ข้อมูลที่ยังไม่ได้บันทึกจะหายไป"
     confirmLabel="ออกจากหน้า" [danger]="true" (confirmed)="confirmExit()" (cancelled)="cancelExit()" />
   }
+
+  <aside class="quick-nav-rail" [class.quick-nav-rail--collapsed]="navRailCollapsed()"
+    [class.quick-nav-rail--elevated]="hasBottomBanner()" aria-label="แถบนำทางด่วน">
+    @if (!navRailCollapsed()) {
+    <div class="quick-nav-buttons" role="toolbar" aria-label="ปุ่มกระโดดไปยังส่วนต่างๆ">
+      @for (section of navSections; track section.id) {
+      <button class="quick-nav-btn button" type="button" (click)="jumpToSection(section)"
+        [attr.aria-label]="section.label" [title]="section.label">
+        <i [class]="section.icon" aria-hidden="true"></i>
+      </button>
+      }
+    </div>
+    }
+    <button class="quick-nav-toggle button" type="button" (click)="toggleNavRail()"
+      [attr.aria-expanded]="!navRailCollapsed()"
+      [attr.aria-label]="navRailCollapsed() ? 'ขยายแถบนำทาง' : 'ย่อแถบนำทาง'"
+      [title]="navRailCollapsed() ? 'ขยายแถบนำทาง' : 'ย่อแถบนำทาง'">
+      <i class="fa-solid" [class.fa-chevron-left]="navRailCollapsed()" [class.fa-chevron-right]="!navRailCollapsed()"
+        aria-hidden="true"></i>
+    </button>
+  </aside>
 
   @if (showFloatingSave()) {
   @if (saving) {

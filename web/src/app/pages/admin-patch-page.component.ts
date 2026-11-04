@@ -21,6 +21,14 @@ const compareDropdownLabels = (a: { shortName: string; name: string }, b: { shor
   a.shortName.localeCompare(b.shortName, 'th', { sensitivity: 'base' }) || a.name.localeCompare(b.name, 'th', { sensitivity: 'base' });
 const defaultDocumentTitle = 'เกมแปลไทย เกมย้อนยุค ROM Hack และปกเกม | THAI ROM DB';
 
+export interface QuickNavSection {
+  id: string;
+  label: string;
+  icon: string;
+  targetId: string;
+  focusSelector?: string;
+}
+
 @Component({
   selector: 'app-admin-patch-page', styleUrl: './admin-patch-page.component.css',
   standalone: true,
@@ -91,6 +99,97 @@ export class AdminPatchPageComponent implements OnInit {
   canDeactivate(): boolean {
     if (this.skipDeactivateConfirm) return true;
     return window.confirm('ต้องการออกจากหน้านี้หรือไม่? ข้อมูลที่ยังไม่ได้บันทึกจะหายไป');
+  }
+
+  static readonly navRailStorageKey = 'thairomdb_admin_nav_rail_collapsed';
+
+  private static readInitialNavRailCollapsed(): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.localStorage.getItem(AdminPatchPageComponent.navRailStorageKey) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  protected navRailCollapsed = signal(AdminPatchPageComponent.readInitialNavRailCollapsed());
+
+  protected readonly navSections: QuickNavSection[] = [
+    {
+      id: 'game-info',
+      label: 'ข้อมูลเกม',
+      icon: 'fa-solid fa-gamepad',
+      targetId: 'section-game-info',
+      focusSelector: 'input[formControlName="gameTitle"]'
+    },
+    {
+      id: 'cover',
+      label: 'ภาพปก',
+      icon: 'fa-solid fa-image',
+      targetId: 'section-cover'
+    },
+    {
+      id: 'playtime',
+      label: 'เวลาเล่น',
+      icon: 'fa-solid fa-clock',
+      targetId: 'section-playtime',
+      focusSelector: 'input[formControlName="playTime"]'
+    },
+    {
+      id: 'patch',
+      label: 'ไฟล์แพตช์',
+      icon: 'fa-solid fa-screwdriver-wrench',
+      targetId: 'section-patch',
+      focusSelector: 'input[formControlName="patchFileUrl"]'
+    },
+    {
+      id: 'walkthrough',
+      label: 'บทสรุป',
+      icon: 'fa-solid fa-link',
+      targetId: 'section-walkthrough',
+      focusSelector: 'input[formControlName="walkthroughUrl"]'
+    },
+    {
+      id: 'tags',
+      label: 'Tag',
+      icon: 'fa-solid fa-tags',
+      targetId: 'section-tags',
+      focusSelector: 'input[placeholder="พิมพ์เพื่อค้นหา tag"]'
+    },
+    {
+      id: 'version',
+      label: 'เวอร์ชัน',
+      icon: 'fa-solid fa-code-branch',
+      targetId: 'section-version',
+      focusSelector: 'textarea[formControlName="patchVersion"]'
+    }
+  ];
+
+  protected toggleNavRail(): void {
+    this.navRailCollapsed.update(v => {
+      const next = !v;
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(AdminPatchPageComponent.navRailStorageKey, String(next));
+        }
+      } catch {
+        // ignore localStorage write errors
+      }
+      return next;
+    });
+  }
+
+  protected jumpToSection(section: QuickNavSection): void {
+    const targetEl = document.getElementById(section.targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (section.focusSelector) {
+      setTimeout(() => {
+        const inputEl = document.querySelector<HTMLElement>(section.focusSelector!);
+        inputEl?.focus();
+      }, 250);
+    }
   }
 
   ngOnInit(): void {

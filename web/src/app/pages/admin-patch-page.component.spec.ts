@@ -1290,5 +1290,102 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
     expect(systemRepo.create).toHaveBeenCalledWith('PS1', 'PlayStation');
     expect(statusMsg.show).toHaveBeenCalledWith('เพิ่มเครื่องเกมสำเร็จ', 'success');
   });
+
+  describe('Quick Nav Rail', () => {
+    afterEach(() => {
+      try {
+        window.localStorage.removeItem(AdminPatchPageComponent.navRailStorageKey);
+      } catch {
+        // ignore
+      }
+    });
+
+    it('toggles navRailCollapsed state and persists to localStorage', () => {
+      expect(comp.navRailCollapsed()).toBeFalse();
+      comp.toggleNavRail();
+      expect(comp.navRailCollapsed()).toBeTrue();
+      expect(window.localStorage.getItem(AdminPatchPageComponent.navRailStorageKey)).toBe('true');
+
+      comp.toggleNavRail();
+      expect(comp.navRailCollapsed()).toBeFalse();
+      expect(window.localStorage.getItem(AdminPatchPageComponent.navRailStorageKey)).toBe('false');
+    });
+
+    it('restores collapsed state from localStorage on readInitialNavRailCollapsed', () => {
+      window.localStorage.setItem(AdminPatchPageComponent.navRailStorageKey, 'true');
+      expect((AdminPatchPageComponent as any).readInitialNavRailCollapsed()).toBeTrue();
+
+      window.localStorage.setItem(AdminPatchPageComponent.navRailStorageKey, 'false');
+      expect((AdminPatchPageComponent as any).readInitialNavRailCollapsed()).toBeFalse();
+
+      window.localStorage.removeItem(AdminPatchPageComponent.navRailStorageKey);
+      expect((AdminPatchPageComponent as any).readInitialNavRailCollapsed()).toBeFalse();
+    });
+
+    it('has 7 configured navigation sections with correct mappings', () => {
+      expect(comp.navSections.length).toBe(7);
+      expect(comp.navSections[0].id).toBe('game-info');
+      expect(comp.navSections[0].icon).toBe('fa-solid fa-gamepad');
+      expect(comp.navSections[1].id).toBe('cover');
+      expect(comp.navSections[1].icon).toBe('fa-solid fa-image');
+      expect(comp.navSections[2].id).toBe('playtime');
+      expect(comp.navSections[2].icon).toBe('fa-solid fa-clock');
+      expect(comp.navSections[3].id).toBe('patch');
+      expect(comp.navSections[3].icon).toBe('fa-solid fa-screwdriver-wrench');
+      expect(comp.navSections[4].id).toBe('walkthrough');
+      expect(comp.navSections[4].icon).toBe('fa-solid fa-link');
+      expect(comp.navSections[5].id).toBe('tags');
+      expect(comp.navSections[5].icon).toBe('fa-solid fa-tags');
+      expect(comp.navSections[6].id).toBe('version');
+      expect(comp.navSections[6].icon).toBe('fa-solid fa-code-branch');
+    });
+
+    it('scrolls and focuses input when jumpToSection is called', (done) => {
+      fixture.detectChanges();
+      const fakeTarget = document.createElement('div');
+      fakeTarget.id = 'section-game-info';
+      spyOn(fakeTarget, 'scrollIntoView');
+      spyOn(document, 'getElementById').and.returnValue(fakeTarget);
+
+      const fakeInput = document.createElement('input');
+      spyOn(fakeInput, 'focus');
+      spyOn(document, 'querySelector').and.callFake((selector: string) => {
+        if (selector === 'input[formControlName="gameTitle"]') {
+          return fakeInput;
+        }
+        return null;
+      });
+
+      comp.jumpToSection(comp.navSections[0]);
+      expect(fakeTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+      setTimeout(() => {
+        expect(fakeInput.focus).toHaveBeenCalled();
+        done();
+      }, 300);
+    });
+
+    it('renders quick nav rail buttons in template and handles collapse toggle at the bottom', () => {
+      fixture.detectChanges();
+      spyOn(comp, 'jumpToSection');
+
+      const buttons = fixture.nativeElement.querySelectorAll('.quick-nav-btn');
+      expect(buttons.length).toBe(7);
+
+      buttons[0].click();
+      expect(comp.jumpToSection).toHaveBeenCalledWith(comp.navSections[0]);
+
+      const toggleBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.quick-nav-toggle');
+      const railChildren = fixture.nativeElement.querySelector('.quick-nav-rail').children;
+      expect(railChildren[railChildren.length - 1]).toBe(toggleBtn);
+
+      toggleBtn.click();
+      fixture.detectChanges();
+
+      expect(comp.navRailCollapsed()).toBeTrue();
+      expect(fixture.nativeElement.querySelectorAll('.quick-nav-btn').length).toBe(0);
+      expect(window.localStorage.getItem(AdminPatchPageComponent.navRailStorageKey)).toBe('true');
+    });
+  });
 });
 
