@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, get, ref, remove, set } from '@angular/fire/database';
-import { Observable, catchError, from, map, throwError } from 'rxjs';
+import { Database, get, ref, remove, set, update } from '@angular/fire/database';
+import { Observable, catchError, firstValueFrom, from, map, throwError } from 'rxjs';
 import { Patch, PatchDraft, Translator, Tag } from '../models/patch.models';
 import { RepositoryError } from './repository-error';
 import { PatchCacheService } from '../services/patch-cache.service';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
 import { EdgeDataService } from '../services/edge-data.service';
+import { removeFacebookReference } from '../shared/url.util';
 
 type PatchDocument = Omit<Patch, 'id'>;
 
@@ -147,6 +148,42 @@ export class PatchRepository {
         throw new RepositoryError('ไม่มีสิทธิ์ลบแพตช์: ตรวจสอบว่า UID นี้อยู่ใน admins และ deploy Firestore Rules แล้ว', 'delete');
       }
       throw new RepositoryError('ไม่สามารถลบแพตช์ได้', 'delete');
+    }
+  }
+
+  async batchUpdatePatchToolByTranslator(
+    translatorId: string,
+    newPatchTool: string
+  ): Promise<{ count: number; edgeSynced: boolean }> {
+    try {
+      const patches = await firstValueFrom(this.watchAll());
+      const matching = patches.filter((p) => p.translatorId === translatorId);
+      if (matching.length === 0) {
+        return { count: 0, edgeSynced: true };
+      }
+
+      const cleanTool = clean(removeFacebookReference(newPatchTool));
+      const updates: Record<string, string> = {};
+      for (const patch of matching) {
+        updates[`${this.patches}/${patch.id}/patchTool`] = cleanTool;
+      }
+
+      await update(ref(this.database), updates);
+
+      this.clearCache();
+      this.cache.clear('patches');
+
+      const edgeSynced = await this.edgeData.syncEdge('patches');
+      return { count: matching.length, edgeSynced };
+    } catch (error) {
+      if (error instanceof RepositoryError) throw error;
+      if (this.isPermissionDenied(error)) {
+        throw new RepositoryError(
+          'ไม่มีสิทธิ์แก้ไขแพตช์: ตรวจสอบว่า UID นี้อยู่ใน admins และ deploy Firestore Rules แล้ว',
+          'update'
+        );
+      }
+      throw new RepositoryError('ไม่สามารถอัปเดต Patch Tool ได้', 'update');
     }
   }
 
