@@ -142,6 +142,9 @@ describe('AdminPatchPageComponent - Bug Condition Exploration', () => {
     comp.form.controls.gameTitle.setValue('Test Game');
     comp.form.controls.system.setValue('SNES');
     comp.form.controls.translatorId.setValue('translator-001');
+    comp.form.controls.playTime.setValue(10);
+    comp.form.controls.playTimeFull.setValue(20);
+    comp.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
 
     // Act: call save() - it should succeed because patchRepository.update resolves
     await comp.save();
@@ -306,6 +309,9 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
       c.form.controls.gameTitle.setValue(gameTitle);
       c.form.controls.system.setValue('SNES');
       c.form.controls.translatorId.setValue('translator-001');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
 
       await c.save();
 
@@ -329,6 +335,9 @@ describe('AdminPatchPageComponent - Preservation Properties', () => {
     c.form.controls.gameTitle.setValue('Test Game');
     c.form.controls.system.setValue('SNES');
     c.form.controls.translatorId.setValue('translator-001');
+    c.form.controls.playTime.setValue(10);
+    c.form.controls.playTimeFull.setValue(20);
+    c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
 
     // Spy on window.scrollTo to verify scroll call
     let scrollCalled = false;
@@ -568,6 +577,9 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
       gameTitle: 'Test Game',
       system: 'SFC',
       translatorId: 'trans-1',
+      playTime: 10,
+      playTimeFull: 20,
+      patchFileUrl: 'https://example.com/patch.ips'
     });
 
     await c.save();
@@ -616,15 +628,7 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
 
     const floatingBtn: HTMLButtonElement | null = fixture.nativeElement.querySelector('.floating-action');
     expect(floatingBtn).toBeTruthy();
-    expect(floatingBtn?.disabled).toBeTrue(); // initially invalid form
-
-    (component as any).form.patchValue({
-      gameTitle: 'Test Game',
-      system: 'SFC',
-      translatorId: 'trans-1',
-    });
-    fixture.detectChanges();
-    expect(floatingBtn?.disabled).toBeFalse();
+    expect(floatingBtn?.disabled).toBeFalse(); // Enabled even when form is blank so click triggers validation & focus
 
     spyOn(component as any, 'save');
     floatingBtn?.click();
@@ -997,6 +1001,9 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     c.form.controls.gameTitle.setValue('Test Game');
     c.form.controls.system.setValue('SFC');
     c.form.controls.translatorId.setValue('trans-1');
+    c.form.controls.playTime.setValue(10);
+    c.form.controls.playTimeFull.setValue(20);
+    c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
 
     const savePromise = c.save();
     expect(c.saving).toBeTrue();
@@ -1030,6 +1037,9 @@ describe('AdminPatchPageComponent - Clipboard Paste', () => {
     c.form.controls.gameTitle.setValue('Test Game');
     c.form.controls.system.setValue('SFC');
     c.form.controls.translatorId.setValue('trans-1');
+    c.form.controls.playTime.setValue(10);
+    c.form.controls.playTimeFull.setValue(20);
+    c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
     c.cover = new Blob(['test'], { type: 'image/png' });
 
     const savePromise = c.save();
@@ -1498,6 +1508,226 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
       expect(versionClearBtn).toBeTruthy();
       versionClearBtn.click();
       expect(comp.form.controls.patchVersion.value).toBe('');
+    });
+  });
+
+  describe('Save Validation and Field Focus Order', () => {
+    it('validates translatorId first and focuses translatorInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      const translatorInput = c.translatorInput?.nativeElement;
+      if (translatorInput) spyOn(translatorInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณาเลือกทีมแปล', 'error');
+      if (translatorInput) expect(translatorInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates system second and focuses systemInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      const systemInput = c.systemInput?.nativeElement;
+      if (systemInput) spyOn(systemInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณาเลือกเครื่องเกม', 'error');
+      if (systemInput) expect(systemInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates gameTitle third and focuses gameTitleInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('   ');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      const gameTitleInput = c.gameTitleInput?.nativeElement;
+      if (gameTitleInput) spyOn(gameTitleInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณากรอกชื่อเกม', 'error');
+      if (gameTitleInput) expect(gameTitleInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates playTime fourth and focuses playTimeInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(null);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      const playTimeInput = c.playTimeInput?.nativeElement;
+      if (playTimeInput) spyOn(playTimeInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณาระบุเวลาในการเล่น', 'error');
+      if (playTimeInput) expect(playTimeInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates playTimeFull fifth and focuses playTimeFullInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(null);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      const playTimeFullInput = c.playTimeFullInput?.nativeElement;
+      if (playTimeFullInput) spyOn(playTimeFullInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณาระบุเวลาในการเล่น', 'error');
+      if (playTimeFullInput) expect(playTimeFullInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates patch / patchTool sixth and focuses patchFileUrlInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('   ');
+      c.form.controls.patchTool.setValue('   ');
+
+      const patchFileUrlInput = c.patchFileUrlInput?.nativeElement;
+      if (patchFileUrlInput) spyOn(patchFileUrlInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณากรอก Patch หรือ Patch Tool ก่อนบันทึก', 'error');
+      if (patchFileUrlInput) expect(patchFileUrlInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('validates updateDate seventh and focuses updateDateInput', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+      c.form.controls.updateDate.setValue('');
+
+      const updateDateInput = c.updateDateInput?.nativeElement;
+      if (updateDateInput) spyOn(updateDateInput, 'focus');
+
+      await c.save();
+
+      expect(statusMessageStub.show).toHaveBeenCalledWith('กรุณาระบุวันที่และเวลาอัปเดต', 'error');
+      if (updateDateInput) expect(updateDateInput.focus).toHaveBeenCalled();
+      expect(patchRepositoryStub.create).not.toHaveBeenCalled();
+    });
+
+    it('allows save when playTime and playTimeFull are 0 (e.g. No data)', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.setNoPlayTime();
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+
+      await c.save();
+
+      expect(patchRepositoryStub.create).toHaveBeenCalled();
+      expect(statusMessageStub.show).toHaveBeenCalledWith('บันทึกแพตช์สำเร็จ', 'success');
+    });
+
+    it('allows save when only patchTool is provided', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('');
+      c.form.controls.patchTool.setValue('IPS Patcher');
+
+      await c.save();
+
+      expect(patchRepositoryStub.create).toHaveBeenCalled();
+      expect(statusMessageStub.show).toHaveBeenCalledWith('บันทึกแพตช์สำเร็จ', 'success');
+    });
+
+    it('allows save when only patchFileUrl is provided', async () => {
+      fixture.detectChanges();
+      const c = component as any;
+      c.form.controls.translatorId.setValue('trans-1');
+      c.form.controls.system.setValue('SFC');
+      c.form.controls.gameTitle.setValue('Chrono Trigger');
+      c.form.controls.playTime.setValue(10);
+      c.form.controls.playTimeFull.setValue(20);
+      c.form.controls.patchFileUrl.setValue('https://example.com/patch.ips');
+      c.form.controls.patchTool.setValue('');
+
+      await c.save();
+
+      expect(patchRepositoryStub.create).toHaveBeenCalled();
+      expect(statusMessageStub.show).toHaveBeenCalledWith('บันทึกแพตช์สำเร็จ', 'success');
+    });
+
+    it('renders required indicator on playtime group label', () => {
+      fixture.detectChanges();
+      const label = fixture.nativeElement.querySelector('#playtime-group-label');
+      expect(label).toBeTruthy();
+      expect(label.classList.contains('required')).toBeTrue();
+    });
+
+    it('renders Patch section before Patch Tool in the template DOM', () => {
+      fixture.detectChanges();
+      const patchSection = fixture.nativeElement.querySelector('#section-patch');
+      const patchToolInput = fixture.nativeElement.querySelector('input[formControlName="patchTool"]');
+      const patchToolContainer = patchToolInput?.closest('div.admin-input-group')?.parentElement;
+
+      expect(patchSection).toBeTruthy();
+      expect(patchToolContainer).toBeTruthy();
+      // Compare document position: patchSection should precede patchToolContainer
+      const position = patchSection.compareDocumentPosition(patchToolContainer);
+      expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('keeps submit button enabled when form has missing fields', () => {
+      fixture.detectChanges();
+      const submitBtn: HTMLButtonElement | null = fixture.nativeElement.querySelector('button[type="submit"]');
+      expect(submitBtn).toBeTruthy();
+      expect(submitBtn?.disabled).toBeFalse();
     });
   });
 });

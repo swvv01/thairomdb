@@ -40,6 +40,11 @@ export class AdminPatchPageComponent implements OnInit {
   @ViewChild('tagInput') private tagInput?: ElementRef<HTMLInputElement>;
   @ViewChild('playTimeInput') private playTimeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('playTimeFullInput') private playTimeFullInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('translatorInput') private translatorInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('systemInput') private systemInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('gameTitleInput') private gameTitleInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('patchFileUrlInput') private patchFileUrlInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('updateDateInput') private updateDateInput?: ElementRef<HTMLInputElement>;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -62,7 +67,7 @@ export class AdminPatchPageComponent implements OnInit {
   protected systemOptions: SystemMaster[] = [];
   protected systemSearchText = '';
   protected systemAutocompleteOpen = false;
-  protected readonly form = this.fb.nonNullable.group({ updateDate: [this.todayInputDate(), Validators.required], haveUpdateFlag: [false], patchVersion: [''], playTime: [null as number | null, [Validators.min(0)]], playTimeFull: [null as number | null, [Validators.min(0)]], gameTitle: ['', Validators.required], system: ['', Validators.required], translatorId: ['', Validators.required], patchTool: [''], patchFileUrl: [''], patchedRomUrl: [''], referenceText: [''], referenceUrl: [''], walkthroughUrl: [''] });
+  protected readonly form = this.fb.nonNullable.group({ updateDate: [this.todayInputDate(), Validators.required], haveUpdateFlag: [false], patchVersion: [''], playTime: [null as number | null, [Validators.required, Validators.min(0)]], playTimeFull: [null as number | null, [Validators.required, Validators.min(0)]], gameTitle: ['', Validators.required], system: ['', Validators.required], translatorId: ['', Validators.required], patchTool: [''], patchFileUrl: [''], patchedRomUrl: [''], referenceText: [''], referenceUrl: [''], walkthroughUrl: [''] });
   protected cover?: Blob;
   protected saving = false;
   protected readonly showFloatingSave = signal(true);
@@ -355,6 +360,15 @@ export class AdminPatchPageComponent implements OnInit {
     this.form.controls.translatorId.setValue(translator.id);
   }
 
+  private focusElement(el?: ElementRef<HTMLElement>): void {
+    if (el?.nativeElement) {
+      if (typeof el.nativeElement.scrollIntoView === 'function') {
+        el.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      el.nativeElement.focus();
+    }
+  }
+
   protected cancelSave(): void {
     this.saveAbortController?.abort();
     this.saveAbortController = null;
@@ -365,7 +379,66 @@ export class AdminPatchPageComponent implements OnInit {
 
   protected async save(): Promise<void> {
     if (this.saving) return;
-    if (this.form.invalid) { this.form.markAllAsTouched(); this.status.show('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
+
+    if (!this.form.controls.translatorId.value) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณาเลือกทีมแปล', 'error');
+      this.focusElement(this.translatorInput);
+      return;
+    }
+
+    if (!this.form.controls.system.value) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณาเลือกเครื่องเกม', 'error');
+      this.focusElement(this.systemInput);
+      return;
+    }
+
+    if (!this.form.controls.gameTitle.value.trim()) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณากรอกชื่อเกม', 'error');
+      this.focusElement(this.gameTitleInput);
+      return;
+    }
+
+    const isInvalidPlayTime = (v: unknown): boolean =>
+      v == null || v === '' || Number.isNaN(Number(v)) || Number(v) < 0;
+
+    if (isInvalidPlayTime(this.form.controls.playTime.value)) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณาระบุเวลาในการเล่น', 'error');
+      this.focusElement(this.playTimeInput);
+      return;
+    }
+
+    if (isInvalidPlayTime(this.form.controls.playTimeFull.value)) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณาระบุเวลาในการเล่น', 'error');
+      this.focusElement(this.playTimeFullInput);
+      return;
+    }
+
+    const hasPatchFileUrl = !!this.form.controls.patchFileUrl.value.trim();
+    const hasPatchTool = !!this.form.controls.patchTool.value.trim();
+    if (!hasPatchFileUrl && !hasPatchTool) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณากรอก Patch หรือ Patch Tool ก่อนบันทึก', 'error');
+      this.focusElement(this.patchFileUrlInput);
+      return;
+    }
+
+    if (!this.form.controls.updateDate.value) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณาระบุวันที่และเวลาอัปเดต', 'error');
+      this.focusElement(this.updateDateInput);
+      return;
+    }
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.status.show('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error');
+      return;
+    }
     const requestId = ++this.saveRequestId;
     this.saveAbortController = new AbortController();
     const abortSignal = this.saveAbortController.signal;

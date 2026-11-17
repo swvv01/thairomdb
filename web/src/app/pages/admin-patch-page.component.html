@@ -28,7 +28,7 @@
         <div>
           <label class="required"><i class="fa-solid fa-users mr-1" aria-hidden="true"></i>ทีมแปล</label>
           <div class="tag-autocomplete" (click)="$event.stopPropagation()">
-            <input class="admin-input" placeholder="พิมพ์เพื่อค้นหาทีมแปล" [value]="translatorSearchText"
+            <input #translatorInput class="admin-input" placeholder="พิมพ์เพื่อค้นหาทีมแปล" [value]="translatorSearchText"
               (focus)="openTranslatorAutocomplete($event)" (input)="onTranslatorInput($any($event.target).value)"
               (keydown.escape)="translatorAutocompleteOpen = false" autocomplete="off" role="combobox"
               [attr.aria-expanded]="translatorAutocompleteOpen" aria-controls="translator-options"
@@ -52,7 +52,7 @@
         <div>
           <label class="required"><i class="fa-solid fa-display mr-1" aria-hidden="true"></i>เครื่องเกม</label>
           <div class="tag-autocomplete" (click)="$event.stopPropagation()">
-            <input class="admin-input" placeholder="พิมพ์เพื่อค้นหาเครื่องเกม" [value]="systemSearchText"
+            <input #systemInput class="admin-input" placeholder="พิมพ์เพื่อค้นหาเครื่องเกม" [value]="systemSearchText"
               (focus)="openSystemAutocomplete($event)" (input)="onSystemInput($any($event.target).value)"
               (keydown.escape)="systemAutocompleteOpen = false" autocomplete="off" role="combobox"
               [attr.aria-expanded]="systemAutocompleteOpen" aria-controls="system-options" [disabled]="loadingData" />
@@ -95,7 +95,7 @@
         </div>
 
         <div id="section-playtime">
-          <label id="playtime-group-label"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาในการเล่น
+          <label id="playtime-group-label" class="required"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาในการเล่น
             (ชั่วโมง)</label>
           <div class="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
@@ -125,6 +125,21 @@
           </div>
         </div>
 
+        <div id="section-patch">
+          <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch</label>
+          <div class="admin-input-group">
+            <input #patchFileUrlInput class="admin-input" formControlName="patchFileUrl" type="url" />
+            @if (form.controls.patchFileUrl.value) {
+            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchFileUrl', patchFileUrlInput)"
+              aria-label="ล้าง Patch" title="ล้าง Patch">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
+            [disabled]="pastingField === 'patchFileUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+              aria-hidden="true"></i>{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+        </div>
         <div>
           <label><i class="fa-solid fa-screwdriver-wrench mr-1" aria-hidden="true"></i>Patch Tool</label>
           <div class="admin-input-group">
@@ -147,21 +162,6 @@
               [disabled]="loadingData"><i class="fa-solid fa-toolbox mr-1" aria-hidden="true"></i>RomPatcher.js</button>
 
           </div>
-        </div>
-        <div id="section-patch">
-          <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch</label>
-          <div class="admin-input-group">
-            <input #patchFileUrlInput class="admin-input" formControlName="patchFileUrl" type="url" />
-            @if (form.controls.patchFileUrl.value) {
-            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchFileUrl', patchFileUrlInput)"
-              aria-label="ล้าง Patch" title="ล้าง Patch">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
-            [disabled]="pastingField === 'patchFileUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
         </div>
         <div>
           <label><i class="fa-solid fa-file-code mr-1" aria-hidden="true"></i>ROM</label>
@@ -294,7 +294,7 @@
         </label>
         <div>
           <label><i class="fa-solid fa-calendar-days mr-1" aria-hidden="true"></i>วันที่และเวลาอัปเดต<input
-              class="admin-input" formControlName="updateDate" type="datetime-local" /></label>
+              #updateDateInput class="admin-input" formControlName="updateDate" type="datetime-local" /></label>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
               [disabled]="loadingData"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>ตอนนี้</button>
@@ -305,7 +305,7 @@
         <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between gap-4">
           <div class="flex flex-wrap items-center gap-2">
             <button class="w-fit  px-5 py-3 font-bold text-ink disabled:opacity-50 button btn-primary" type="submit"
-              [disabled]="form.invalid || saving || loadingData" [attr.aria-busy]="saving">{{ saving ?
+              [disabled]="saving || loadingData" [attr.aria-busy]="saving">{{ saving ?
               'กำลังบันทึกแพตช์…'
               :
               'บันทึกแพตช์' }}<i class="fa-solid ml-1" [class.fa-floppy-disk]="!saving" [class.fa-circle-notch]="saving"
@@ -408,7 +408,7 @@
   </button>
   } @else {
   <button class="floating-action button btn-primary" [class.floating-action--elevated]="hasBottomBanner()" type="button"
-    (click)="save()" [disabled]="form.invalid || loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
+    (click)="save()" [disabled]="loadingData" aria-label="บันทึกแพตช์" title="บันทึกแพตช์">
     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
   </button>
   }
