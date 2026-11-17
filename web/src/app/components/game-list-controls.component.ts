@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameListFilters, Translator } from '../models/patch.models';
-import { BrowseRouteKind } from '../shared/browse-route.util';
+import { BrowseRouteKind, normalizeBrowseName } from '../shared/browse-route.util';
 import { SystemMaster } from '../repositories/system.repository';
 
 export interface SystemOption {
@@ -23,6 +23,8 @@ export class GameListControlsComponent implements OnChanges {
   @Input() routeKind: BrowseRouteKind | null = null;
   @Input() routeLabel: string | null = null;
   @Input() totalCount = 0;
+  @Input() translatorCounts: Record<string, number> = {};
+  @Input() systemCounts: Record<string, number> = {};
   @Input() draft: GameListFilters = { keyword: '', tag: null, translatorId: null, system: null, sortBy: 'updateDate', sortDirection: 'desc' };
   @Output() filtersChanged = new EventEmitter<GameListFilters>();
   @Output() clearAll = new EventEmitter<void>();
@@ -77,21 +79,36 @@ export class GameListControlsComponent implements OnChanges {
     return match ? match.name : this.draft.system;
   }
 
+  getTranslatorCount(translator: Translator): number {
+    return this.translatorCounts[translator.id] ?? 0;
+  }
+
+  getSystemCount(sys: SystemOption): number {
+    const shortKey = normalizeBrowseName(sys.shortName).toLocaleLowerCase('th');
+    if (this.systemCounts[shortKey] != null) {
+      return this.systemCounts[shortKey];
+    }
+    const nameKey = normalizeBrowseName(sys.name).toLocaleLowerCase('th');
+    return this.systemCounts[nameKey] ?? 0;
+  }
+
   protected filteredTranslators(): Translator[] {
-    if (!this.translatorUserFiltered) return this.translators;
+    const list = this.translators.filter((t) => this.getTranslatorCount(t) > 0);
+    if (!this.translatorUserFiltered) return list;
     const q = this.translatorSearchText.trim().toLowerCase();
-    if (!q) return this.translators;
-    return this.translators.filter((t) =>
+    if (!q) return list;
+    return list.filter((t) =>
       (t.name && t.name.toLowerCase().includes(q)) ||
       (t.shortName && t.shortName.toLowerCase().includes(q))
     );
   }
 
   protected filteredSystems(): SystemOption[] {
-    if (!this.systemUserFiltered) return this.systemOptions;
+    const list = this.systemOptions.filter((s) => this.getSystemCount(s) > 0);
+    if (!this.systemUserFiltered) return list;
     const q = this.systemSearchText.trim().toLowerCase();
-    if (!q) return this.systemOptions;
-    return this.systemOptions.filter((s) =>
+    if (!q) return list;
+    return list.filter((s) =>
       s.name.toLowerCase().includes(q) ||
       s.shortName.toLowerCase().includes(q)
     );

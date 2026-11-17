@@ -4,7 +4,8 @@
   <div class="browse-column" [class.browse-column--grid]="gridModeService.activeGridMode()">
     <app-game-list-controls [translators]="translators()" [systems]="systems()" [systemMasters]="systemMasters()"
       [routeKind]="routeKind()" [draft]="filters()" [routeLabel]="activeRouteLabel()"
-      [totalCount]="sortedPatches().length" (filtersChanged)="setFilters($event)" (clearAll)="clearAllFilters()" />
+      [totalCount]="sortedPatches().length" [translatorCounts]="translatorCounts()"
+      [systemCounts]="systemCounts()" (filtersChanged)="setFilters($event)" (clearAll)="clearAllFilters()" />
     @if (effectivePageMode() && !loading() && !unavailable() && sortedPatches().length > 0 && totalPages() > 1) {
     <nav class="pagination pagination--top" aria-label="การแบ่งหน้ารายการแพตช์">
       <button type="button" class="pagination__button no-button" [disabled]="currentPage() === 1"

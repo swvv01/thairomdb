@@ -54,7 +54,7 @@
           @for (translator of filteredTranslators(); track translator.id; let i = $index) {
           <li [class.control-autocomplete__item--active]="highlightedTranslatorIndex === i">
             <button class="control-autocomplete__option button" type="button" role="option"
-              (click)="selectTranslator(translator)">{{ translator.name }}</button>
+              (click)="selectTranslator(translator)">{{ translator.name }} ({{ getTranslatorCount(translator) }})</button>
           </li>
           }
           @if (filteredTranslators().length === 0) {
@@ -86,7 +86,7 @@
           @for (sys of filteredSystems(); track sys.shortName; let i = $index) {
           <li [class.control-autocomplete__item--active]="highlightedSystemIndex === i">
             <button class="control-autocomplete__option button" type="button" role="option"
-              (click)="selectSystem(sys)">{{ sys.name }}</button>
+              (click)="selectSystem(sys)">{{ sys.name }} ({{ getSystemCount(sys) }})</button>
           </li>
           }
           @if (filteredSystems().length === 0) {

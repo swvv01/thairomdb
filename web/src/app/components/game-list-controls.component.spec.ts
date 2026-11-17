@@ -72,11 +72,12 @@ describe('GameListControlsComponent', () => {
     expect(btn.textContent?.trim()).toBe('มาก → น้อย');
   });
 
-  it('opens translator autocomplete on focus and displays full name', () => {
+  it('opens translator autocomplete on focus and displays full name with game count', () => {
     component.translators = [
       { id: 't1', name: 'Pixel Thai', shortName: 'PT' },
       { id: 't2', name: 'Siam Quest', shortName: 'SQ' }
     ];
+    component.translatorCounts = { t1: 5, t2: 3 };
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('#filter-translator') as HTMLInputElement;
@@ -86,8 +87,8 @@ describe('GameListControlsComponent', () => {
     const options = fixture.nativeElement.querySelectorAll('#filter-translator-options button');
     expect(options.length).toBe(3);
     expect(options[0].textContent.trim()).toBe('ทุกทีม');
-    expect(options[1].textContent.trim()).toBe('Pixel Thai');
-    expect(options[2].textContent.trim()).toBe('Siam Quest');
+    expect(options[1].textContent.trim()).toBe('Pixel Thai (5)');
+    expect(options[2].textContent.trim()).toBe('Siam Quest (3)');
   });
 
   it('filters translator autocomplete by short name and full name', () => {
@@ -95,6 +96,7 @@ describe('GameListControlsComponent', () => {
       { id: 't1', name: 'Pixel Thai', shortName: 'PT' },
       { id: 't2', name: 'Siam Quest', shortName: 'SQ' }
     ];
+    component.translatorCounts = { t1: 5, t2: 3 };
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('#filter-translator') as HTMLInputElement;
@@ -105,7 +107,25 @@ describe('GameListControlsComponent', () => {
 
     const options = fixture.nativeElement.querySelectorAll('#filter-translator-options button');
     expect(options.length).toBe(2);
-    expect(options[1].textContent.trim()).toBe('Siam Quest');
+    expect(options[1].textContent.trim()).toBe('Siam Quest (3)');
+  });
+
+  it('hides translators with 0 games from the dropdown', () => {
+    component.translators = [
+      { id: 't1', name: 'Pixel Thai', shortName: 'PT' },
+      { id: 't2', name: 'Siam Quest', shortName: 'SQ' }
+    ];
+    component.translatorCounts = { t1: 5, t2: 0 };
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('#filter-translator') as HTMLInputElement;
+    input.dispatchEvent(new Event('focus'));
+    fixture.detectChanges();
+
+    const options = fixture.nativeElement.querySelectorAll('#filter-translator-options button');
+    expect(options.length).toBe(2);
+    expect(options[0].textContent.trim()).toBe('ทุกทีม');
+    expect(options[1].textContent.trim()).toBe('Pixel Thai (5)');
   });
 
   it('selects translator when clicked and emits filtersChanged', () => {
@@ -113,6 +133,7 @@ describe('GameListControlsComponent', () => {
     component.translators = [
       { id: 't1', name: 'Pixel Thai', shortName: 'PT' }
     ];
+    component.translatorCounts = { t1: 1 };
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('#filter-translator') as HTMLInputElement;
@@ -150,12 +171,13 @@ describe('GameListControlsComponent', () => {
     }));
   });
 
-  it('filters system autocomplete by short name and displays full name', () => {
+  it('filters system autocomplete by short name and displays full name with game count', () => {
     component.systems = ['GBA', 'SFC'];
     component.systemMasters = [
       { id: '1', shortName: 'GBA', name: 'Game Boy Advance' },
       { id: '2', shortName: 'SFC', name: 'Super Famicom' }
     ];
+    component.systemCounts = { gba: 8, sfc: 12 };
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('#filter-system') as HTMLInputElement;
@@ -166,7 +188,26 @@ describe('GameListControlsComponent', () => {
 
     const options = fixture.nativeElement.querySelectorAll('#filter-system-options button');
     expect(options.length).toBe(2);
-    expect(options[1].textContent.trim()).toBe('Game Boy Advance');
+    expect(options[1].textContent.trim()).toBe('Game Boy Advance (8)');
+  });
+
+  it('hides systems with 0 games from the dropdown', () => {
+    component.systems = ['GBA', 'SFC'];
+    component.systemMasters = [
+      { id: '1', shortName: 'GBA', name: 'Game Boy Advance' },
+      { id: '2', shortName: 'SFC', name: 'Super Famicom' }
+    ];
+    component.systemCounts = { gba: 8, sfc: 0 };
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('#filter-system') as HTMLInputElement;
+    input.dispatchEvent(new Event('focus'));
+    fixture.detectChanges();
+
+    const options = fixture.nativeElement.querySelectorAll('#filter-system-options button');
+    expect(options.length).toBe(2);
+    expect(options[0].textContent.trim()).toBe('ทุกเครื่อง');
+    expect(options[1].textContent.trim()).toBe('Game Boy Advance (8)');
   });
 
   it('navigates with keyboard and selects with Enter', () => {
@@ -176,6 +217,7 @@ describe('GameListControlsComponent', () => {
       { id: '1', shortName: 'GBA', name: 'Game Boy Advance' },
       { id: '2', shortName: 'SFC', name: 'Super Famicom' }
     ];
+    component.systemCounts = { gba: 8, sfc: 12 };
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('#filter-system') as HTMLInputElement;

@@ -1148,5 +1148,98 @@ describe('BrowsePageComponent - Grid Mode Continuous Loading and Infinite Scroll
     const service = TestBed.runInInjectionContext(() => new BrowseGridModeService());
     expect(service.isGridMode()).toBeTrue();
   });
+
+  it('computes translatorCounts and systemCounts correctly based on other filters', () => {
+    const customPatches: Patch[] = [
+      {
+        id: 'p1',
+        gameTitle: 'Chrono Trigger',
+        system: 'SNES',
+        patchVersion: '1.0',
+        translatedBy: 'Team A',
+        translatorId: 'trans-a',
+        haveUpdateFlag: false,
+        patchTool: '',
+        referenceText: '',
+        referenceUrl: '',
+        patchFileUrl: '',
+        patchedRomUrl: '',
+        walkthroughUrl: '',
+        coverUrl: '',
+        tags: [],
+        updateDate: '2026-01-01T00:00:00Z'
+      },
+      {
+        id: 'p2',
+        gameTitle: 'Final Fantasy VI',
+        system: 'SNES',
+        patchVersion: '1.0',
+        translatedBy: 'Team B',
+        translatorId: 'trans-b',
+        haveUpdateFlag: false,
+        patchTool: '',
+        referenceText: '',
+        referenceUrl: '',
+        patchFileUrl: '',
+        patchedRomUrl: '',
+        walkthroughUrl: '',
+        coverUrl: '',
+        tags: [],
+        updateDate: '2026-01-01T00:00:00Z'
+      },
+      {
+        id: 'p3',
+        gameTitle: 'Pokemon Emerald',
+        system: 'GBA',
+        patchVersion: '1.0',
+        translatedBy: 'Team A',
+        translatorId: 'trans-a',
+        haveUpdateFlag: false,
+        patchTool: '',
+        referenceText: '',
+        referenceUrl: '',
+        patchFileUrl: '',
+        patchedRomUrl: '',
+        walkthroughUrl: '',
+        coverUrl: '',
+        tags: [],
+        updateDate: '2026-01-01T00:00:00Z'
+      }
+    ];
+
+    (component as unknown as { patches: { set: (p: Patch[]) => void } }).patches.set(customPatches);
+    fixture.detectChanges();
+
+    const comp = component as unknown as {
+      translatorCounts: () => Record<string, number>;
+      systemCounts: () => Record<string, number>;
+      selectedSystem: { set: (s: string | null) => void };
+      selectedTranslatorId: { set: (t: string | null) => void };
+      keyword: { set: (k: string) => void };
+    };
+
+    // Initially with no filters:
+    // trans-a has 2 games (Chrono, Pokemon), trans-b has 1 game (Final Fantasy)
+    expect(comp.translatorCounts()['trans-a']).toBe(2);
+    expect(comp.translatorCounts()['trans-b']).toBe(1);
+    expect(comp.systemCounts()['snes']).toBe(2);
+    expect(comp.systemCounts()['gba']).toBe(1);
+
+    // Filter by system: 'SNES'
+    comp.selectedSystem.set('SNES');
+    fixture.detectChanges();
+
+    // Under SNES filter: trans-a has 1 game (Chrono Trigger), trans-b has 1 game (Final Fantasy VI)
+    expect(comp.translatorCounts()['trans-a']).toBe(1);
+    expect(comp.translatorCounts()['trans-b']).toBe(1);
+
+    // Filter by keyword: 'Chrono'
+    comp.keyword.set('Chrono');
+    fixture.detectChanges();
+
+    // Under SNES + Chrono keyword: trans-a has 1 game, trans-b has 0
+    expect(comp.translatorCounts()['trans-a']).toBe(1);
+    expect(comp.translatorCounts()['trans-b']).toBeUndefined();
+  });
 });
 

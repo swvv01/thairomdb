@@ -252,7 +252,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private readonly translatorsLoaded = signal(false);
   private readonly tagsLoaded = signal(false);
   protected readonly filters = computed(() => ({ keyword: this.keyword(), tag: this.selectedTag(), translatorId: this.selectedTranslatorId(), system: this.selectedSystem(), sortBy: this.sortBy(), sortDirection: this.direction() }));
-  protected readonly sortedPatches = computed(() => this.patches().filter((patch) => {
+  private matchesPatchBase(patch: Patch): boolean {
     if (this.routeKind() === 'library' && !this.libraryService.isInLibrary(patch.id)) return false;
     if (this.routeKind() === 'rom' && !patch.patchedRomUrl?.trim()) return false;
     if (this.routeKind() === 'walkthrough' && !patch.walkthroughUrl?.trim()) return false;
@@ -265,14 +265,53 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (playTimeStatus === 'no-max' && !(typeof patch.playTime === 'number' && patch.playTime > 0 && patch.playTimeFull == null)) return false;
     const tag = this.selectedTag();
     if (tag && !patch.tags.includes(tag)) return false;
-    const translatorId = this.selectedTranslatorId();
-    if (translatorId && patch.translatorId !== translatorId) return false;
-    const system = this.selectedSystem();
-    if (system && normalizeBrowseName(patch.system).toLocaleLowerCase('th') !== normalizeBrowseName(system).toLocaleLowerCase('th')) return false;
     const query = this.keyword().trim().toLocaleLowerCase('th');
     if (!query) return true;
     return [patch.gameTitle, patch.patchVersion, patch.system, patch.translatedBy]
       .some((value) => value.trim().toLocaleLowerCase('th').includes(query));
+  }
+
+  protected readonly translatorCounts = computed(() => {
+    const counts: Record<string, number> = {};
+    const system = this.selectedSystem();
+    const normalizedSystem = system ? normalizeBrowseName(system).toLocaleLowerCase('th') : null;
+
+    for (const patch of this.patches()) {
+      if (!this.matchesPatchBase(patch)) continue;
+      if (normalizedSystem && normalizeBrowseName(patch.system).toLocaleLowerCase('th') !== normalizedSystem) {
+        continue;
+      }
+      if (patch.translatorId) {
+        counts[patch.translatorId] = (counts[patch.translatorId] || 0) + 1;
+      }
+    }
+    return counts;
+  });
+
+  protected readonly systemCounts = computed(() => {
+    const counts: Record<string, number> = {};
+    const translatorId = this.selectedTranslatorId();
+
+    for (const patch of this.patches()) {
+      if (!this.matchesPatchBase(patch)) continue;
+      if (translatorId && patch.translatorId !== translatorId) {
+        continue;
+      }
+      const key = normalizeBrowseName(patch.system).toLocaleLowerCase('th');
+      if (key) {
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    }
+    return counts;
+  });
+
+  protected readonly sortedPatches = computed(() => this.patches().filter((patch) => {
+    if (!this.matchesPatchBase(patch)) return false;
+    const translatorId = this.selectedTranslatorId();
+    if (translatorId && patch.translatorId !== translatorId) return false;
+    const system = this.selectedSystem();
+    if (system && normalizeBrowseName(patch.system).toLocaleLowerCase('th') !== normalizeBrowseName(system).toLocaleLowerCase('th')) return false;
+    return true;
   }).sort((a, b) => {
     const field = this.sortBy();
     if (field === 'playTime') {
