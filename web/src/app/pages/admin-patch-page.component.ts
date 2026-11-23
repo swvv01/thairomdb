@@ -81,6 +81,7 @@ export class AdminPatchPageComponent implements OnInit {
   protected newTranslatorShortName = '';
   protected newTranslatorLink = '';
   protected newTranslatorModTool = '';
+  protected newTranslatorAutoPatchTool = true;
   protected translatorDialogOpen = false;
   protected readonly quickTags: readonly string[] = ['romhack', 'พากย์ไทย'];
   protected selectedTags: string[] = [];
@@ -299,7 +300,7 @@ export class AdminPatchPageComponent implements OnInit {
       const translator = this.translatorOptions.find((item) => item.id === translatorId);
       if (translator) {
         this.translatorSearchText = this.translatorLabel(translator);
-        this.form.controls.patchTool.setValue(translator.modTool ?? '');
+        this.form.controls.patchTool.setValue(this.resolveAutoPatchTool(translator));
       } else if (!translatorId) {
         this.translatorSearchText = '';
         this.form.controls.patchTool.setValue('');
@@ -309,6 +310,10 @@ export class AdminPatchPageComponent implements OnInit {
       this.tagSuggestions = tags;
       this.selectedTags = this.selectedTags.filter((id) => tags.some((tag) => tag.id === id));
     });
+  }
+
+  private resolveAutoPatchTool(translator?: Translator): string {
+    return translator && translator.autoPatchTool !== false ? (translator.modTool ?? '') : '';
   }
 
   private normalizeGameTitle(value: string): string { return value.replace(/é/g, 'e'); }
@@ -492,7 +497,8 @@ export class AdminPatchPageComponent implements OnInit {
         if (requestId !== this.saveRequestId) return;
       }
       this.status.show('บันทึกแพตช์สำเร็จ', 'success');
-      const translatorModTool = this.translatorOptions.find((item) => item.id === value.translatorId)?.modTool ?? '';
+      const selectedTranslator = this.translatorOptions.find((item) => item.id === value.translatorId);
+      const translatorModTool = this.resolveAutoPatchTool(selectedTranslator);
       this.form.reset({
         updateDate: this.todayInputDate(),
         haveUpdateFlag: false,
@@ -862,14 +868,15 @@ export class AdminPatchPageComponent implements OnInit {
       }
       this.savingTranslator = true;
       this.status.show('กำลังบันทึกทีมแปล…');
-      const { data: translator, edgeSynced } = await this.translatorRepository.create(this.newTranslatorShortName, name, removeFacebookReference(this.newTranslatorLink), this.newTranslatorModTool);
+      const { data: translator, edgeSynced } = await this.translatorRepository.create(this.newTranslatorShortName, name, removeFacebookReference(this.newTranslatorLink), this.newTranslatorModTool, this.newTranslatorAutoPatchTool);
       this.translatorOptions = [...this.translatorOptions.filter((item) => item.id !== translator.id), translator].sort(compareDropdownLabels);
       this.form.controls.translatorId.setValue(translator.id);
-      if (!this.editId) this.form.controls.patchTool.setValue(translator.modTool ?? '');
+      if (!this.editId) this.form.controls.patchTool.setValue(this.resolveAutoPatchTool(translator));
       this.newTranslatorName = '';
       this.newTranslatorShortName = '';
       this.newTranslatorLink = '';
       this.newTranslatorModTool = '';
+      this.newTranslatorAutoPatchTool = true;
       this.translatorDialogOpen = false;
       showEdgeSyncFeedback(this.status, 'เพิ่มทีมแปลสำเร็จ', edgeSynced);
     } catch (error) {
@@ -878,7 +885,10 @@ export class AdminPatchPageComponent implements OnInit {
       this.savingTranslator = false;
     }
   }
-  protected openTranslatorDialog(): void { this.translatorDialogOpen = true; }
+  protected openTranslatorDialog(): void {
+    this.newTranslatorAutoPatchTool = true;
+    this.translatorDialogOpen = true;
+  }
   protected closeTranslatorDialog(): void { this.translatorDialogOpen = false; }
   protected async createSystem(): Promise<void> {
     if (this.savingSystem) return;

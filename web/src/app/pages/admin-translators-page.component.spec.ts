@@ -90,7 +90,7 @@ describe('AdminTranslatorsPageComponent', () => {
 
     await (component as any).save();
 
-    expect(mockRepo.create).toHaveBeenCalledWith('New', 'New Team', '', '');
+    expect(mockRepo.create).toHaveBeenCalledWith('New', 'New Team', '', '', true);
     expect(mockStatus.show).toHaveBeenCalledWith('เพิ่มทีมแปลสำเร็จ', 'success');
   });
 
@@ -105,7 +105,7 @@ describe('AdminTranslatorsPageComponent', () => {
 
     await (component as any).save();
 
-    expect(mockRepo.create).toHaveBeenCalledWith('New', 'New Team', '', '');
+    expect(mockRepo.create).toHaveBeenCalledWith('New', 'New Team', '', '', true);
     expect(mockStatus.show).toHaveBeenCalledWith(
       'เพิ่มทีมแปลสำเร็จ แต่ซิงค์ Edge ไม่สำเร็จ กรุณากดปุ่ม \'ซิงค์ข้อมูล Edge\' ที่แถบเมนูด้านข้าง',
       'info'
@@ -123,7 +123,7 @@ describe('AdminTranslatorsPageComponent', () => {
 
     await (component as any).save();
 
-    expect(mockRepo.update).toHaveBeenCalledWith('t1', 'G-Trans', 'G-Translators Updated', '', '');
+    expect(mockRepo.update).toHaveBeenCalledWith('t1', 'G-Trans', 'G-Translators Updated', '', '', true);
     expect(mockStatus.show).toHaveBeenCalledWith('แก้ไขทีมแปลสำเร็จ', 'success');
   });
 
@@ -205,7 +205,7 @@ describe('AdminTranslatorsPageComponent', () => {
 
       await (component as any).syncPatchToolToAllGames();
 
-      expect(mockRepo.update).toHaveBeenCalledWith('t1', 'G-Trans', 'G-Translators', '', 'https://new-patcher.example.com');
+      expect(mockRepo.update).toHaveBeenCalledWith('t1', 'G-Trans', 'G-Translators', '', 'https://new-patcher.example.com', true);
       expect(mockPatchRepo.batchUpdatePatchToolByTranslator).toHaveBeenCalledWith('t1', 'https://new-patcher.example.com');
       expect(mockStatus.show).toHaveBeenCalledWith('อัปเดต Patch Tool ทั้งหมด 2 เกมสำเร็จ', 'success');
     });
@@ -273,5 +273,26 @@ describe('AdminTranslatorsPageComponent', () => {
       fixture.detectChanges();
       expect(syncBtn?.disabled).toBeFalse();
     });
+  });
+
+  it('defaults autoPatchTool to true on add and preserves false on edit/save', async () => {
+    (component as any).add();
+    expect((component as any).autoPatchTool).toBeTrue();
+
+    (component as any).edit({
+      id: 't1',
+      shortName: 'G-Trans',
+      name: 'G-Translators',
+      modTool: 'Lunar IPS',
+      autoPatchTool: false
+    });
+    expect((component as any).autoPatchTool).toBeFalse();
+
+    mockRepo.update.and.resolveTo({
+      data: { id: 't1', shortName: 'G-Trans', name: 'G-Translators', modTool: 'Lunar IPS', autoPatchTool: false },
+      edgeSynced: true
+    });
+    await (component as any).save();
+    expect(mockRepo.update).toHaveBeenCalledWith('t1', 'G-Trans', 'G-Translators', '', 'Lunar IPS', false);
   });
 });

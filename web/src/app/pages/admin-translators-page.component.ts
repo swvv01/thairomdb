@@ -47,6 +47,7 @@ export class AdminTranslatorsPageComponent {
   protected shortName = '';
   protected name = '';
   protected modTool = '';
+  protected autoPatchTool = true;
   protected link = '';
 
   constructor() {
@@ -80,6 +81,7 @@ export class AdminTranslatorsPageComponent {
     this.shortName = '';
     this.name = '';
     this.modTool = '';
+    this.autoPatchTool = true;
     this.link = '';
     this.open = true;
   }
@@ -89,6 +91,7 @@ export class AdminTranslatorsPageComponent {
     this.shortName = x.shortName;
     this.name = x.name;
     this.modTool = x.modTool ?? '';
+    this.autoPatchTool = x.autoPatchTool !== false;
     this.link = x.link ?? '';
     this.open = true;
   }
@@ -111,8 +114,8 @@ export class AdminTranslatorsPageComponent {
       const link = removeFacebookReference(this.link);
       const modTool = removeFacebookReference(this.modTool);
       const result = this.id
-        ? await this.repo.update(this.id, this.shortName, this.name, link, modTool)
-        : await this.repo.create(this.shortName, this.name, link, modTool);
+        ? await this.repo.update(this.id, this.shortName, this.name, link, modTool, this.autoPatchTool)
+        : await this.repo.create(this.shortName, this.name, link, modTool, this.autoPatchTool);
       this.close();
       showEdgeSyncFeedback(this.status, editing ? 'แก้ไขทีมแปลสำเร็จ' : 'เพิ่มทีมแปลสำเร็จ', result.edgeSynced);
     } catch (e) {
@@ -155,7 +158,7 @@ export class AdminTranslatorsPageComponent {
       let edgeSyncedTranslator = true;
       if (this.shortName.trim() && this.name.trim()) {
         const link = removeFacebookReference(this.link);
-        const updateResult = await this.repo.update(this.id, this.shortName, this.name, link, targetTool);
+        const updateResult = await this.repo.update(this.id, this.shortName, this.name, link, targetTool, this.autoPatchTool);
         edgeSyncedTranslator = updateResult?.edgeSynced ?? false;
       }
 

@@ -3,6 +3,7 @@ export interface Translator {
   shortName: string;
   name: string;
   modTool?: string;
+  autoPatchTool?: boolean;
   link?: string;
 }
 

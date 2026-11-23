@@ -374,6 +374,9 @@
       <label class="mt-3 block"><i class="fa-solid fa-screwdriver-wrench mr-1" aria-hidden="true"></i>Mod tool<input
           class="admin-input" [value]="newTranslatorModTool"
           (input)="newTranslatorModTool = $any($event.target).value" /></label>
+      <label class="mt-3 flex items-center gap-2 text-base cursor-pointer select-none"><input type="checkbox"
+          [checked]="newTranslatorAutoPatchTool"
+          (change)="newTranslatorAutoPatchTool = $any($event.target).checked" /><span>Auto Patch Tool (ดึงค่า Mod tool อัตโนมัติ)</span></label>
       <label class="mt-3 block"><i class="fa-solid fa-link mr-1" aria-hidden="true"></i>ลิงก์ทีมแปล<input
           class="admin-input" [value]="newTranslatorLink"
           (input)="newTranslatorLink = $any($event.target).value" /></label>

@@ -1573,8 +1573,39 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
 
     await (comp as any).createTranslator();
 
-    expect(translatorRepo.create).toHaveBeenCalledWith('Siam', 'Siam Translators', 'https://siam.org', 'SiamTool');
+    expect(translatorRepo.create).toHaveBeenCalledWith('Siam', 'Siam Translators', 'https://siam.org', 'SiamTool', true);
     expect(statusMsg.show).toHaveBeenCalledWith('เพิ่มทีมแปลสำเร็จ', 'success');
+  });
+
+  it('auto-fills or clears patchTool based on translator autoPatchTool setting', async () => {
+    (comp as any).translatorOptions = [
+      { id: 't-auto', shortName: 'Auto', name: 'Auto Team', modTool: 'IPS Tool', autoPatchTool: true },
+      { id: 't-manual', shortName: 'Man', name: 'Manual Team', modTool: 'xdelta', autoPatchTool: false }
+    ];
+
+    (comp as any).selectTranslator((comp as any).translatorOptions[0]);
+    expect(comp.form.controls.patchTool.value).toBe('IPS Tool');
+
+    (comp as any).selectTranslator((comp as any).translatorOptions[1]);
+    expect(comp.form.controls.patchTool.value).toBe('');
+
+    (comp as any).setDefaultPatchTool();
+    expect(comp.form.controls.patchTool.value).toBe('xdelta');
+
+    const translatorRepo = TestBed.inject(TranslatorRepository) as any;
+    translatorRepo.create.and.resolveTo({
+      data: { id: 't-new', shortName: 'New', name: 'New Team', modTool: 'Flips', autoPatchTool: false },
+      edgeSynced: true
+    });
+    comp.form.controls.patchTool.setValue('Existing');
+    (comp as any).newTranslatorShortName = 'New';
+    (comp as any).newTranslatorName = 'New Team';
+    (comp as any).newTranslatorModTool = 'Flips';
+    (comp as any).newTranslatorAutoPatchTool = false;
+
+    await (comp as any).createTranslator();
+    expect(translatorRepo.create).toHaveBeenCalledWith('New', 'New Team', '', 'Flips', false);
+    expect(comp.form.controls.patchTool.value).toBe('');
   });
 
   it('creates quick tag and triggers edge sync feedback', async () => {

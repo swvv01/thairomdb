@@ -5,8 +5,17 @@ import { Translator } from '../models/patch.models';
 import { RepositoryError } from './repository-error';
 import { FirestoreCacheService } from '../services/firestore-cache.service';
 import { EdgeDataService } from '../services/edge-data.service';
-export type TranslatorDocument = { shortName: string; name: string; modTool?: string; link?: string };
+export type TranslatorDocument = { shortName: string; name: string; modTool?: string; autoPatchTool?: boolean; link?: string };
 const normalizeName = (value: string): string => value.trim().replace(/\s+/g, ' ');
+const normalizeAutoPatchTool = (value: unknown): boolean => value !== false;
+const mapTranslatorRow = (row: Record<string, unknown>): Translator => ({
+  id: String(row['id']),
+  shortName: normalizeName(String(row['shortName'] ?? '')),
+  name: normalizeName(String(row['name'] ?? '')),
+  modTool: row['modTool'] ? normalizeName(String(row['modTool'])) : undefined,
+  autoPatchTool: normalizeAutoPatchTool(row['autoPatchTool']),
+  link: row['link'] ? String(row['link']).trim() : undefined
+});
 const rows = (value: unknown): Record<string, unknown>[] => Object.entries((value && typeof value === 'object' ? value : {}) as Record<string, unknown>).map(([id, data]) => ({ id, ...(data as Record<string, unknown>) } as Record<string, unknown>));
 @Injectable({ providedIn: 'root' }) export class TranslatorRepository {
   private readonly database = inject(Database);
@@ -22,7 +31,7 @@ const rows = (value: unknown): Record<string, unknown>[] => Object.entries((valu
           return s.val();
         }))
       )),
-      map(items => items.map(row => ({ id: String(row['id']), shortName: normalizeName(String(row['shortName'] ?? '')), name: normalizeName(String(row['name'] ?? '')), modTool: row['modTool'] ? normalizeName(String(row['modTool'])) : undefined, link: row['link'] ? String(row['link']).trim() : undefined })).filter(row => row.shortName && row.name).sort((a,b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }))),
+      map(items => items.map(mapTranslatorRow).filter(row => row.shortName && row.name).sort((a,b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }))),
       catchError(() => throwError(() => new RepositoryError('ไม่สามารถโหลดข้อมูลทีมแปลได้', 'read')))
     );
   }
@@ -38,20 +47,15 @@ const rows = (value: unknown): Record<string, unknown>[] => Object.entries((valu
   private async fetchDirectFromDb(): Promise<Translator[]> {
     const s = await get(ref(this.database, 'translators'));
     return rows(s.val())
-      .map(row => ({
-        id: String(row['id']),
-        shortName: normalizeName(String(row['shortName'] ?? '')),
-        name: normalizeName(String(row['name'] ?? '')),
-        modTool: row['modTool'] ? normalizeName(String(row['modTool'])) : undefined,
-        link: row['link'] ? String(row['link']).trim() : undefined
-      }))
+      .map(mapTranslatorRow)
       .filter(row => row.shortName && row.name)
       .sort((a, b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }));
   }
-  async create(shortName: string, name: string, link?: string, modTool?: string): Promise<{ data: Translator; edgeSynced: boolean }> {
+  async create(shortName: string, name: string, link?: string, modTool?: string, autoPatchTool = true): Promise<{ data: Translator; edgeSynced: boolean }> {
     const s = normalizeName(shortName), n = normalizeName(name), l = link?.trim(), m = modTool?.trim();
+    const auto = normalizeAutoPatchTool(autoPatchTool);
     if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของทีมแปล', 'create');
-    const data = { shortName: s, name: n, ...(m ? { modTool: m } : {}), ...(l ? { link: l } : {}) };
+    const data = { shortName: s, name: n, autoPatchTool: auto, ...(m ? { modTool: m } : {}), ...(l ? { link: l } : {}) };
     let translator: Translator;
     try {
       const r = push(ref(this.database, 'translators'));
@@ -67,14 +71,15 @@ const rows = (value: unknown): Record<string, unknown>[] => Object.entries((valu
     return { data: translator, edgeSynced };
   }
 
-  async update(id: string, shortName: string, name: string, link?: string, modTool?: string): Promise<{ data: Translator; edgeSynced: boolean }> {
+  async update(id: string, shortName: string, name: string, link?: string, modTool?: string, autoPatchTool = true): Promise<{ data: Translator; edgeSynced: boolean }> {
     const s = normalizeName(shortName), n = normalizeName(name), l = link?.trim(), m = modTool?.trim();
+    const auto = normalizeAutoPatchTool(autoPatchTool);
     if (!s || !n) throw new RepositoryError('กรุณาระบุชื่อย่อและชื่อเต็มของทีมแปล', 'update');
-    const data = { shortName: s, name: n, modTool: m || null, link: l || null };
+    const data = { shortName: s, name: n, autoPatchTool: auto, modTool: m || null, link: l || null };
     let translator: Translator;
     try {
       await update(ref(this.database, `translators/${id}`), data);
-      translator = { id, shortName: s, name: n, ...(m ? { modTool: m } : {}), ...(l ? { link: l } : {}) };
+      translator = { id, shortName: s, name: n, autoPatchTool: auto, ...(m ? { modTool: m } : {}), ...(l ? { link: l } : {}) };
     } catch {
       throw new RepositoryError('ไม่สามารถแก้ไขทีมแปลได้', 'update');
     }
