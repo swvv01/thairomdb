@@ -27,9 +27,14 @@
 
         <div>
           <label class="required"><i class="fa-solid fa-users mr-1" aria-hidden="true"></i>ทีมแปล</label>
-          <div class="tag-autocomplete" (click)="$event.stopPropagation()">
-            <input #translatorInput class="admin-input" placeholder="พิมพ์เพื่อค้นหาทีมแปล" [value]="translatorSearchText"
-              (focus)="openTranslatorAutocomplete($event)" (input)="onTranslatorInput($any($event.target).value)"
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="openTranslatorDialog()"
+              [disabled]="loadingData"><i class="fa-solid fa-user-plus mr-1" aria-hidden="true"></i>เพิ่มทีมแปล</button>
+          </div>
+          <div class="tag-autocomplete mt-2" (click)="$event.stopPropagation()">
+            <input #translatorInput class="admin-input" placeholder="พิมพ์เพื่อค้นหาทีมแปล"
+              [value]="translatorSearchText" (focus)="openTranslatorAutocomplete($event)"
+              (input)="onTranslatorInput($any($event.target).value)"
               (keydown.escape)="translatorAutocompleteOpen = false" autocomplete="off" role="combobox"
               [attr.aria-expanded]="translatorAutocompleteOpen" aria-controls="translator-options"
               [disabled]="loadingData" />
@@ -46,12 +51,14 @@
             <p class="tag-autocomplete__empty">ไม่พบทีมแปลที่ตรงกัน</p>
             }
           </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="openTranslatorDialog()"
-            [disabled]="loadingData"><i class="fa-solid fa-user-plus mr-1" aria-hidden="true"></i>เพิ่มทีมแปล</button>
         </div>
         <div>
           <label class="required"><i class="fa-solid fa-display mr-1" aria-hidden="true"></i>เครื่องเกม</label>
-          <div class="tag-autocomplete" (click)="$event.stopPropagation()">
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="openSystemDialog()"
+              [disabled]="loadingData"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>เพิ่มเครื่องเกม</button>
+          </div>
+          <div class="tag-autocomplete mt-2" (click)="$event.stopPropagation()">
             <input #systemInput class="admin-input" placeholder="พิมพ์เพื่อค้นหาเครื่องเกม" [value]="systemSearchText"
               (focus)="openSystemAutocomplete($event)" (input)="onSystemInput($any($event.target).value)"
               (keydown.escape)="systemAutocompleteOpen = false" autocomplete="off" role="combobox"
@@ -69,11 +76,15 @@
             <p class="tag-autocomplete__empty">ไม่พบเครื่องเกมที่ตรงกัน</p>
             }
           </div>
-          <button class="mt-2 border  px-3 py-2 font-bold button" type="button" (click)="openSystemDialog()"
-            [disabled]="loadingData"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>เพิ่มเครื่องเกม</button>
         </div>
         <div id="section-game-info">
           <label class="required"><i class="fa-solid fa-gamepad mr-1" aria-hidden="true"></i>ชื่อเกม</label>
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('gameTitle')"
+              [disabled]="pastingField === 'gameTitle' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'gameTitle' ? 'กำลังวาง…' :
+              'Clipboard' }}</button>
+          </div>
           <div class="admin-input-group">
             <input #gameTitleInput class="admin-input" formControlName="gameTitle" />
             @if (form.controls.gameTitle.value) {
@@ -83,10 +94,6 @@
             </button>
             }
           </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('gameTitle')"
-            [disabled]="pastingField === 'gameTitle' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'gameTitle' ? 'กำลังวาง…' :
-            'Clipboard' }}</button>
         </div>
         <div id="section-cover" [class.pointer-events-none]="loadingData" [class.opacity-50]="loadingData">
           <label><i class="fa-solid fa-image mr-1" aria-hidden="true"></i>ภาพปก</label>
@@ -94,142 +101,9 @@
             [system]="form.controls.system.value" [existingCoverUrl]="existingCoverUrl" (selected)="cover = $event" />
         </div>
 
-        <div id="section-playtime">
-          <label id="playtime-group-label" class="required"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>เวลาในการเล่น
-            (ชั่วโมง)</label>
-          <div class="grid grid-cols-2 gap-2 sm:gap-4">
-            <div>
-              <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0" min="0"
-                inputmode="decimal" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง (ชั่วโมง)"
-                placeholder="เช่น 15 (จบเนื้อเรื่อง)" (focus)="playTimeInput.select()"
-                (keydown)="onPlayTimeKeyDown($event, 'playTime')"
-                (beforeinput)="onPlayTimeBeforeInput($event, 'playTime')" (input)="onPlayTimeInput($event, 'playTime')"
-                (wheel)="onPlayTimeWheel($event)" />
-            </div>
-            <div>
-              <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0"
-                min="0" inputmode="decimal" aria-labelledby="playtime-group-label"
-                aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)" placeholder="เช่น 25 (จบพิเศษ)"
-                (focus)="playTimeFullInput.select()" (keydown)="onPlayTimeKeyDown($event, 'playTimeFull')"
-                (beforeinput)="onPlayTimeBeforeInput($event, 'playTimeFull')"
-                (input)="onPlayTimeInput($event, 'playTimeFull')" (wheel)="onPlayTimeWheel($event)" />
-            </div>
-          </div>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
-              [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1" aria-hidden="true"></i>HLTB</button>
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="setNoPlayTime()"
-              [disabled]="loadingData"><i class="fa-solid fa-ban mr-1" aria-hidden="true"></i>No data</button>
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="syncPlayTimeFullFromPlayTime()"
-              [disabled]="loadingData"><i class="fa-solid fa-copy mr-1" aria-hidden="true"></i>Same</button>
-          </div>
-        </div>
-
-        <div id="section-patch">
-          <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch</label>
-          <div class="admin-input-group">
-            <input #patchFileUrlInput class="admin-input" formControlName="patchFileUrl" type="url" />
-            @if (form.controls.patchFileUrl.value) {
-            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchFileUrl', patchFileUrlInput)"
-              aria-label="ล้าง Patch" title="ล้าง Patch">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
-            [disabled]="pastingField === 'patchFileUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
-        </div>
-        <div>
-          <label><i class="fa-solid fa-screwdriver-wrench mr-1" aria-hidden="true"></i>Patch Tool</label>
-          <div class="admin-input-group">
-            <input #patchToolInput class="admin-input" formControlName="patchTool" />
-            @if (form.controls.patchTool.value) {
-            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchTool', patchToolInput)"
-              aria-label="ล้าง Patch Tool" title="ล้าง Patch Tool">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchTool')"
-              [disabled]="pastingField === 'patchTool' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-                aria-hidden="true"></i>{{ pastingField === 'patchTool' ? 'กำลังวาง…' : 'Clipboard' }}</button>
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="setDefaultPatchTool()"
-              [disabled]="loadingData"><i class="fa-solid fa-wand-magic-sparkles mr-1"
-                aria-hidden="true"></i>Default</button>
-            <button class="border px-3 py-2 font-bold button" type="button" (click)="setRomPatcherTool()"
-              [disabled]="loadingData"><i class="fa-solid fa-toolbox mr-1" aria-hidden="true"></i>RomPatcher.js</button>
-
-          </div>
-        </div>
-        <div>
-          <label><i class="fa-solid fa-file-code mr-1" aria-hidden="true"></i>ROM</label>
-          <div class="admin-input-group">
-            <input #patchedRomUrlInput class="admin-input" formControlName="patchedRomUrl" type="url" />
-            @if (form.controls.patchedRomUrl.value) {
-            <button class="admin-input-clear-btn" type="button"
-              (click)="clearField('patchedRomUrl', patchedRomUrlInput)" aria-label="ล้าง ROM" title="ล้าง ROM">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchedRomUrl')"
-            [disabled]="pastingField === 'patchedRomUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'patchedRomUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
-        </div>
-
-        <div>
-          <label>
-            <i class="fa-solid fa-link mr-1" aria-hidden="true"></i>Reference URL
-          </label>
-          <div class="admin-input-group">
-            <input #referenceUrlInput class="admin-input" formControlName="referenceUrl" type="url" />
-            @if (form.controls.referenceUrl.value) {
-            <button class="admin-input-clear-btn" type="button" (click)="clearField('referenceUrl', referenceUrlInput)"
-              aria-label="ล้าง Reference URL" title="ล้าง Reference URL">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('referenceUrl')"
-            [disabled]="pastingField === 'referenceUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'referenceUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
-        </div>
-        <div>
-          <label>
-            <i class="fa-solid fa-quote-left mr-1" aria-hidden="true"></i>Reference Text
-          </label>
-          <div class="admin-input-group">
-            <input #referenceTextInput class="admin-input" formControlName="referenceText" type="text" />
-            @if (form.controls.referenceText.value) {
-            <button class="admin-input-clear-btn" type="button"
-              (click)="clearField('referenceText', referenceTextInput)" aria-label="ล้าง Reference Text"
-              title="ล้าง Reference Text">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-        </div>
-        <div id="section-walkthrough">
-          <label><i class="fa-solid fa-book-open mr-1" aria-hidden="true"></i>บทสรุป</label>
-          <div class="admin-input-group">
-            <input #walkthroughUrlInput class="admin-input" formControlName="walkthroughUrl" type="url" />
-            @if (form.controls.walkthroughUrl.value) {
-            <button class="admin-input-clear-btn" type="button"
-              (click)="clearField('walkthroughUrl', walkthroughUrlInput)" aria-label="ล้างบทสรุป" title="ล้างบทสรุป">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </button>
-            }
-          </div>
-          <button class="mt-2 border px-3 py-2 font-bold button" type="button" (click)="pasteTo('walkthroughUrl')"
-            [disabled]="pastingField === 'walkthroughUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
-              aria-hidden="true"></i>{{ pastingField === 'walkthroughUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
-        </div>
-
-        <fieldset id="section-tags" class="border border-slate-600 p-3 relative">
-          <legend><i class="fa-solid fa-tags mr-1" aria-hidden="true"></i>หมวดหมู่</legend>
-          <div class="quick-tags-container">
+        <div id="section-tags">
+          <label><i class="fa-solid fa-tags mr-1" aria-hidden="true"></i>หมวดหมู่</label>
+          <div class="quick-tags-container mt-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="createTag()"
               [disabled]="!newTagName.trim() || loadingData"><i class="fa-solid fa-tag mr-1"
                 aria-hidden="true"></i>เพิ่ม
@@ -269,12 +143,150 @@
             <p class="tag-autocomplete__empty">ไม่พบ tag ที่ตรงกัน — กด “เพิ่ม tag” เพื่อสร้างใหม่</p>
             }
           </div>
+        </div>
 
+        <div id="section-playtime">
+          <label id="playtime-group-label" class="required"><i class="fa-solid fa-clock mr-1"
+              aria-hidden="true"></i>เวลาในการเล่น
+            (ชั่วโมง)</label>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="openHowLongToBeat()"
+              [disabled]="loadingData"><i class="fa-solid fa-magnifying-glass mr-1" aria-hidden="true"></i>HLTB</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setNoPlayTime()"
+              [disabled]="loadingData"><i class="fa-solid fa-ban mr-1" aria-hidden="true"></i>No data</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="syncPlayTimeFullFromPlayTime()"
+              [disabled]="loadingData"><i class="fa-solid fa-copy mr-1" aria-hidden="true"></i>Same</button>
+          </div>
+          <div class="mt-2 grid grid-cols-2 gap-2 sm:gap-4">
+            <div>
+              <input #playTimeInput class="admin-input" formControlName="playTime" type="number" step="0" min="0"
+                inputmode="decimal" aria-labelledby="playtime-group-label" aria-label="เวลาเล่นจบเนื้อเรื่อง (ชั่วโมง)"
+                placeholder="เช่น 15 (จบเนื้อเรื่อง)" (focus)="playTimeInput.select()"
+                (keydown)="onPlayTimeKeyDown($event, 'playTime')"
+                (beforeinput)="onPlayTimeBeforeInput($event, 'playTime')" (input)="onPlayTimeInput($event, 'playTime')"
+                (wheel)="onPlayTimeWheel($event)" />
+            </div>
+            <div>
+              <input #playTimeFullInput class="admin-input" formControlName="playTimeFull" type="number" step="0"
+                min="0" inputmode="decimal" aria-labelledby="playtime-group-label"
+                aria-label="เวลาเล่นจบเนื้อเรื่อง + พิเศษ (ชั่วโมง)" placeholder="เช่น 25 (จบพิเศษ)"
+                (focus)="playTimeFullInput.select()" (keydown)="onPlayTimeKeyDown($event, 'playTimeFull')"
+                (beforeinput)="onPlayTimeBeforeInput($event, 'playTimeFull')"
+                (input)="onPlayTimeInput($event, 'playTimeFull')" (wheel)="onPlayTimeWheel($event)" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <label><i class="fa-solid fa-screwdriver-wrench mr-1" aria-hidden="true"></i>Patch Tool</label>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchTool')"
+              [disabled]="pastingField === 'patchTool' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'patchTool' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setDefaultPatchTool()"
+              [disabled]="loadingData"><i class="fa-solid fa-wand-magic-sparkles mr-1"
+                aria-hidden="true"></i>Default</button>
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="setRomPatcherTool()"
+              [disabled]="loadingData"><i class="fa-solid fa-toolbox mr-1" aria-hidden="true"></i>RomPatcher.js</button>
+          </div>
+          <div class="admin-input-group">
+            <input #patchToolInput class="admin-input" formControlName="patchTool" />
+            @if (form.controls.patchTool.value) {
+            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchTool', patchToolInput)"
+              aria-label="ล้าง Patch Tool" title="ล้าง Patch Tool">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
+        <div id="section-patch">
+          <label><i class="fa-solid fa-file-arrow-down mr-1" aria-hidden="true"></i>Patch</label>
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchFileUrl')"
+              [disabled]="pastingField === 'patchFileUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'patchFileUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+          </div>
+          <div class="admin-input-group">
+            <input #patchFileUrlInput class="admin-input" formControlName="patchFileUrl" type="url" />
+            @if (form.controls.patchFileUrl.value) {
+            <button class="admin-input-clear-btn" type="button" (click)="clearField('patchFileUrl', patchFileUrlInput)"
+              aria-label="ล้าง Patch" title="ล้าง Patch">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
 
-        </fieldset>
+        <div>
+          <label><i class="fa-solid fa-file-code mr-1" aria-hidden="true"></i>ROM</label>
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchedRomUrl')"
+              [disabled]="pastingField === 'patchedRomUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'patchedRomUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+          </div>
+          <div class="admin-input-group">
+            <input #patchedRomUrlInput class="admin-input" formControlName="patchedRomUrl" type="url" />
+            @if (form.controls.patchedRomUrl.value) {
+            <button class="admin-input-clear-btn" type="button"
+              (click)="clearField('patchedRomUrl', patchedRomUrlInput)" aria-label="ล้าง ROM" title="ล้าง ROM">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label>
+            <i class="fa-solid fa-link mr-1" aria-hidden="true"></i>Reference URL
+          </label>
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('referenceUrl')"
+              [disabled]="pastingField === 'referenceUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'referenceUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+          </div>
+          <div class="admin-input-group">
+            <input #referenceUrlInput class="admin-input" formControlName="referenceUrl" type="url" />
+            @if (form.controls.referenceUrl.value) {
+            <button class="admin-input-clear-btn" type="button" (click)="clearField('referenceUrl', referenceUrlInput)"
+              aria-label="ล้าง Reference URL" title="ล้าง Reference URL">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
+        <div>
+          <label>
+            <i class="fa-solid fa-quote-left mr-1" aria-hidden="true"></i>Reference Text
+          </label>
+          <div class="admin-input-group">
+            <input #referenceTextInput class="admin-input" formControlName="referenceText" type="text" />
+            @if (form.controls.referenceText.value) {
+            <button class="admin-input-clear-btn" type="button"
+              (click)="clearField('referenceText', referenceTextInput)" aria-label="ล้าง Reference Text"
+              title="ล้าง Reference Text">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
+        <div id="section-walkthrough">
+          <label><i class="fa-solid fa-book-open mr-1" aria-hidden="true"></i>บทสรุป</label>
+          <div class="mt-2">
+            <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('walkthroughUrl')"
+              [disabled]="pastingField === 'walkthroughUrl' || loadingData"><i class="fa-regular fa-clipboard mr-1"
+                aria-hidden="true"></i>{{ pastingField === 'walkthroughUrl' ? 'กำลังวาง…' : 'Clipboard' }}</button>
+          </div>
+          <div class="admin-input-group">
+            <input #walkthroughUrlInput class="admin-input" formControlName="walkthroughUrl" type="url" />
+            @if (form.controls.walkthroughUrl.value) {
+            <button class="admin-input-clear-btn" type="button"
+              (click)="clearField('walkthroughUrl', walkthroughUrlInput)" aria-label="ล้างบทสรุป" title="ล้างบทสรุป">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+        </div>
         <div id="section-version">
-          <label><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>Patch Version<textarea
-              #patchVersionInput class="admin-input" formControlName="patchVersion" rows="3"></textarea></label>
+          <label for="patch-version-input"><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>Patch Version</label>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="pasteTo('patchVersion')"
               [disabled]="pastingField === 'patchVersion' || loadingData"><i class="fa-regular fa-clipboard mr-1"
@@ -287,20 +299,24 @@
             </button>
             }
           </div>
+          <textarea id="patch-version-input" #patchVersionInput class="admin-input" formControlName="patchVersion"
+            rows="3"></textarea>
         </div>
         <label class="flex items-center gap-2">
           <input formControlName="haveUpdateFlag" type="checkbox" />
           <span>แสดงเป็นแพตช์อัปเดต</span>
         </label>
         <div>
-          <label><i class="fa-solid fa-calendar-days mr-1" aria-hidden="true"></i>วันที่และเวลาอัปเดต<input
-              #updateDateInput class="admin-input" formControlName="updateDate" type="datetime-local" /></label>
+          <label for="update-date-input"><i class="fa-solid fa-calendar-days mr-1"
+              aria-hidden="true"></i>วันที่และเวลาอัปเดต</label>
           <div class="mt-2 flex flex-wrap gap-2">
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateNow()"
               [disabled]="loadingData"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>ตอนนี้</button>
             <button class="border px-3 py-2 font-bold button" type="button" (click)="setUpdateDateTomorrow()"
               [disabled]="loadingData"><i class="fa-solid fa-calendar-day mr-1" aria-hidden="true"></i>พรุ่งนี้</button>
           </div>
+          <input id="update-date-input" #updateDateInput class="admin-input" formControlName="updateDate"
+            type="datetime-local" />
         </div>
         <div class="form-actions mt-8 flex w-full flex-wrap items-center justify-between gap-4">
           <div class="flex flex-wrap items-center gap-2">

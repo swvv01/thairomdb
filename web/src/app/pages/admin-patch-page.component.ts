@@ -135,6 +135,13 @@ export class AdminPatchPageComponent implements OnInit {
       targetId: 'section-cover'
     },
     {
+      id: 'tags',
+      label: 'Tag',
+      icon: 'fa-solid fa-tags',
+      targetId: 'section-tags',
+      focusSelector: 'input[placeholder="พิมพ์เพื่อค้นหา tag"]'
+    },
+    {
       id: 'playtime',
       label: 'เวลาเล่น',
       icon: 'fa-solid fa-clock',
@@ -154,13 +161,6 @@ export class AdminPatchPageComponent implements OnInit {
       icon: 'fa-solid fa-link',
       targetId: 'section-walkthrough',
       focusSelector: 'input[formControlName="walkthroughUrl"]'
-    },
-    {
-      id: 'tags',
-      label: 'Tag',
-      icon: 'fa-solid fa-tags',
-      targetId: 'section-tags',
-      focusSelector: 'input[placeholder="พิมพ์เพื่อค้นหา tag"]'
     },
     {
       id: 'version',

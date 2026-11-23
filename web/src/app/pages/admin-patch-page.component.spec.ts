@@ -1635,16 +1635,29 @@ describe('AdminPatchPageComponent - Quick Tags', () => {
       expect(comp.navSections[0].icon).toBe('fa-solid fa-gamepad');
       expect(comp.navSections[1].id).toBe('cover');
       expect(comp.navSections[1].icon).toBe('fa-solid fa-image');
-      expect(comp.navSections[2].id).toBe('playtime');
-      expect(comp.navSections[2].icon).toBe('fa-solid fa-clock');
-      expect(comp.navSections[3].id).toBe('patch');
-      expect(comp.navSections[3].icon).toBe('fa-solid fa-screwdriver-wrench');
-      expect(comp.navSections[4].id).toBe('walkthrough');
-      expect(comp.navSections[4].icon).toBe('fa-solid fa-link');
-      expect(comp.navSections[5].id).toBe('tags');
-      expect(comp.navSections[5].icon).toBe('fa-solid fa-tags');
+      expect(comp.navSections[2].id).toBe('tags');
+      expect(comp.navSections[2].icon).toBe('fa-solid fa-tags');
+      expect(comp.navSections[3].id).toBe('playtime');
+      expect(comp.navSections[3].icon).toBe('fa-solid fa-clock');
+      expect(comp.navSections[4].id).toBe('patch');
+      expect(comp.navSections[4].icon).toBe('fa-solid fa-screwdriver-wrench');
+      expect(comp.navSections[5].id).toBe('walkthrough');
+      expect(comp.navSections[5].icon).toBe('fa-solid fa-link');
       expect(comp.navSections[6].id).toBe('version');
       expect(comp.navSections[6].icon).toBe('fa-solid fa-code-branch');
+    });
+
+    it('renders #section-tags right after #section-cover and before #section-playtime', () => {
+      fixture.detectChanges();
+      const formEl = fixture.nativeElement.querySelector('form');
+      const sectionIds = Array.from(formEl.querySelectorAll('[id^="section-"]')).map((el: any) => el.id);
+      const coverIdx = sectionIds.indexOf('section-cover');
+      const tagsIdx = sectionIds.indexOf('section-tags');
+      const playtimeIdx = sectionIds.indexOf('section-playtime');
+
+      expect(coverIdx).toBeGreaterThan(-1);
+      expect(tagsIdx).toBe(coverIdx + 1);
+      expect(playtimeIdx).toBe(tagsIdx + 1);
     });
 
     it('scrolls and focuses input when jumpToSection is called', (done) => {
