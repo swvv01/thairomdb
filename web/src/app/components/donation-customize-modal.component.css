@@ -8,21 +8,6 @@
   justify-content: center;
   padding: 1rem;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
-
-.modal-backdrop::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-backdrop::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.modal-backdrop::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 9999px;
 }
 
 .modal-dialog {
@@ -41,28 +26,10 @@
   flex-direction: column;
   gap: 1rem;
   box-sizing: border-box;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
-
-/* Custom sleek scrollbar for modal dialog */
-.modal-dialog::-webkit-scrollbar {
-  width: 6px;
 }
 
 .modal-dialog::-webkit-scrollbar-track {
-  background: transparent;
   margin: 0.35rem 0;
-}
-
-.modal-dialog::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 9999px;
-  transition: background 0.15s ease;
-}
-
-.modal-dialog::-webkit-scrollbar-thumb:hover {
-  background: var(--color-highlight);
 }
 
 .modal-header {
