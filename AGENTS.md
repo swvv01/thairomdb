@@ -108,5 +108,14 @@ When modifying browse view modes, Pinterest masonry layout, infinite scrolling, 
 
 When modifying mobile navigation, Pinterest Grid Mode drawer navigation, header offsets, z-index layering, or drawer content consolidation, refer to `docs/sidebar-toggle-knowledge.md`. This file documents the unified drawer architecture, document flow compensation, scroll locking, and unit testing guidelines across both Mobile and Grid modes.
 
+## PWA & Service Worker Caching
+
+The app uses a No-Cache Pass-Through Service Worker (`web/src/ngsw-worker.js`) so users can still install the PWA (`display: standalone`) without ever getting stuck on cached `index.html` or JS bundles:
+
+- Keep `web/src/ngsw-worker.js` and `web/src/_headers` listed in `web/angular.json` `build.options.assets`. Never remove `ngsw-worker.js` while `web/src/_redirects` has `/* /index.html 200`, or browsers with an old SW will receive `text/html` for `/ngsw-worker.js` and remain stuck on old versions.
+- Keep `ngsw-worker.js` as a network pass-through (do not call `event.respondWith()` or re-enable `@angular/service-worker` caching without an explicit `SwUpdate` reload flow).
+- Keep `Cache-Control: no-cache, no-store, must-revalidate` in `web/src/_headers` for `/`, `/index.html`, and `/ngsw-worker.js`, and keep `updateViaCache: 'none'` in `web/src/index.html`.
+
+
 
 

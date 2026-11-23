@@ -34,7 +34,9 @@
               "src/ads.txt",
               "src/robots.txt",
               "src/sitemap.xml",
-              "src/_redirects"
+              "src/_redirects",
+              "src/_headers",
+              "src/ngsw-worker.js"
             ],
             "styles": [
               "src/styles.css"

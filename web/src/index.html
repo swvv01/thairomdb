@@ -51,18 +51,14 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (var i = 0; i < registrations.length; i++) {
-          registrations[i].unregister();
-        }
+      var hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!hadController) return;
+        if (sessionStorage.getItem('sw_reloaded')) return;
+        sessionStorage.setItem('sw_reloaded', '1');
+        window.location.reload();
       });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function (names) {
-        for (var i = 0; i < names.length; i++) {
-          caches.delete(names[i]);
-        }
-      });
+      navigator.serviceWorker.register('/ngsw-worker.js', { updateViaCache: 'none' }).catch(function () {});
     }
   </script>
 </head>
